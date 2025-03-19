@@ -207,6 +207,7 @@ export async function getWalletType(connector?: Connector, mevParam?: string | n
     return WalletType.mevDefaultOnBSC
   if (
     mevParam === 'isOkxWallet' ||
+    mevParam === 'isCoinbaseWallet' || // for testing in on production, because coinbase/okx wallet will block our preview domain
     (walletSupportCustomRPCNative.some((d) => d in provider) && !walletPretendToMetamask.some((d) => d in provider))
   )
     return WalletType.nativeSupportCustomRPC

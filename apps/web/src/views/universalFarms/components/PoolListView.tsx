@@ -27,8 +27,9 @@ const ListItemContainer = styled.li`
 
 interface IPoolListViewProps {
   data: PoolInfo[]
+  onRowClick?: (item: PoolInfo) => void
 }
-export const ListView: React.FC<IPoolListViewProps> = ({ data }) => {
+export const ListView: React.FC<IPoolListViewProps> = ({ data, onRowClick }) => {
   const [openItem, setOpenItem] = useState<PoolInfo | null>(null)
   const handleDrawerChange = useCallback((status: boolean) => {
     if (!status) setOpenItem(null)
@@ -37,7 +38,7 @@ export const ListView: React.FC<IPoolListViewProps> = ({ data }) => {
   return (
     <ListContainer>
       {data.map((item) => (
-        <ListItemContainer key={`${item.chainId}-${item.lpAddress}`}>
+        <ListItemContainer key={`${item.chainId}-${item.lpAddress}`} onClick={() => onRowClick?.(item)}>
           <Column gap="12px">
             <TokenOverview
               isReady

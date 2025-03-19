@@ -110,9 +110,13 @@ const Value = styled.div<ValueProps>`
   color: ${({ theme, textColor }) => theme.colors[textColor]};
 `
 
-export const StatsSummary: React.FC<{ stats: SiteStats }> = ({ stats }) => {
+export const StatsSummary: React.FC<{ stats?: SiteStats }> = ({ stats }) => {
   const { isMobile, isTablet, isDesktop } = useMatchBreakpoints()
   const { t } = useTranslation()
+
+  if (!stats) {
+    return null
+  }
 
   return (
     <Flex

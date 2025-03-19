@@ -13,8 +13,8 @@ import { HomepageCardBadge } from './component/HomepageCardBadge'
 import { HomepageSymbol } from './component/HomepageSymbol'
 
 interface CakeStatsCardProps {
-  figures: CakeRelatedFigures
-  cakeToken: HomePageToken
+  figures?: CakeRelatedFigures
+  cakeToken?: HomePageToken
 }
 
 const GAUGE_ICON = `${ASSET_CDN}/web/landing/gauge-icon.png`
@@ -38,6 +38,10 @@ export const VoteForEmissionCard: React.FC<CakeStatsCardProps> = ({ figures, cak
   const { t } = useTranslation()
   const { isMobile, isTablet } = useMatchBreakpoints()
   const router = useRouter()
+
+  if (!figures || !cakeToken) {
+    return null
+  }
 
   return (
     <CardSection title={t('Vote for CAKE Emissions')} subtitle={t('on over 600+ Pools')}>

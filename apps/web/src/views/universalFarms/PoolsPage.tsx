@@ -25,6 +25,7 @@ import {
   useColumnConfig,
   useSelectedPoolTypes,
 } from './components'
+import { AddLiquidityButton } from './components/AddLiquidityButton'
 import { useFilterToQueries } from './hooks/useFilterToQueries'
 import { useAllChainIds, useOrderChainIds } from './hooks/useMultiChains'
 
@@ -40,7 +41,7 @@ export const PoolsPage = () => {
   const nextRouter = useRouter()
   const { t } = useTranslation()
   const { theme } = useTheme()
-  const { isMobile } = useMatchBreakpoints()
+  const { isMobile, isMd } = useMatchBreakpoints()
 
   const columns = useColumnConfig()
   const allChainIds = useAllChainIds()
@@ -210,13 +211,15 @@ export const PoolsPage = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <PoolsFilterPanel onChange={handleFilterChange} value={poolsFilter} />
+      <CardHeader p={isMobile ? '16px' : undefined}>
+        <PoolsFilterPanel onChange={handleFilterChange} value={poolsFilter}>
+          {(isMobile || isMd) && <AddLiquidityButton height="40px" scale="sm" width="100%" />}
+        </PoolsFilterPanel>
       </CardHeader>
       <CardBody>
         <PoolsContent>
           {isMobile ? (
-            <ListView data={renderData} />
+            <ListView data={renderData} onRowClick={handleRowClick} />
           ) : (
             <TableView
               getRowKey={getRowKey}

@@ -1,3 +1,4 @@
+export * from './AddLiquidityButton'
 export * from './PoolAprButton'
 export * from './PoolListItemAction'
 export * from './PoolListView'

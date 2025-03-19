@@ -1,8 +1,19 @@
-import { atom } from 'jotai'
-import { HomePageData } from 'pages/api/home/types'
+import { atomWithAsyncRetry } from 'utils/atomWithAsyncRetry'
 
-export const homePageDataAtom = atom(async () => {
-  const resp = await fetch('/api/home')
-  const data = await resp.json()
-  return data as HomePageData
+export const homePageDataAtom = atomWithAsyncRetry({
+  asyncFn: async () => {
+    const response = await fetch('/api/home')
+    if (!response.ok) throw new Error('Fetch error')
+    return response.json()
+  },
+  fallbackValue: {
+    tokens: [],
+    pools: [],
+    currencies: [],
+    chains: [],
+    cakeRelated: undefined,
+    stats: undefined,
+    partners: [],
+    topWinner: undefined,
+  },
 })

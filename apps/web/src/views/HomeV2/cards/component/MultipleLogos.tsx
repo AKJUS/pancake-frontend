@@ -189,7 +189,7 @@ export const MultipleLogos = ({
   borderRadius,
   clickExpand,
 }: MultipleLogosProps) => {
-  const { isMobile, isTablet } = useMatchBreakpoints()
+  const { isMobile } = useMatchBreakpoints()
   const size = getSize(isMobile, isFirstSmall)
 
   const displayedLogos = logos.slice(0, maxDisplay)
@@ -220,7 +220,7 @@ export const MultipleLogos = ({
       document.removeEventListener('touchmove', handleTap)
       document.addEventListener('click', handleTap)
     }
-  }, [expandIndex, ref.current, isMobile])
+  }, [expandIndex, isMobile])
 
   return (
     <LogoWrapper ref={ref}>

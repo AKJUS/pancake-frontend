@@ -1,6 +1,7 @@
 import { useMatchBreakpoints } from '@pancakeswap/uikit'
 import { AdsIds, useAdsConfigs } from 'components/AdPanel/hooks/useAdsConfig'
 import { useMemo } from 'react'
+import { AdTradingCompetitionEos } from 'components/AdPanel/Ads/AdTradingCompetition'
 import { AdCakeStaking } from './Ads/AdCakeStaking'
 import { AdCommon } from './Ads/AdCommon'
 import { AdIfo } from './Ads/AdIfo'
@@ -52,6 +53,10 @@ export const useAdConfig = () => {
       {
         id: 'ad-springboard',
         component: <AdSpringboard />,
+      },
+      {
+        id: 'ad-eos-tc',
+        component: <AdTradingCompetitionEos />,
       },
       {
         id: 'ad-ifo',

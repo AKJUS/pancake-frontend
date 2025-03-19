@@ -1,7 +1,7 @@
 import { useTranslation } from '@pancakeswap/localization'
-import { Breadcrumbs, CopyButton, Flex, ScanLink, Text } from '@pancakeswap/uikit'
-import { ChainLinkSupportChains, multiChainId, multiChainScan } from 'state/info/constant'
+import { Breadcrumbs, CopyButton, Flex, ScanLink, Text, useMatchBreakpoints } from '@pancakeswap/uikit'
 import { NextLinkFromReactRouter } from '@pancakeswap/widgets-internal'
+import { ChainLinkSupportChains, multiChainId, multiChainScan } from 'state/info/constant'
 import { useChainNameByQuery } from 'state/info/hooks'
 import { getBlockExploreLink } from 'utils'
 import { usePoolSymbol } from '../hooks/usePoolSymbol'
@@ -12,6 +12,7 @@ export const BreadcrumbNav: React.FC = () => {
   const { id } = useRouterQuery()
   const chainName = useChainNameByQuery()
   const { poolSymbol } = usePoolSymbol()
+  const { isMobile } = useMatchBreakpoints()
 
   if (!poolSymbol || poolSymbol === ' / ') return null
 
@@ -31,7 +32,7 @@ export const BreadcrumbNav: React.FC = () => {
           mr="8px"
           href={getBlockExploreLink(id, 'address', multiChainId[chainName])}
         >
-          {t('View on %site%', { site: multiChainScan[chainName] })}
+          {!isMobile && t('View on %site%', { site: multiChainScan[chainName] })}
         </ScanLink>
         <CopyButton ml="4px" text={id} tooltipMessage={t('Token address copied')} />
       </Flex>

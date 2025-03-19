@@ -10,6 +10,12 @@ import { getGauges } from '../constants/config/getGauges'
 import { GaugeStableSwapConfig, GaugeType } from '../types'
 
 const PUBLIC_NODES: Record<string, string[]> = {
+  [ChainId.BSC]: [
+    'https://bsc.publicnode.com',
+    'https://binance.llamarpc.com',
+    'https://bsc-dataseed1.defibit.io',
+    'https://bsc-dataseed1.binance.org',
+  ],
   [ChainId.ARBITRUM_ONE]: [
     CHAINS.arbitrum.rpcUrls.default.http[0],
     'https://arbitrum-one.publicnode.com',

@@ -75,7 +75,7 @@ const StyledButton = styled(Button)<{
   padding-left: ${({ isMobile, isTablet }) => getButtonPadding(isMobile, isTablet)};
   border-radius: 999px;
   border-width: 3px;
-  color: ${({ theme, isHover, isMobile, isTablet }) => {
+  color: ${({ theme, isHover, isMobile }) => {
     // Tablet shares the same color set as PC
     if (isHover) {
       return theme.colors.card

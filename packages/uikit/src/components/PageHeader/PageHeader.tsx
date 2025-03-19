@@ -1,5 +1,5 @@
 import { styled } from "styled-components";
-import { Box } from "../Box";
+import { Box, BoxProps } from "../Box";
 import Container from "../Layouts/Container";
 import { PageHeaderProps } from "./types";
 
@@ -13,9 +13,14 @@ const Inner = styled(Container)`
   position: relative;
 `;
 
-const PageHeader: React.FC<React.PropsWithChildren<PageHeaderProps>> = ({ background, children, ...props }) => (
+const PageHeader: React.FC<React.PropsWithChildren<PageHeaderProps & { innerProps?: BoxProps }>> = ({
+  background,
+  children,
+  innerProps,
+  ...props
+}) => (
   <Outer background={background} {...props}>
-    <Inner>{children}</Inner>
+    <Inner {...innerProps}>{children}</Inner>
   </Outer>
 );
 

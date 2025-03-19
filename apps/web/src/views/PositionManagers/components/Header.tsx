@@ -1,40 +1,84 @@
 import { bCakeSupportedChainId } from '@pancakeswap/farms'
 import { useTranslation } from '@pancakeswap/localization'
-import { ChainId } from '@pancakeswap/sdk'
-import { Box, Flex, Heading, Message, MessageText, PageHeader, Text, useMatchBreakpoints } from '@pancakeswap/uikit'
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  HelpIcon,
+  LinkExternal,
+  Message,
+  MessageText,
+  PageHeader,
+  Text,
+  useMatchBreakpoints,
+} from '@pancakeswap/uikit'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
-import { memo } from 'react'
+import useTheme from 'hooks/useTheme'
+import { memo, useCallback } from 'react'
 import { BCakeBoosterCard } from 'views/Farms/components/YieldBooster/components/bCakeV3/BCakeBoosterCard'
 import { BCakeMigrationBanner } from 'views/Home/components/Banners/BCakeMigrationBanner'
 
-const DIFI_EDGE_CHAINS = [ChainId.BSC, ChainId.ARBITRUM_ONE, ChainId.ZKSYNC, ChainId.BASE]
-
 export const Header = memo(function Header() {
   const { t } = useTranslation()
-  const { isDesktop } = useMatchBreakpoints()
+  const { isDesktop, isMobile } = useMatchBreakpoints()
   const { chainId } = useActiveWeb3React()
+  const { theme } = useTheme()
+  const redirectToDocs = useCallback(() => {
+    if (typeof window !== 'undefined' && window) {
+      window.open(
+        'https://blog.pancakeswap.finance/articles/pancakeswap-rolls-out-the-position-manager-feature-on-v3',
+        '_blank',
+        'noopener noreferrer',
+      )
+    }
+  }, [])
 
   return (
-    <PageHeader>
-      <Box mb="32px" mt="16px">
-        {DIFI_EDGE_CHAINS.includes(chainId) ? <DefiEdgeWarning /> : <BCakeMigrationBanner />}
-      </Box>
-      <Flex justifyContent="space-between" flexDirection={['column', null, null, 'row']}>
+    <PageHeader style={isMobile ? { padding: '16px 0' } : undefined}>
+      {!isMobile && (
+        <Box mb="32px" mt="16px">
+          <BCakeMigrationBanner />
+        </Box>
+      )}
+      <Flex justifyContent="space-between" alignItems="flex-start" flexDirection="row" flexWrap="nowrap">
         <Flex
           flex="1"
           flexDirection="column"
           mr={['8px', 0]}
           alignSelf={['flex-start', 'flex-start', 'flex-start', 'center']}
         >
-          <Heading as="h1" scale="xxl" color="secondary" mb="24px">
+          <Heading
+            as="h1"
+            scale={isMobile ? 'md' : 'xxl'}
+            color={isMobile ? 'text' : 'secondary'}
+            mb={isMobile ? '8px' : '24px'}
+          >
             {t('Position Manager')}
           </Heading>
-          <Heading scale="md" color="text">
+          <Heading scale={isMobile ? 'md' : 'lg'} color={isMobile ? 'secondary' : 'text'}>
             {t('Automate your PancakeSwap V3 liquidity')}
           </Heading>
+          {!isMobile && (
+            <LinkExternal
+              href="https://blog.pancakeswap.finance/articles/pancakeswap-rolls-out-the-position-manager-feature-on-v3"
+              showExternalIcon={false}
+            >
+              <Button p="0" variant="text">
+                <Text color="primary" bold fontSize="16px" mr="4px">
+                  {t('Learn How')}
+                </Text>
+              </Button>
+            </LinkExternal>
+          )}
         </Flex>
 
         {isDesktop && bCakeSupportedChainId.includes(chainId) && <BCakeBoosterCard variants="pm" />}
+        {isMobile && (
+          <Button width="40px" height="40px" variant="subtle" px="16px" scale="md" onClick={redirectToDocs}>
+            <HelpIcon color={theme.isDark ? '#280D5F' : 'white'} />
+          </Button>
+        )}
       </Flex>
     </PageHeader>
   )

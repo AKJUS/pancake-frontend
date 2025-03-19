@@ -56,13 +56,18 @@ const TopWinnerTitle = styled(Text)<{ isMobile?: boolean; isTablet?: boolean }>`
 `
 
 interface PredictionCardProps {
-  token: HomePageToken
-  winner: HomePageUser
+  token?: HomePageToken
+  winner?: HomePageUser
 }
 
 export const PredictionCard: React.FC<PredictionCardProps> = ({ token, winner }) => {
   const { t } = useTranslation()
   const { isMobile, isTablet } = useMatchBreakpoints()
+
+  if (!token || !winner) {
+    return null
+  }
+
   const { user, profile } = winner
   const avatar = profile?.nft?.image.thumbnail
   const win = user.totalBNBClaimed - user.totalBNB
