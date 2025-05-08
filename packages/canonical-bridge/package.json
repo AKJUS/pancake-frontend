@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@bnb-chain/canonical-bridge-widget": "0.6.0",
-    "axios": "~1.6.8",
+    "axios": "~1.8.2",
     "polished": "^4.2.2"
   },
   "devDependencies": {
