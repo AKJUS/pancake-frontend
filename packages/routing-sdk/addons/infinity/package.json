@@ -39,7 +39,7 @@
     "@pancakeswap/tsconfig": "workspace:*",
     "@pancakeswap/utils": "workspace:*",
     "@types/lodash": "^4.14.168",
-    "tsup": "^6.7.0"
+    "tsup": "^8.3.5"
   },
   "exports": {
     "./package.json": "./package.json",
