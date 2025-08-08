@@ -31,7 +31,7 @@
     "openapi-fetch": "^0.14.0"
   },
   "devDependencies": {
-    "tsup": "^6.7.0",
+    "tsup": "^8.3.5",
     "@pancakeswap/utils": "workspace:*",
     "openapi-typescript": "7.8.0",
     "openapi-typescript-helpers": "0.0.15"
