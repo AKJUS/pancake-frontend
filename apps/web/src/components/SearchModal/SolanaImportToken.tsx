@@ -6,12 +6,10 @@ import { useTranslation } from '@pancakeswap/localization'
 import truncateHash from '@pancakeswap/utils/truncateHash'
 import { solanaExplorerAtom } from '@pancakeswap/utils/user'
 import { useAtom } from 'jotai'
-import { NonEVMChainId } from '@pancakeswap/chains'
 import { useSolanaTokenList } from 'hooks/solana/useSolanaTokenList'
 import { convertSPLTokenIntoRawTokenInfoUserAdded } from 'config/solana-list'
 
 import { WarningMessage } from './ImportToken'
-import { SHORT_SYMBOL } from '../NetworkSwitcher'
 
 interface ImportProps {
   tokens: SPLToken[]
@@ -27,7 +25,7 @@ function SolanaImportToken({ tokens, handleCurrencySelect }: ImportProps) {
 
   return (
     <AutoColumn gap="lg">
-      <WarningMessage chainName={SHORT_SYMBOL[NonEVMChainId.SOLANA]} />
+      <WarningMessage />
 
       {tokens.map((token) => {
         const address = token.address ? `${truncateHash(token.address)}` : null

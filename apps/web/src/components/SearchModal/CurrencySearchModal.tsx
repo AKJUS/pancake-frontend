@@ -49,11 +49,11 @@ const StyledModalHeader = styled(ModalHeader)`
   border: none;
 `
 
-const StyledModalBody = styled(ModalBody)`
+const StyledModalBody = styled(ModalBody)<{ $allowScroll?: boolean }>`
   padding: 4px 24px 24px;
   max-height: calc(90vh);
 
-  overflow-y: hidden;
+  overflow-y: ${({ $allowScroll }) => ($allowScroll ? 'auto' : 'hidden')};
   -ms-overflow-style: none;
   scrollbar-width: none;
   &::-webkit-scrollbar {
@@ -237,7 +237,7 @@ export default function CurrencySearchModal({
           <ModalCloseButton onDismiss={onDismiss} />
         </StyledModalHeader>
       )}
-      <StyledModalBody>
+      <StyledModalBody $allowScroll={modalView === CurrencyModalView.importToken}>
         {modalView === CurrencyModalView.search ? (
           <CurrencySearch
             onSettingsClick={() => setModalView(CurrencyModalView.manage)}
