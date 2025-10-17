@@ -2105,8 +2105,6 @@
   "Significant Risk": "重大风险",
   "Risk scanning is still in progress. It may take up to 5 minutes to fully scan a token which is new to the database.": "风险扫描仍在进行中。完全扫描数据库中的新代币最长可能需要 5 分钟。",
   "Automatic risk scanning for the selected token. This scanning result is for reference only, and should NOT be taken as investment advice.": "对所选代币进行自动风险扫描。此扫描结果仅供参考，不应被视为投资建议。",
-  "If you purchase a fraudulent token, you may be exposed to permanent loss of funds.": "如果您购买了欺诈性代币，那么您可能会面临永久性的资金损失。",
-  "Anyone can create tokens on %network% with any name, including creating fake versions of existing tokens and tokens that claim to represent projects that do not have a token.": "任何人都可以在 %network% 上使用任意名称创建代币，包括创建虚假版本的现有代币和声称代表没有代币的项目的代币。",
   "%token1%'s exchange rate is determined by the value accrued vs %token0%. As you receive rewards, your amount of %token1% will not change.": "%token1% 的汇率由相对于 %token0% 的应计价值决定。当您收取奖励时，您持有的 %token1% 数量并不会改变。",
   "APR is calculated based on the past 24H of staking rewards from the %token0% network.": "APR 根据 %token0% 网络过去 24 小时的权益质押奖励计算得出。",
   "1 %token0% = %exchangeRateAmount% %token1%": "1 %token0% = %exchangeRateAmount% %token1%",
@@ -4130,7 +4128,6 @@
   "Claim your Farm rewards on PancakeSwap and your Incentra rewards on": "在 PancakeSwap 领取您的 Farm 奖励，Incentra 奖励请前往",
   "Incentra's website": "Incentra 的网站领取。",
   "CAKE Burn Dashboard": "CAKE 销毁仪表盘",
-  "Trade Binance Alpha Tokens to Win $250,000.": "交易 Binance Alpha 代币，赢取 $250,000。",
   "Turn LP into Borrow Power. Get lisUSD Instantly!": "将 LP 转化为借贷能力。即刻获取 lisUSD！",
   "Borrow Here": "在此借款",
   "Swap %currencyA% (%chainNameA%) to %currencyB% (%chainName%)": "将 %currencyA% (%chainNameA%) 兑换为 %currencyB% (%chainName%)",
@@ -4288,5 +4285,7 @@
   "Your Tax": "您的费用",
   "Total CAKE to burn": "待销毁的 CAKE 总量",
   "Taxes apply only if the CAKE.PAD event is oversubscribed. Tax is deducted solely from your excess committed funds (based on fee tier).": "仅当 CAKE.PAD 活动超额认购时，才会收取费用。费用将仅从您超额投入的资金中扣除（基于费用等级）。",
-  "Tiered Tax based on subscription % : Fees decrease as oversubscription increases. <ul> <li>≤100% Sub → 0% Fee</li> <li>>100% Sub → 1% Fee</li> <li>≥5,000% Sub → 0.8% Fee</li> <li>≥10,000% Sub → 0.6% Fee</li> <li>≥15,000% Sub → 0.5% Fee</li> <li>≥20,000% Sub → 0.4% Fee</li> <li>≥25,000% Sub → 0.3% Fee</li> <li>≥30,000% Sub → 0.25% Fee</li> <li>≥40,000% Sub → 0.20% Fee</li> <li>≥50,000% Sub → 0.15% Fee</li> <li>≥65,000% Sub → 0.12% Fee</li> <li>≥80,000% Sub → 0.10% Fee</li> <li>>150,000% Sub → 0.05% Fee</li> </ul> (All CAKE.PAD fees collected will be used in CAKE burn)": "基于认购百分比的分级费用：超额认购倍数越高，费用越低。<ul> <li>≤100% 认购 → 0% 费用</li> <li>>100% 认购 → 1% 费用</li> <li>≥5,000% 认购 → 0.8% 费用</li> <li>≥10,000% 认购 → 0.6% 费用</li> <li>≥15,000% 认购 → 0.5% 费用</li> <li>≥20,000% 认购 → 0.4% 费用</li> <li>≥25,000% 认购 → 0.3% 费用</li> <li>≥30,000% 认购 → 0.25% 费用</li> <li>≥40,000% 认购 → 0.20% 费用</li> <li>≥50,000% 认购 → 0.15% 费用</li> <li>≥65,000% 认购 → 0.12% 费用</li> <li>≥80,000% 认购 → 0.10% 费用</li> <li>>150,000% 认购 → 0.05% 费用</li> </ul>（所有收取的 CAKE.PAD 费用都将用于 CAKE 销毁）"
+  "Tiered Tax based on subscription % : Fees decrease as oversubscription increases. <ul> <li>≤100% Sub → 0% Fee</li> <li>>100% Sub → 1% Fee</li> <li>≥5,000% Sub → 0.8% Fee</li> <li>≥10,000% Sub → 0.6% Fee</li> <li>≥15,000% Sub → 0.5% Fee</li> <li>≥20,000% Sub → 0.4% Fee</li> <li>≥25,000% Sub → 0.3% Fee</li> <li>≥30,000% Sub → 0.25% Fee</li> <li>≥40,000% Sub → 0.20% Fee</li> <li>≥50,000% Sub → 0.15% Fee</li> <li>≥65,000% Sub → 0.12% Fee</li> <li>≥80,000% Sub → 0.10% Fee</li> <li>>150,000% Sub → 0.05% Fee</li> </ul> (All CAKE.PAD fees collected will be used in CAKE burn)": "基于认购百分比的分级费用：超额认购倍数越高，费用越低。<ul> <li>≤100% 认购 → 0% 费用</li> <li>>100% 认购 → 1% 费用</li> <li>≥5,000% 认购 → 0.8% 费用</li> <li>≥10,000% 认购 → 0.6% 费用</li> <li>≥15,000% 认购 → 0.5% 费用</li> <li>≥20,000% 认购 → 0.4% 费用</li> <li>≥25,000% 认购 → 0.3% 费用</li> <li>≥30,000% 认购 → 0.25% 费用</li> <li>≥40,000% 认购 → 0.20% 费用</li> <li>≥50,000% 认购 → 0.15% 费用</li> <li>≥65,000% 认购 → 0.12% 费用</li> <li>≥80,000% 认购 → 0.10% 费用</li> <li>>150,000% 认购 → 0.05% 费用</li> </ul>（所有收取的 CAKE.PAD 费用都将用于 CAKE 销毁）",
+  "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "任何人都可以创建任意名称的代币，包括现有项目的伪造或误导性版本。",
+  "Buying such fraudulent tokens can lead to permanent loss of funds.": "购买此类欺诈性代币可能导致永久性的资金损失。"
 }

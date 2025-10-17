@@ -2105,8 +2105,6 @@
   "Significant Risk": "심각한 리스크",
   "Risk scanning is still in progress. It may take up to 5 minutes to fully scan a token which is new to the database.": "리스크 스캔이 아직 진행 중입니다. 데이터베이스에 대한 새로운 토큰을 완전히 스캔하는 데 최대 5분이 걸릴 수 있습니다.",
   "Automatic risk scanning for the selected token. This scanning result is for reference only, and should NOT be taken as investment advice.": "선택한 토큰에 대한 자동 리스크 스캔입니다. 이 스캔 결과는 참조용일 뿐이며 투자 조언으로 여겨서는 안 됩니다.",
-  "If you purchase a fraudulent token, you may be exposed to permanent loss of funds.": "사기 토큰을 구입하면 영구적으로 자금을 잃을 수 있습니다",
-  "Anyone can create tokens on %network% with any name, including creating fake versions of existing tokens and tokens that claim to represent projects that do not have a token.": "누구나 어떤 이름으로든 %network%에서 토큰을 만들 수 있습니다. 페이크 버전의 기존 토큰 및 토큰이 없는 프로젝트를 나타낸다고 주장하는 토큰도 만들 수 있습니다.",
   "%token1%'s exchange rate is determined by the value accrued vs %token0%. As you receive rewards, your amount of %token1% will not change.": "%token1%의 환율은 발생한 가치와 %token0%에 의해 결정됩니다. 리워드를 받아도 %token1% 금액은 변경되지 않습니다.",
   "APR is calculated based on the past 24H of staking rewards from the %token0% network.": "APR은 %token0% 네트워크에서 지난 24시간 동안의 스테이킹 리워드를 기반으로 계산됩니다.",
   "1 %token0% = %exchangeRateAmount% %token1%": "1 %token0% = %exchangeRateAmount% %token1%",
@@ -4130,7 +4128,6 @@
   "Claim your Farm rewards on PancakeSwap and your Incentra rewards on": "PancakeSwap에서 Farm 보상을 클레임하고 Incentra 보상은",
   "Incentra's website": "Incentra 웹사이트",
   "CAKE Burn Dashboard": "CAKE 소각 대시보드",
-  "Trade Binance Alpha Tokens to Win $250,000.": "Binance Alpha Tokens 거래하고 $250,000를 획득하세요.",
   "Turn LP into Borrow Power. Get lisUSD Instantly!": "LP를 대출 파워로 전환하고 즉시 lisUSD를 획득하세요!",
   "Borrow Here": "여기서 대출하기",
   "Swap %currencyA% (%chainNameA%) to %currencyB% (%chainName%)": "%currencyA% (%chainNameA%)를 %currencyB% (%chainName%)로 스왑",
@@ -4288,5 +4285,7 @@
   "Your Tax": "세금",
   "Total CAKE to burn": "소각될 CAKE 총량",
   "Taxes apply only if the CAKE.PAD event is oversubscribed. Tax is deducted solely from your excess committed funds (based on fee tier).": "세금은 CAKE.PAD 이벤트가 초과 청약된 경우에만 적용됩니다. 세금은 수수료 등급에 따라 초과 예치된 자금에서만 공제됩니다.",
-  "Tiered Tax based on subscription % : Fees decrease as oversubscription increases. <ul> <li>≤100% Sub → 0% Fee</li> <li>>100% Sub → 1% Fee</li> <li>≥5,000% Sub → 0.8% Fee</li> <li>≥10,000% Sub → 0.6% Fee</li> <li>≥15,000% Sub → 0.5% Fee</li> <li>≥20,000% Sub → 0.4% Fee</li> <li>≥25,000% Sub → 0.3% Fee</li> <li>≥30,000% Sub → 0.25% Fee</li> <li>≥40,000% Sub → 0.20% Fee</li> <li>≥50,000% Sub → 0.15% Fee</li> <li>≥65,000% Sub → 0.12% Fee</li> <li>≥80,000% Sub → 0.10% Fee</li> <li>>150,000% Sub → 0.05% Fee</li> </ul> (All CAKE.PAD fees collected will be used in CAKE burn)": "초과 청약률(%)에 따른 단계별 수수료: 초과 청약률이 높을수록 수수료는 낮아집니다. <ul> <li>≤100% 청약률 → 0% 수수료</li> <li>>100% 청약률 → 1% 수수료</li> <li>≥5,000% 청약률 → 0.8% 수수료</li> <li>≥10,000% 청약률 → 0.6% 수수료</li> <li>≥15,000% 청약률 → 0.5% 수수료</li> <li>≥20,000% 청약률 → 0.4% 수수료</li> <li>≥25,000% 청약률 → 0.3% 수수료</li> <li>≥30,000% 청약률 → 0.25% 수수료</li> <li>≥40,000% 청약률 → 0.20% 수수료</li> <li>≥50,000% 청약률 → 0.15% 수수료</li> <li>≥65,000% 청약률 → 0.12% 수수료</li> <li>≥80,000% 청약률 → 0.10% 수수료</li> <li>>150,000% 청약률 → 0.05% 수수료</li> </ul> (모든 CAKE.PAD 수수료는 CAKE 소각에 사용됩니다)"
+  "Tiered Tax based on subscription % : Fees decrease as oversubscription increases. <ul> <li>≤100% Sub → 0% Fee</li> <li>>100% Sub → 1% Fee</li> <li>≥5,000% Sub → 0.8% Fee</li> <li>≥10,000% Sub → 0.6% Fee</li> <li>≥15,000% Sub → 0.5% Fee</li> <li>≥20,000% Sub → 0.4% Fee</li> <li>≥25,000% Sub → 0.3% Fee</li> <li>≥30,000% Sub → 0.25% Fee</li> <li>≥40,000% Sub → 0.20% Fee</li> <li>≥50,000% Sub → 0.15% Fee</li> <li>≥65,000% Sub → 0.12% Fee</li> <li>≥80,000% Sub → 0.10% Fee</li> <li>>150,000% Sub → 0.05% Fee</li> </ul> (All CAKE.PAD fees collected will be used in CAKE burn)": "초과 청약률(%)에 따른 단계별 수수료: 초과 청약률이 높을수록 수수료는 낮아집니다. <ul> <li>≤100% 청약률 → 0% 수수료</li> <li>>100% 청약률 → 1% 수수료</li> <li>≥5,000% 청약률 → 0.8% 수수료</li> <li>≥10,000% 청약률 → 0.6% 수수료</li> <li>≥15,000% 청약률 → 0.5% 수수료</li> <li>≥20,000% 청약률 → 0.4% 수수료</li> <li>≥25,000% 청약률 → 0.3% 수수료</li> <li>≥30,000% 청약률 → 0.25% 수수료</li> <li>≥40,000% 청약률 → 0.20% 수수료</li> <li>≥50,000% 청약률 → 0.15% 수수료</li> <li>≥65,000% 청약률 → 0.12% 수수료</li> <li>≥80,000% 청약률 → 0.10% 수수료</li> <li>>150,000% 청약률 → 0.05% 수수료</li> </ul> (모든 CAKE.PAD 수수료는 CAKE 소각에 사용됩니다)",
+  "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "누구나 기존 프로젝트의 가짜 또는 오해의 소지가 있는 버전을 포함하여 어떤 이름으로든 토큰을 생성할 수 있습니다.",
+  "Buying such fraudulent tokens can lead to permanent loss of funds.": "이러한 사기성 토큰을 구매하면 자금의 영구적인 손실로 이어질 수 있습니다."
 }
