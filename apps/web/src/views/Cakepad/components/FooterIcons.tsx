@@ -16,7 +16,7 @@ const FooterIcons: React.FC = () => {
   const { ifoContract, config } = useIfo()
   const { isMobile } = useMatchBreakpoints()
 
-  const bscScanAddress = safeGetAddress(config?.tokenAddress) || safeGetAddress(ifoContract?.address)
+  const bscScanAddress = safeGetAddress(config?.contractAddress) || safeGetAddress(ifoContract?.address)
 
   return (
     <FlexGap gap="12px" justifyContent={isMobile ? 'center' : 'flex-end'}>

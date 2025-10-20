@@ -67,6 +67,7 @@ export const IfoSaleInfoDisplay: React.FC = () => {
   const { icon } = config ?? {}
 
   const { offeringCurrency, totalSalesAmount, status } = info
+  const offeringSymbolSuffix = offeringCurrency?.symbol ? ` ${offeringCurrency.symbol.toUpperCase()}` : undefined
 
   if (status === 'finished') {
     return (
@@ -81,7 +82,7 @@ export const IfoSaleInfoDisplay: React.FC = () => {
             fontSize="20px"
             lineHeight="30px"
             value={totalSalesAmount?.toSignificant(6)}
-            suffix={` ${offeringCurrency?.symbol}`}
+            suffix={offeringSymbolSuffix}
           />
         </FlexGap>
       </FlexGap>
@@ -101,7 +102,7 @@ export const IfoSaleInfoDisplay: React.FC = () => {
             fontSize="20px"
             lineHeight="30px"
             value={totalSalesAmount?.toSignificant(6)}
-            suffix={` ${offeringCurrency?.symbol}`}
+            suffix={offeringSymbolSuffix}
           />
           <Text color="textSubtle">{`${preSaleDurationText} ${t('Event Duration')}`}</Text>
         </FlexGap>
