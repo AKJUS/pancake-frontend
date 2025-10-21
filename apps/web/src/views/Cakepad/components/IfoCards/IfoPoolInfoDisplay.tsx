@@ -82,20 +82,27 @@ const IfoPoolInfoDisplay: React.FC<IfoPoolInfoDisplayProps> = ({ pid, ifoStatus,
   const feeTierTooltipContent = (
     <Text as="div" fontSize="12px">
       <Trans>Tiered Tax based on subscription % : Fees decrease as oversubscription increases.</Trans>
-      <ul>
-        <li>≤100% Sub → 0% Fee</li>
-        <li>&gt;100% Sub → 1% Fee</li>
-        <li>≥5,000% Sub → 0.8% Fee</li>
-        <li>≥10,000% Sub → 0.6% Fee</li>
-        <li>≥15,000% Sub → 0.5% Fee</li>
-        <li>≥20,000% Sub → 0.4% Fee</li>
-        <li>≥25,000% Sub → 0.3% Fee</li>
-        <li>≥30,000% Sub → 0.25% Fee</li>
-        <li>≥40,000% Sub → 0.20% Fee</li>
-        <li>≥50,000% Sub → 0.15% Fee</li>
-        <li>≥65,000% Sub → 0.12% Fee</li>
-        <li>≥80,000% Sub → 0.10% Fee</li>
-        <li>&gt;150,000% Sub → 0.05% Fee</li>
+      <ul style={{ whiteSpace: 'pre' }}>
+        <li>{'>=0x    1.00%'}</li>
+        <li>{'>=50x   0.80%'}</li>
+        <li>{'>=100x  0.60%'}</li>
+        <li>{'>=150x  0.50%'}</li>
+        <li>{'>=200x  0.40%'}</li>
+        <li>{'>=250x  0.30%'}</li>
+        <li>{'>=300x  0.25%'}</li>
+        <li>{'>=400x  0.20%'}</li>
+        <li>{'>=500x  0.15%'}</li>
+        <li>{'>=650x  0.12%'}</li>
+        <li>{'>=800x  0.10%'}</li>
+        <li>{'>=1000x 0.080%'}</li>
+        <li>{'>=1250x 0.065%'}</li>
+        <li>{'>=1500x 0.055%'}</li>
+        <li>{'>=1800x 0.045%'}</li>
+        <li>{'>=2200x 0.037%'}</li>
+        <li>{'>=2700x 0.030%'}</li>
+        <li>{'>=3300x 0.025%'}</li>
+        <li>{'>=4000x 0.020%'}</li>
+        <li>{'>=5000x 0.017%'}</li>
       </ul>
       (<Trans>All CAKE.PAD fees collected will be used in CAKE burn</Trans>)
     </Text>
@@ -202,7 +209,7 @@ const IfoPoolInfoDisplay: React.FC<IfoPoolInfoDisplayProps> = ({ pid, ifoStatus,
       right: (
         <NumberDisplay
           {...commonNumberDisplayProps}
-          value={ifoStatus?.currentStakedAmount?.toExact() ?? '0'}
+          value={ifoStatus?.currentStakedAmount?.toFixed(2) ?? '0'}
           suffix={stakeCurrency?.symbol ? ` ${stakeCurrency.symbol}` : undefined}
         />
       ),
