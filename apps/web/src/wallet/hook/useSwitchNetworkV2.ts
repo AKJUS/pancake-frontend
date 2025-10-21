@@ -228,7 +228,7 @@ const useProcessSwitchChainRequest = () => {
 
       return processSwitching(request)
     },
-    [router, activeChainIdRef, processSwitching],
+    [activeChainIdRef, processSwitching],
   )
 
   return handleRequestChainIdChange

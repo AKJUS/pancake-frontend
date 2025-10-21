@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React from 'react'
 import { Trans, useTranslation } from '@pancakeswap/localization'
 import {
   InfoIcon,

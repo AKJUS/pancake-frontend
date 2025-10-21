@@ -1,4 +1,4 @@
-import { AtomBox, FlexGap, Heading, Image, Loading, Text, useMatchBreakpoints } from '@pancakeswap/uikit'
+import { AtomBox, FlexGap, Heading, Image, Loading, Text } from '@pancakeswap/uikit'
 import { useTranslation } from '@pancakeswap/localization'
 import { useAtomValue } from 'jotai'
 import { errorEvmAtom, errorSolanaAtom } from '../../state/atom'
@@ -16,7 +16,6 @@ export const Confirming: React.FC<ConfirmingProps> = ({ wallet, network, reConne
   const evmError = useAtomValue(errorEvmAtom)
   const solanaError = useAtomValue(errorSolanaAtom)
   const error = network === WalletAdaptedNetwork.EVM ? evmError : solanaError
-  const { isMobile } = useMatchBreakpoints()
 
   return (
     <AtomBox

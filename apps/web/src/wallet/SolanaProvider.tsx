@@ -1,29 +1,9 @@
-import { FC, PropsWithChildren, useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 
-import { type Adapter, type WalletError } from '@solana/wallet-adapter-base'
-import { ExodusWalletAdapter } from '@solana/wallet-adapter-exodus'
-import { GlowWalletAdapter } from '@solana/wallet-adapter-glow'
-import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
-import {
-  BitgetWalletAdapter,
-  BitpieWalletAdapter,
-  Coin98WalletAdapter,
-  CoinbaseWalletAdapter,
-  MathWalletAdapter,
-  PhantomWalletAdapter,
-  SafePalWalletAdapter,
-  SolongWalletAdapter,
-  TokenPocketWalletAdapter,
-  TrustWalletAdapter,
-} from '@solana/wallet-adapter-wallets'
-import { initialize, SolflareWalletAdapter } from '@solflare-wallet/wallet-adapter'
+import { initialize } from '@solflare-wallet/wallet-adapter'
 
-import { useAtomValue, useSetAtom } from 'jotai'
-import { rpcUrlAtom } from '@pancakeswap/utils/user'
-import { defaultNetWork } from './solana.config'
-import { BackpackWalletAdapter } from './walletAdapter/BackpackWalletAdapter'
-import { OKXWalletAdapter } from './walletAdapter/OKXWalletAdapter'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { useSetAtom } from 'jotai'
 import { accountActiveChainAtom } from './atoms/accountStateAtoms'
 
 initialize()

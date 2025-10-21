@@ -9,7 +9,7 @@ import {
   TwitterAuthProvider,
   UserCredential,
 } from 'firebase/auth'
-import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react'
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { nanoid } from 'nanoid'
 import { usePrivySocialLoginAtom, useSocialLoginProviderAtom } from './atom'
 import { loginWithTelegramViaScript } from './telegramLogin'
@@ -40,7 +40,6 @@ export function FirebaseAuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setLoading] = useState(false)
   const [token, setToken] = useState<string | undefined>()
   const [discordPopup, setDiscordPopup] = useState<Window | null>(null)
-  const [telegramPopup, setTelegramPopup] = useState<Window | null>(null)
   const [, setPrivySocialLogin] = usePrivySocialLoginAtom()
   const [, setSocialProvider] = useSocialLoginProviderAtom()
 
@@ -84,7 +83,7 @@ export function FirebaseAuthProvider({ children }: AuthProviderProps) {
     }
   }
 
-  const loginWithGoogle = async () => {
+  const loginWithGoogle = useCallback(async () => {
     try {
       setPrivySocialLogin(true)
       setSocialProvider('google')
@@ -104,9 +103,9 @@ export function FirebaseAuthProvider({ children }: AuthProviderProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [setPrivySocialLogin, setSocialProvider])
 
-  const loginWithX = async () => {
+  const loginWithX = useCallback(async () => {
     try {
       setPrivySocialLogin(true)
       setSocialProvider('x')
@@ -126,24 +125,27 @@ export function FirebaseAuthProvider({ children }: AuthProviderProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [setPrivySocialLogin, setSocialProvider])
 
   // Helper function to sign in with custom token
-  const loginWithCustomToken = async (customToken: string) => {
-    try {
-      setPrivySocialLogin(true)
-      const auth = getAuth(firebaseApp)
-      const userCredential = await signInWithCustomToken(auth, customToken)
-      const idToken = await userCredential.user.getIdToken(true)
-      setToken(idToken)
-      return true
-    } catch (error) {
-      console.error('Error signing in with custom token:', error)
-      return false
-    }
-  }
+  const loginWithCustomToken = useCallback(
+    async (customToken: string) => {
+      try {
+        setPrivySocialLogin(true)
+        const auth = getAuth(firebaseApp)
+        const userCredential = await signInWithCustomToken(auth, customToken)
+        const idToken = await userCredential.user.getIdToken(true)
+        setToken(idToken)
+        return true
+      } catch (error) {
+        console.error('Error signing in with custom token:', error)
+        return false
+      }
+    },
+    [setPrivySocialLogin],
+  )
 
-  const loginWithDiscord = async () => {
+  const loginWithDiscord = useCallback(async () => {
     try {
       setPrivySocialLogin(true)
       setSocialProvider('discord')
@@ -168,9 +170,9 @@ export function FirebaseAuthProvider({ children }: AuthProviderProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [setPrivySocialLogin, setSocialProvider])
 
-  const loginWithTelegram = async () => {
+  const loginWithTelegram = useCallback(async () => {
     try {
       setPrivySocialLogin(true)
       setSocialProvider('telegram')
@@ -184,7 +186,7 @@ export function FirebaseAuthProvider({ children }: AuthProviderProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [loginWithCustomToken, setPrivySocialLogin, setSocialProvider])
 
   const getToken = useCallback(async () => {
     if (token) {
@@ -305,7 +307,7 @@ export function FirebaseAuthProvider({ children }: AuthProviderProps) {
       window.removeEventListener('message', handleMessage)
       clearInterval(checkLocalStorage)
     }
-  }, [])
+  }, [setSocialProvider, loginWithCustomToken])
 
   // Clean up Discord popup window
   useEffect(() => {
@@ -330,18 +332,30 @@ export function FirebaseAuthProvider({ children }: AuthProviderProps) {
     setToken(undefined)
     setLoading(false)
     setSocialProvider(null)
-  }, [])
+  }, [setSocialProvider, signOutFirebase])
 
-  const value = {
-    token,
-    isLoading,
-    getToken,
-    loginWithGoogle,
-    loginWithX,
-    loginWithDiscord,
-    loginWithTelegram,
-    signOutAndClearUserStates,
-  }
+  const value = useMemo(
+    () => ({
+      token,
+      isLoading,
+      getToken,
+      loginWithGoogle,
+      loginWithX,
+      loginWithDiscord,
+      loginWithTelegram,
+      signOutAndClearUserStates,
+    }),
+    [
+      getToken,
+      isLoading,
+      loginWithDiscord,
+      loginWithGoogle,
+      loginWithTelegram,
+      loginWithX,
+      signOutAndClearUserStates,
+      token,
+    ],
+  )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

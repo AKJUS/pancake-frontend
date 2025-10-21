@@ -8,7 +8,6 @@ import {
   Card,
   CardBody,
   FlexGap,
-  useMatchBreakpoints,
   ShieldCheckIcon,
   useTooltip,
   Link,

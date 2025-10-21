@@ -1,6 +1,6 @@
 import { atom } from 'jotai'
 import { EvmConnectorNames, SolanaConnectorNames } from '../config/connectorNames'
-import { isWalletId, WalletIds } from '../config/walletIds'
+import { isWalletId } from '../config/walletIds'
 import { WalletConfigV3 } from '../types'
 
 const MAXIMUM_STORE_NUM = 3

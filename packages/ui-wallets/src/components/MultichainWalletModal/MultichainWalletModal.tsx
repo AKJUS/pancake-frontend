@@ -223,7 +223,7 @@ export const MultichainWalletModal: React.FC<MultichainWalletModalProps> = (prop
             transition: 'height 0.3s ease-in-out',
           }
         : {},
-    [isMobile, theme.colors.background, previewStatus],
+    [isMobile, theme.colors.background, theme.colors.gradientCardHeader, previewStatus],
   )
 
   return (

@@ -1,20 +1,7 @@
 import { useTranslation } from '@pancakeswap/localization'
-import {
-  AtomBox,
-  CloseIcon,
-  FlexGap,
-  Grid,
-  Heading,
-  IconButton,
-  RowBetween,
-  Text,
-  Toggle,
-  useMatchBreakpoints,
-} from '@pancakeswap/uikit'
-import { useAtomValue } from 'jotai'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { AtomBox, CloseIcon, Grid, Heading, IconButton, RowBetween, useMatchBreakpoints } from '@pancakeswap/uikit'
+import { useCallback, useMemo, useState } from 'react'
 import { ASSET_CDN } from '../../config/url'
-import { errorEvmAtom, errorSolanaAtom } from '../../state/atom'
 import { useSelectedWallet, useWalletFilter } from '../../state/hooks'
 import { ConnectData, WalletAdaptedNetwork, WalletConfigV3, WalletIds } from '../../types'
 import { PreviewSection, PreviewStatus } from '../PreviewSection'
@@ -77,7 +64,7 @@ export const ModalContent: React.FC<ModalContentProps> = ({
         if (evmOnly && !w.networks.includes(WalletAdaptedNetwork.EVM)) return false
         return w.installed !== false || (!w.installed && (w.guide || w.downloadLink || w.qrCode))
       }) ?? [],
-    [walletFilter, wallets_],
+    [wallets_, evmOnly, solanaOnly],
   )
 
   const topWallets: WalletConfigV3[] = useMemo(
@@ -87,7 +74,7 @@ export const ModalContent: React.FC<ModalContentProps> = ({
         if (evmOnly && !w.networks.includes(WalletAdaptedNetwork.EVM)) return false
         return !('install' in w) || w.installed !== false || (!w.installed && (w.guide || w.downloadLink || w.qrCode))
       }) ?? [],
-    [walletFilter, topWallets_],
+    [topWallets_, evmOnly, solanaOnly],
   )
 
   const previouslyUsedWallets = useMemo(
@@ -97,7 +84,7 @@ export const ModalContent: React.FC<ModalContentProps> = ({
         if (evmOnly) return wallets.filter((wallet) => wallet.networks.includes(WalletAdaptedNetwork.EVM))
         return wallets
       }) as [WalletConfigV3[], WalletConfigV3[]],
-    [previouslyUsedWallets_, walletFilter],
+    [previouslyUsedWallets_, evmOnly, solanaOnly],
   )
 
   const selected = useSelectedWallet()
@@ -110,42 +97,52 @@ export const ModalContent: React.FC<ModalContentProps> = ({
 
   const [uninstalledWallet, setUninstalledWallet] = useState<WalletConfigV3 | null>(null)
 
-  const isWalletInstalledAndPreview = useCallback((wallet: WalletConfigV3, network?: WalletAdaptedNetwork) => {
-    if (!('installed' in wallet)) return true
+  const isWalletInstalledAndPreview = useCallback(
+    (wallet: WalletConfigV3, network?: WalletAdaptedNetwork) => {
+      if (!('installed' in wallet)) return true
 
-    // bypass installed check for wallet that can init without install
-    // @note: for solana, it still need extension wallet for coinbase
-    if (wallet.id === WalletIds.Coinbase && network === WalletAdaptedNetwork.EVM) return true
+      // bypass installed check for wallet that can init without install
+      // @note: for solana, it still need extension wallet for coinbase
+      if (wallet.id === WalletIds.Coinbase && network === WalletAdaptedNetwork.EVM) return true
 
-    if (!wallet.installed) {
-      setUninstalledWallet(wallet)
-      setPreviewStatus(PreviewStatus.NotInstalled)
-      setQrCode(undefined)
-      if (wallet.qrCode) {
-        wallet
-          .qrCode(() => onWalletConnected(wallet, WalletAdaptedNetwork.EVM))
-          .then(
-            (uri) => {
-              setQrCode(uri)
-            },
-            () => {
-              // do nothing.
-            },
-          )
+      if (!wallet.installed) {
+        setUninstalledWallet(wallet)
+        setPreviewStatus(PreviewStatus.NotInstalled)
+        setQrCode(undefined)
+        if (wallet.qrCode) {
+          wallet
+            .qrCode(() => onWalletConnected(wallet, WalletAdaptedNetwork.EVM))
+            .then(
+              (uri) => {
+                setQrCode(uri)
+              },
+              () => {
+                // do nothing.
+              },
+            )
+        }
+
+        return false
       }
+      return true
+    },
+    [onWalletConnected, setPreviewStatus],
+  )
 
-      return false
-    }
-    return true
-  }, [])
+  const onMultiChainWalletSelected = useCallback(
+    (wallet: WalletConfigV3) => {
+      if (
+        !isWalletInstalledAndPreview(wallet) &&
+        !wallet.solanaCanInitWithoutInstall &&
+        !wallet.evmCanInitWithoutInstall
+      )
+        return
 
-  const onMultiChainWalletSelected = useCallback((wallet: WalletConfigV3) => {
-    if (!isWalletInstalledAndPreview(wallet) && !wallet.solanaCanInitWithoutInstall && !wallet.evmCanInitWithoutInstall)
-      return
-
-    setSelectedMultiChainWallet(wallet)
-    setPreviewStatus(PreviewStatus.ChainSelect)
-  }, [])
+      setSelectedMultiChainWallet(wallet)
+      setPreviewStatus(PreviewStatus.ChainSelect)
+    },
+    [isWalletInstalledAndPreview, setPreviewStatus],
+  )
 
   const onEvmWalletSelected = useCallback(
     (wallet: WalletConfigV3) => {
@@ -176,7 +173,7 @@ export const ModalContent: React.FC<ModalContentProps> = ({
         onSolanaWalletSelected(w)
       }
     },
-    [onEvmWalletSelected, onSolanaWalletSelected],
+    [isWalletInstalledAndPreview, setPreviewStatus, onEvmWalletSelected, onSolanaWalletSelected],
   )
 
   const walletsSection = (

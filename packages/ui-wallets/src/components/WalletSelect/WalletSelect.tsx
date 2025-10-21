@@ -1,8 +1,7 @@
 import { useTranslation } from '@pancakeswap/localization'
-import { AtomBox, Column, useMatchBreakpoints } from '@pancakeswap/uikit'
+import { Column, useMatchBreakpoints } from '@pancakeswap/uikit'
 import { useCallback, useMemo } from 'react'
 import uniqBy from 'lodash/uniqBy'
-import { useAtom } from 'jotai'
 import { WalletAdaptedNetwork, WalletConfigV3 } from '../../types'
 import { scrollbarClass } from '../WalletModal.css'
 import { MoreWalletSection } from './MoreWalletSection'
@@ -72,7 +71,7 @@ export const WalletSelect: React.FC<WalletSelectProps> = ({
 
       onMultiChainWalletSelected?.(wallet)
     },
-    [walletFilter],
+    [walletFilter, onWalletSelected, onMultiChainWalletSelected],
   )
 
   return (

@@ -75,5 +75,5 @@ export const useWalletFilterEffect = ({
     } else {
       setFilter({ type: 'solanaOnly', value: false })
     }
-  }, [evmAddress, solanaAddress, setFilterValue, setFilterType])
+  }, [evmAddress, solanaAddress, setFilter, setFilterValue, setFilterType])
 }

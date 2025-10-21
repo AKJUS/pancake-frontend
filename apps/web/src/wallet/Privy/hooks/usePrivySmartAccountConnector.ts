@@ -59,6 +59,8 @@ export const useEmbeddedSmartAccountConnectorV2 = () => {
       if (!shouldUseAAWallet) {
         setIsSmartWalletReady(true)
         setIsSettingUp(false)
+        setHasSetupFailed(false)
+        setSetupStartTime(null)
         return
       }
 
@@ -84,6 +86,7 @@ export const useEmbeddedSmartAccountConnectorV2 = () => {
         setIsSmartWalletReady(true)
         setIsSettingUp(false)
         setHasSetupFailed(false) // Clear failed state if successful
+        setSetupStartTime(null)
         return
       }
 
@@ -91,6 +94,8 @@ export const useEmbeddedSmartAccountConnectorV2 = () => {
       if (!isReady) {
         setIsSmartWalletReady(true)
         setIsSettingUp(false)
+        setHasSetupFailed(false)
+        setSetupStartTime(null)
         return
       }
 
@@ -102,7 +107,6 @@ export const useEmbeddedSmartAccountConnectorV2 = () => {
         console.error(`[PrivySmartAccount] ⏱️ Setup timeout after 3 seconds (attempt ${retryCount + 1}/3)`)
         setRetryCount((prev) => prev + 1)
         setIsSmartWalletReady(false)
-        setIsSettingUp(false)
       }, 3000) // 3 seconds timeout per attempt
 
       try {
@@ -139,7 +143,6 @@ export const useEmbeddedSmartAccountConnectorV2 = () => {
         await config.storage?.setItem('recentConnectorId', smartAccountConnector.id)
 
         // After setup is complete, mark as ready and reconnect
-        const totalDuration = setupStartTime ? ((Date.now() - setupStartTime) / 1000).toFixed(2) : '0'
         clearTimeout(setupTimeout)
         setIsSmartWalletReady(true)
         setIsSettingUp(false)
@@ -159,7 +162,6 @@ export const useEmbeddedSmartAccountConnectorV2 = () => {
         // Increment retry count and try again
         setRetryCount((prev) => prev + 1)
         setIsSmartWalletReady(false)
-        setIsSettingUp(false)
       }
     }
 

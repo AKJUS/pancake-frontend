@@ -8,7 +8,6 @@ import {
   isBinanceWeb3WalletInstalled,
   isBraveWalletInstalled,
   isCoin98Installed,
-  isCyberWalletInstalled,
   isMathWalletInstalled,
   isMetamaskInstalled,
   isOkxWalletInstalled,
