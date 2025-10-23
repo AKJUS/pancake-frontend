@@ -36,7 +36,6 @@ const useAuth = () => {
 
       if (!networks.includes(WalletAdaptedNetwork.EVM)) return
 
-      const findConnector = CONNECTOR_MAP[connectorId] || undefined
       let eipConnector: any
 
       if (connectorId === EvmConnectorNames.Injected) {
@@ -49,7 +48,7 @@ const useAuth = () => {
           console.log(`[wallet]`, 'createEip6963Connector', eip6963detail, eipConnector)
         }
       }
-      const connector = eipConnector || findConnector
+      const connector = eipConnector || CONNECTOR_MAP[connectorId]
 
       try {
         if (!connector) return
