@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "IFOに参加するには%symbol%トークンが必要です！",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "%symbol%を獲得するか、あなたのトークンが別の場所でステーキングされていないことを確認しよう。",
   "Refresh": "更新",
-  "TradingView chart not available": "TradingViewチャートは利用できません",
   "Everyone’s a winner!": "誰もが勝者！",
   "Sign up for battle and you’re guaranteed a prize!": "バトルに参加するだけで、賞金獲得が保証されます！",
   "Compete with other teams for the highest trading volume!": "ほかのチームと取引量の高さを競いましょう！",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "誰でも、既存のプロジェクトの偽物や誤解を招くようなバージョンを含め、あらゆる名前のトークンを作成することができます。",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "このような詐欺的なトークンを購入すると、資金が永久に失われる可能性があります。",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "応募率に基づく段階制手数料：超過応募が増えるにつれて手数料は減少します。",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "徴収されたCAKE.PAD手数料はすべて、CAKEのバーンに使用されます。"
+  "All CAKE.PAD fees collected will be used in CAKE burn": "徴収されたCAKE.PAD手数料はすべて、CAKEのバーンに使用されます。",
+  "Sigma.Money IFO": "Sigma.Money IFO",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "Sigma.Moneyは、ユーザーがBNBのような資産を資金調達手数料なしで最大7倍のレバレッジで取引できるDeFiプラットフォームです。BNBでミント可能なステーブルコインであるbnbUSDを基盤としています。",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "Whitebridge Networkは、散在する公開記録やオンライン上のシグナルを、信頼性が高くすぐに使えるインサイトに変換する、分散型の人物データインテリジェンスレイヤーです。",
+  "1 Day": "1日"
 }

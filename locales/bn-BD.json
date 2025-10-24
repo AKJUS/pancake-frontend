@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "IFO-তে অংশ নিতে আপনার %symbol% টোকেন প্রয়োজন হবে!",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "%symbol% অর্জন করুন বা আপনার টোকেন অন্য কোথাও স্টেক করা নেই মর্মে নিশ্চিত করুন।",
   "Refresh": "রিফ্রেশ করুন",
-  "TradingView chart not available": "ট্রেডিংভিউ চার্ট বিদ্যমান নয়",
   "Everyone’s a winner!": "প্রত্যেকে বিজয়ী!",
   "Sign up for battle and you’re guaranteed a prize!": "লড়াইয়ের জন্য সাইন আপ করুন এবং আপনার একটি পুরস্কার নিশ্চিত! ",
   "Compete with other teams for the highest trading volume!": "সর্বোচ্চ ট্রেডিং ভলিউমের জন্য অন্যান্য দলের সাথে প্রতিযোগিতা করুন!",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "যেকোনো ব্যক্তি যেকোনো নামে টোকেন তৈরি করতে পারে, যার মধ্যে বিদ্যমান প্রজেক্টগুলোর জাল বা বিভ্রান্তিকর সংস্করণও অন্তর্ভুক্ত থাকতে পারে।",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "এই ধরনের প্রতারণামূলক টোকেন কিনলে স্থায়ীভাবে ফান্ড হারানোর ঝুঁকি থাকে।",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "সাবস্ক্রিপশন % ভিত্তিক স্তরভিত্তিক ট্যাক্স: ওভারসাবস্ক্রিপশন বাড়লে ফি কমে যায়।",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "সংগৃহীত সমস্ত CAKE.PAD ফি CAKE বার্ন-এ ব্যবহৃত হবে।"
+  "All CAKE.PAD fees collected will be used in CAKE burn": "সংগৃহীত সমস্ত CAKE.PAD ফি CAKE বার্ন-এ ব্যবহৃত হবে।",
+  "Sigma.Money IFO": "Sigma.Money IFO",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "Sigma.Money একটি DeFi প্ল্যাটফর্ম যেখানে ব্যবহারকারীরা কোনো ফান্ডিং ফি প্রদান ছাড়াই 7x পর্যন্ত লিভারেজ সহ BNB-এর মতো অ্যাসেট ট্রেড করতে পারে। এটি bnbUSD দ্বারা চালিত, একটি স্টেবলকয়েন যা BNB দিয়ে মিন্ট করা যায়।",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "Whitebridge Network একটি বিকেন্দ্রীভূত পিপল-ডেটা ইন্টেলিজেন্স লেয়ার যা বিক্ষিপ্ত পাবলিক রেকর্ড এবং অনলাইন সিগন্যালকে বিশ্বাসযোগ্য, ব্যবহারের জন্য প্রস্তুত ইনসাইটে পরিণত করে।",
+  "1 Day": "1 দিন"
 }

@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "A részvételhez az IFO-ban %symbol% zsetonra lesz szükséged!",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "Szerezzen %symbol%-t, vagy győződjön meg róla, hogy zsetonjait nem tette fel tétként máshol.",
   "Refresh": "Frissítés",
-  "TradingView chart not available": "A TradingView diagram nem érhető el",
   "Everyone’s a winner!": "Mindenki nyertes!",
   "Sign up for battle and you’re guaranteed a prize!": "Jelentkezz a csatára, és garantált a nyereményed!",
   "Compete with other teams for the highest trading volume!": "Versenyezz más csapatokkal a legmagasabb kereskedési volumenért!",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "Bárki létrehozhat tokeneket bármilyen névvel, beleértve a már létező projektek hamis vagy félrevezető verzióit is.",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "Az ilyen csaló tokenek vásárlása a pénzeszközök végleges elvesztéséhez vezethet.",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "Lépcsőzetes díj a jegyzési % alapján: A díjak csökkennek a túljegyzés növekedésével.",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "A CAKE.PAD-ból származó összes díj CAKE égetésre kerül."
+  "All CAKE.PAD fees collected will be used in CAKE burn": "A CAKE.PAD-ból származó összes díj CAKE égetésre kerül.",
+  "Sigma.Money IFO": "Sigma.Money IFO",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "A Sigma.Money egy DeFi platform, ahol a felhasználók BNB-hez hasonló eszközökkel akár 7-szeres tőkeáttétellel is kereskedhetnek, finanszírozási díjak fizetése nélkül. A platformot a bnbUSD működteti, amely egy BNB-vel létrehozható stablecoin.",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "A Whitebridge Network egy decentralizált, emberi adatokon alapuló intelligencia-réteg, amely a szétszórt nyilvános adatokat és online jeleket megbízható, azonnal felhasználható információkká alakítja.",
+  "1 Day": "1 nap"
 }

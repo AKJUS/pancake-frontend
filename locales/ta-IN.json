@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "IFOல் பங்கேற்க உங்களுக்கு %symbol% டோக்கன்கள் தேவைப்படும்!",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "%symbol% பெறவும் அல்லது உங்கள் டோக்கன்கள் வேறு எங்கும் ஸ்டேக் செய்யப்படவில்லை என்பதை உறுதிசெய்யவும்.",
   "Refresh": "புதுப்பி",
-  "TradingView chart not available": "டிரேடிங்வியூ விளக்கப்படம் கிடைக்கவில்லை",
   "Everyone’s a winner!": "அனைவருமே வெற்றியாளர்!",
   "Sign up for battle and you’re guaranteed a prize!": "போரிட பதிவு செய்யுங்கள், உங்களுக்கு ஓர் உத்திரவாதப் பரிசு உள்ளது!",
   "Compete with other teams for the highest trading volume!": "அதிகபட்ச டிரேடிங் அளவிற்கு மற்ற அணிகளுடன் போட்டியிடுங்கள்!",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "ஏற்கனவே உள்ள திட்டங்களின் போலியான அல்லது தவறாக வழிநடத்தும் பதிப்புகள் உட்பட, யார் வேண்டுமானாலும் எந்தப் பெயரிலும் டோக்கன்களை உருவாக்கலாம்.",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "இதுபோன்ற மோசடியான டோக்கன்களை வாங்குவது, நிதியை நிரந்தரமாக இழக்க வழிவகுக்கும்.",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "சந்தா % அடிப்படையில் அடுக்கு வரி: ஓவர்சப்ஸ்கிரிப்ஷன் அதிகரிக்கும் போது கட்டணங்கள் குறையும்.",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "சேகரிக்கப்பட்ட அனைத்து CAKE.PAD கட்டணங்களும் CAKE பர்னுக்குப் பயன்படுத்தப்படும்."
+  "All CAKE.PAD fees collected will be used in CAKE burn": "சேகரிக்கப்பட்ட அனைத்து CAKE.PAD கட்டணங்களும் CAKE பர்னுக்குப் பயன்படுத்தப்படும்.",
+  "Sigma.Money IFO": "Sigma.Money IFO",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "Sigma.Money என்பது ஒரு DeFi தளம், அங்கு பயனர்கள் நிதி கட்டணம் செலுத்தாமல் BNB போன்ற சொத்துக்களை 7x லெவரேஜ் வரை வர்த்தகம் செய்யலாம். இது bnbUSD மூலம் இயக்கப்படுகிறது, இது BNB உடன் உருவாக்கக்கூடிய ஒரு ஸ்டேபிள்காயின் ஆகும்.",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "Whitebridge Network என்பது ஒரு பரவலாக்கப்பட்ட மக்கள்-தரவு நுண்ணறிவு அடுக்கு ஆகும், இது சிதறிய பொது பதிவுகள் மற்றும் ஆன்லைன் சிக்னல்களை நம்பகமான, பயன்படுத்தத் தயாராக உள்ள நுண்ணறிவுகளாக மாற்றுகிறது.",
+  "1 Day": "1 நாள்"
 }

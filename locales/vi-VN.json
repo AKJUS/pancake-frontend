@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "Bạn sẽ cần token %symbol% để tham gia vào IFO!",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "Nhận %symbol%, hoặc đảm bảo các token của bạn không được đặt cọc ở chỗ khác.",
   "Refresh": "Làm mới",
-  "TradingView chart not available": "Biểu đồ TradingView không khả dụng",
   "Everyone’s a winner!": "Tất cả đều chiến thắng!",
   "Sign up for battle and you’re guaranteed a prize!": "Đăng ký tham gia thi đấu để được đảm bảo nhận giải thưởng!",
   "Compete with other teams for the highest trading volume!": "So tài với các nhóm khác để có khối lượng giao dịch lớn nhất!",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "Bất kỳ ai cũng có thể tạo token với bất kỳ tên nào, bao gồm cả các phiên bản giả mạo hoặc gây hiểu lầm của các dự án hiện có.",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "Việc mua các token lừa đảo như vậy có thể dẫn đến mất tiền vĩnh viễn.",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "Thuế theo bậc dựa trên % đăng ký mua: Phí giảm khi lượng đăng ký mua vượt mức tăng lên.",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "Tất cả phí CAKE.PAD thu được sẽ được dùng để đốt CAKE."
+  "All CAKE.PAD fees collected will be used in CAKE burn": "Tất cả phí CAKE.PAD thu được sẽ được dùng để đốt CAKE.",
+  "Sigma.Money IFO": "IFO Sigma.Money",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "Sigma.Money là một nền tảng DeFi nơi người dùng có thể giao dịch các tài sản như BNB với đòn bẩy lên tới 7 lần mà không phải trả phí funding. Nền tảng được cung cấp bởi bnbUSD, một stablecoin có thể được đúc bằng BNB.",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "Whitebridge Network là một lớp dữ liệu thông minh phi tập trung về con người, giúp biến các hồ sơ công khai và tín hiệu trực tuyến rải rác thành những thông tin chi tiết đáng tin cậy, sẵn sàng để sử dụng.",
+  "1 Day": "1 Ngày"
 }

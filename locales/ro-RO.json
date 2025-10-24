@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "Vei avea nevoie de jetoane %symbol% pentru a participa la IFO!",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "Obține %symbol% sau asigură-te că nu ți-ai investit toate jetoanele în altă parte.",
   "Refresh": "Reîmprospătează",
-  "TradingView chart not available": "Graficul TradingView nu este disponibil",
   "Everyone’s a winner!": "Toată lumea câștigă!",
   "Sign up for battle and you’re guaranteed a prize!": "Înscrie-te în concurs și ai un premiu garantat!",
   "Compete with other teams for the highest trading volume!": "Concurează cu alte echipe pentru cel mai mare volum de tranzacționare!",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "Oricine poate crea tokenuri cu orice nume, inclusiv versiuni false sau înșelătoare ale proiectelor existente.",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "Cumpărarea unor astfel de tokenuri frauduloase poate duce la pierderea permanentă a fondurilor.",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "Taxă pe niveluri în funcție de % subscrierii: Comisioanele scad pe măsură ce suprasubscrierea crește.",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "Toate comisioanele CAKE.PAD colectate vor fi folosite pentru arderea de CAKE."
+  "All CAKE.PAD fees collected will be used in CAKE burn": "Toate comisioanele CAKE.PAD colectate vor fi folosite pentru arderea de CAKE.",
+  "Sigma.Money IFO": "IFO Sigma.Money",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "Sigma.Money este o platformă DeFi unde utilizatorii pot tranzacționa active precum BNB cu un efect de levier de până la 7x, fără a plăti comisioane de finanțare. Este susținută de bnbUSD, o monedă stabilă (stablecoin) care poate fi emisă cu BNB.",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "Whitebridge Network este un strat descentralizat de inteligență a datelor despre persoane, care transformă înregistrările publice disparate și semnalele online în informații de încredere, gata de utilizare.",
+  "1 Day": "1 zi"
 }

@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "Kakailanganin mo ng mga %symbol% token para sumali sa IFO!",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "Kumuha ng %symbol%, o tiyaking hindi naka-stake ang mga token mo sa ibang lugar.",
   "Refresh": "I-refresh",
-  "TradingView chart not available": "Hindi available ang chart ng TradingView",
   "Everyone’s a winner!": "Panalo ang lahat!",
   "Sign up for battle and you’re guaranteed a prize!": "Mag-sign up para sa labanan at siguradong may isang premyo ka na!",
   "Compete with other teams for the highest trading volume!": "Makipagkumpitensya sa iba pang team para sa pinakamaraming pag-trade!",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "Kahit sino ay maaaring gumawa ng mga token na may anumang pangalan, kabilang ang mga peke o mapanlinlang na bersyon ng mga umiiral na proyekto.",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "Ang pagbili ng mga ganitong mapanlinlang na token ay maaaring magdulot ng permanenteng pagkawala ng pondo.",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "Naka-tier na Buwis batay sa % ng subscription: Bumababa ang mga bayarin habang tumataas ang oversubscription.",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "Lahat ng bayaring nakolekta sa CAKE.PAD ay gagamitin sa pag-burn ng CAKE."
+  "All CAKE.PAD fees collected will be used in CAKE burn": "Lahat ng bayaring nakolekta sa CAKE.PAD ay gagamitin sa pag-burn ng CAKE.",
+  "Sigma.Money IFO": "Sigma.Money IFO",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "Ang Sigma.Money ay isang DeFi platform kung saan maaaring mag-trade ang mga user ng mga asset tulad ng BNB na may hanggang 7x leverage nang hindi nagbabayad ng funding fees. Pinapagana ito ng bnbUSD, isang stablecoin na maaaring i-mint gamit ang BNB.",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "Ang Whitebridge Network ay isang desentralisadong people-data intelligence layer na ginagawang mapagkakatiwalaan at handa nang gamiting mga insight ang mga kalat-kalat na pampublikong talaan at online signal.",
+  "1 Day": "1 Araw"
 }

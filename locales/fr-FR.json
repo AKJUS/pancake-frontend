@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "Vous aurez besoin de jetons %symbol% pour participer à l'IFO !",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "Obtenez des %symbol% ou assurez-vous que vos jetons ne sont pas placés ailleurs.",
   "Refresh": "Actualiser",
-  "TradingView chart not available": "Le graphique TradingView n'est pas disponible",
   "Everyone’s a winner!": "Tout le monde est gagnant !",
   "Sign up for battle and you’re guaranteed a prize!": "Inscrivez-vous au concours pour vous assurer de recevoir un prix !",
   "Compete with other teams for the highest trading volume!": "Rivalisez avec d'autres équipes pour réaliser le volume de trading le plus élevé !",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "N'importe qui peut créer des jetons avec n'importe quel nom, y compris des versions fausses ou trompeuses de projets existants.",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "L'achat de tels jetons frauduleux peut entraîner une perte définitive de fonds.",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "Taxe échelonnée basée sur le % de souscription : les frais diminuent à mesure que la sursouscription augmente.",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "Tous les frais de CAKE.PAD collectés seront utilisés pour le burn de CAKE."
+  "All CAKE.PAD fees collected will be used in CAKE burn": "Tous les frais de CAKE.PAD collectés seront utilisés pour le burn de CAKE.",
+  "Sigma.Money IFO": "IFO Sigma.Money",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "Sigma.Money est une plateforme DeFi où les utilisateurs peuvent trader des actifs comme le BNB avec un effet de levier jusqu'à 7x sans payer de frais de financement. Elle est alimentée par le bnbUSD, un stablecoin qui peut être minté avec du BNB.",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "Whitebridge Network est une couche d'intelligence décentralisée sur les données humaines qui transforme les archives publiques éparses et les signaux en ligne en informations fiables et prêtes à l'emploi.",
+  "1 Day": "1 jour"
 }

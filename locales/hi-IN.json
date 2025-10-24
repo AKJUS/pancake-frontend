@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "आपको IFO में शामिल होने के लिए %symbol% टोकन की आवश्यकता होगी!",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "%symbol% पाएं या सुनिश्चित करें कि आपके टोकन किसी दूसरी जगह पर स्टेक नहीं किए गए हैं।",
   "Refresh": "रीफ़्रेश करें",
-  "TradingView chart not available": "TradingView चार्ट उपलब्ध नहीं है",
   "Everyone’s a winner!": "सभी विजेता हैं!",
   "Sign up for battle and you’re guaranteed a prize!": "बैटल के लिए साइन अप करें और आपको पुरस्कार मिलने की गारंटी है!",
   "Compete with other teams for the highest trading volume!": "उच्चतम ट्रेडिंग वॉल्यूम के लिए दूसरी टीमों से प्रतियोगिता करें!",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "कोई भी किसी भी नाम से टोकन बना सकता है, जिसमें मौजूदा प्रोजेक्ट्स के नकली या भ्रामक वर्शन भी शामिल हैं।",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "ऐसे धोखाधड़ी वाले टोकन खरीदने से आपके फंड का स्थायी नुकसान हो सकता है।",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "सब्सक्रिप्शन % पर आधारित टियर वाला शुल्क: ओवरसब्सक्रिप्शन बढ़ने पर शुल्क घटता है।",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "CAKE.PAD से इकट्ठा किए गए सभी शुल्कों का इस्तेमाल CAKE बर्न में किया जाएगा।"
+  "All CAKE.PAD fees collected will be used in CAKE burn": "CAKE.PAD से इकट्ठा किए गए सभी शुल्कों का इस्तेमाल CAKE बर्न में किया जाएगा।",
+  "Sigma.Money IFO": "Sigma.Money IFO",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "Sigma.Money एक DeFi प्लेटफ़ॉर्म है जहाँ यूज़र्स BNB जैसे एसेट्स को 7x तक के लेवरेज के साथ बिना कोई फंडिंग फीस चुकाए ट्रेड कर सकते हैं। यह bnbUSD द्वारा संचालित है, जो एक स्टेबलकॉइन है जिसे BNB से मिंट किया जा सकता है।",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "Whitebridge Network एक डिसेंट्रलाइज़्ड पीपल-डेटा इंटेलिजेंस लेयर है जो बिखरे हुए पब्लिक रिकॉर्ड्स और ऑनलाइन सिग्नल्स को भरोसेमंद, इस्तेमाल के लिए तैयार इनसाइट्स में बदलता है।",
+  "1 Day": "1 दिन"
 }

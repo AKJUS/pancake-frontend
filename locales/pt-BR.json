@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "Para participar na IFO, você precisará de tokens de %symbol%!",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "Obtenha %symbol% ou certifique-se de que seus tokens não estejam em stake em outro lugar.",
   "Refresh": "Atualizar",
-  "TradingView chart not available": "Gráficos da TradingView não disponível",
   "Everyone’s a winner!": "Todos são ganhadores!",
   "Sign up for battle and you’re guaranteed a prize!": "Inscreva-se para a batalha e garanta um prêmio!",
   "Compete with other teams for the highest trading volume!": "Compita com outras equipes pelo maior volume de negociação!",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "Qualquer um pode criar tokens com qualquer nome, incluindo versões falsas ou enganosas de projetos existentes.",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "Comprar esses tokens fraudulentos pode levar à perda permanente de fundos.",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "Taxa escalonada com base na % de subscrição: As taxas diminuem à medida que a sobressubscrição aumenta.",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "Todas as taxas do CAKE.PAD coletadas serão usadas na queima de CAKE."
+  "All CAKE.PAD fees collected will be used in CAKE burn": "Todas as taxas do CAKE.PAD coletadas serão usadas na queima de CAKE.",
+  "Sigma.Money IFO": "IFO Sigma.Money",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "A Sigma.Money é uma plataforma DeFi onde os usuários podem negociar ativos como BNB com alavancagem de até 7x sem pagar taxas de financiamento. É alimentada por bnbUSD, uma stablecoin que pode ser mintada com BNB.",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "A Whitebridge Network é uma camada de inteligência de dados de pessoas descentralizada que transforma registros públicos dispersos e sinais online em insights confiáveis e prontos para uso.",
+  "1 Day": "1 Dia"
 }

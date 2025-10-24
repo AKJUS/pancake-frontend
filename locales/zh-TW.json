@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "您需要 %symbol% 代幣才能參與 IFO！",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "取得 %symbol%，或確保沒有在其他地方質押您的代幣。",
   "Refresh": "重新整理",
-  "TradingView chart not available": "TradingView 圖表無法使用",
   "Everyone’s a winner!": "每個人都是獲勝者！",
   "Sign up for battle and you’re guaranteed a prize!": "報名參加戰鬥，保證有獎金！",
   "Compete with other teams for the highest trading volume!": "與其他團隊競爭最高交易量！",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "任何人都可以創建任意名稱的代幣，包括現有專案的偽造或誤導性版本。",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "購買此類詐欺性代幣可能導致資金永久損失。",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "基於認購 % 的階梯式費用：超額認購越多，費用越低。",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "所有收取的 CAKE.PAD 費用將用於 CAKE 銷毀。"
+  "All CAKE.PAD fees collected will be used in CAKE burn": "所有收取的 CAKE.PAD 費用將用於 CAKE 銷毀。",
+  "Sigma.Money IFO": "Sigma.Money IFO",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "Sigma.Money 是一個 DeFi 平台，用戶可以在此以高達 7 倍的槓桿交易 BNB 等資產，而無需支付資金費率。它由 bnbUSD 驅動，這是一種可以用 BNB 鑄造的穩定幣。",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "Whitebridge Network 是一個去中心化的人物數據情報層，可將分散的公開記錄和線上訊號轉換為可信賴、可立即使用的見解。",
+  "1 Day": "1 天"
 }

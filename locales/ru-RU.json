@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "Для участия в IFO нужны токены %symbol%!",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "Получите %symbol% или проверьте, не вложены ли токены куда-либо еще.",
   "Refresh": "Обновить",
-  "TradingView chart not available": "Диаграмма сделок недоступна",
   "Everyone’s a winner!": "Побеждают все!",
   "Sign up for battle and you’re guaranteed a prize!": "Зарегистрируйтесь на битву — и приз будет гарантирован!",
   "Compete with other teams for the highest trading volume!": "Соревнуйтесь с другими командами за наибольший объем торгов!",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "Любой может создавать токены с любым названием, включая поддельные или вводящие в заблуждение версии существующих проектов.",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "Покупка таких мошеннических токенов может привести к полной потере средств.",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "Многоуровневый сбор в зависимости от % подписки: сборы снижаются по мере увеличения переподписки.",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "Все сборы, собранные на CAKE.PAD, будут направлены на сжигание CAKE."
+  "All CAKE.PAD fees collected will be used in CAKE burn": "Все сборы, собранные на CAKE.PAD, будут направлены на сжигание CAKE.",
+  "Sigma.Money IFO": "IFO Sigma.Money",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "Sigma.Money — это DeFi-платформа, на которой пользователи могут торговать такими активами, как BNB, с кредитным плечом до 7x без уплаты комиссий за финансирование. Она работает на базе bnbUSD — стейблкоина, который можно минтить с помощью BNB.",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "Whitebridge Network — это децентрализованный уровень аналитики данных о людях, который превращает разрозненные публичные записи и онлайн-сигналы в достоверную и готовую к использованию аналитику.",
+  "1 Day": "1 день"
 }

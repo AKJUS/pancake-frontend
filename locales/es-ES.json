@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "¡Necesitarás tokens %symbol% para participar en la IFO!",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "Consigue %symbol%, o asegúrate de que tus tokens no se hayan depositado en otra parte.",
   "Refresh": "Actualizar",
-  "TradingView chart not available": "El gráfico de TradingView no está disponible",
   "Everyone’s a winner!": "¡Todos son ganadores!",
   "Sign up for battle and you’re guaranteed a prize!": "¡Inscríbete en la batalla y tendrás un premio garantizado!",
   "Compete with other teams for the highest trading volume!": "¡Compite con otros equipos por el mayor volumen de trading!",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "Cualquiera puede crear tokens con cualquier nombre, incluyendo versiones falsas o engañosas de proyectos existentes.",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "Comprar dichos tokens fraudulentos puede llevar a una pérdida permanente de fondos.",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "Tasa por niveles basada en el % de suscripción: Las comisiones disminuyen a medida que aumenta la sobresuscripción.",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "Todas las comisiones de CAKE.PAD recaudadas se utilizarán para la quema de CAKE."
+  "All CAKE.PAD fees collected will be used in CAKE burn": "Todas las comisiones de CAKE.PAD recaudadas se utilizarán para la quema de CAKE.",
+  "Sigma.Money IFO": "IFO de Sigma.Money",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "Sigma.Money es una plataforma DeFi donde los usuarios pueden operar con activos como BNB con un apalancamiento de hasta 7x sin pagar comisiones de financiación. Está impulsada por bnbUSD, una stablecoin que se puede acuñar con BNB.",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "Whitebridge Network es una capa de inteligencia de datos de personas descentralizada que convierte registros públicos dispersos y señales en línea en información fiable y lista para usar.",
+  "1 Day": "1 día"
 }

@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "Je hebt %symbol%-tokens nodig om aan de IFO deel te nemen!",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "Koop %symbol% of zorg dat je tokens niet ergens anders worden gestaked.",
   "Refresh": "Vernieuwen",
-  "TradingView chart not available": "TradingView-grafiek niet beschikbaar",
   "Everyone’s a winner!": "Iedereen is een winnaar!",
   "Sign up for battle and you’re guaranteed a prize!": "Registreer je voor de strijd, je krijgt gegarandeerd een prijs!",
   "Compete with other teams for the highest trading volume!": "Neem het op tegen andere teams om het hoogste handelsvolume!",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "Iedereen kan tokens aanmaken met elke naam, inclusief namaak of misleidende versies van bestaande projecten.",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "Het kopen van dergelijke frauduleuze tokens kan leiden tot permanent verlies van tegoeden.",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "Gedifferentieerde belasting op basis van inschrijvingspercentage %: kosten dalen naarmate de overinschrijving toeneemt.",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "Alle geïnde CAKE.PAD-kosten worden gebruikt om CAKE te burnen."
+  "All CAKE.PAD fees collected will be used in CAKE burn": "Alle geïnde CAKE.PAD-kosten worden gebruikt om CAKE te burnen.",
+  "Sigma.Money IFO": "Sigma.Money IFO",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "Sigma.Money is een DeFi-platform waar gebruikers activa zoals BNB kunnen verhandelen met een hefboom tot 7x, zonder financieringskosten te betalen. Het wordt aangedreven door bnbUSD, een stablecoin die kan worden gemint met BNB.",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "Whitebridge Network is een gedecentraliseerde intelligentielaag voor data over personen die verspreide openbare gegevens en online signalen omzet in betrouwbare, gebruiksklare inzichten.",
+  "1 Day": "1 Dag"
 }

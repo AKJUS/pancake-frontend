@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "Θα χρειαστείτε νομίσματα %symbol% για να συμμετάσχετε στην IFO!",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "Λάβετε %symbol%, ή βεβαιωθείτε ότι τα νομίσματά σας δεν γίνονται stake κάπου αλλού.",
   "Refresh": "Ανανέωση",
-  "TradingView chart not available": "Το γράφημα TradingView δεν είναι διαθέσιμο",
   "Everyone’s a winner!": "Όλοι κερδίζουν!",
   "Sign up for battle and you’re guaranteed a prize!": "Εγγραφείτε για τη μάχη και έχετε εγγυημένα ένα έπαθλο!",
   "Compete with other teams for the highest trading volume!": "Ανταγωνιστείτε με άλλες ομάδες για τον μεγαλύτερο όγκο συναλλαγών!",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "Οποιοσδήποτε μπορεί να δημιουργήσει tokens με οποιοδήποτε όνομα, συμπεριλαμβανομένων ψεύτικων ή παραπλανητικών εκδόσεων υπαρχόντων έργων.",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "Η αγορά τέτοιων απατηλών tokens μπορεί να οδηγήσει σε μόνιμη απώλεια κεφαλαίων.",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "Κλιμακωτός φόρος βάσει του % εγγραφής: Τα τέλη μειώνονται καθώς αυξάνεται η υπερεγγραφή.",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "Όλα τα τέλη που συλλέγονται από το CAKE.PAD θα χρησιμοποιηθούν για την καύση CAKE."
+  "All CAKE.PAD fees collected will be used in CAKE burn": "Όλα τα τέλη που συλλέγονται από το CAKE.PAD θα χρησιμοποιηθούν για την καύση CAKE.",
+  "Sigma.Money IFO": "IFO Sigma.Money",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "Το Sigma.Money είναι μια πλατφόρμα DeFi όπου οι χρήστες μπορούν να πραγματοποιούν συναλλαγές σε περιουσιακά στοιχεία όπως το BNB με μόχλευση έως και 7x χωρίς να πληρώνουν τέλη χρηματοδότησης. Λειτουργεί με το bnbUSD, ένα stablecoin που μπορεί να δημιουργηθεί (minted) με BNB.",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "Το Whitebridge Network είναι ένα αποκεντρωμένο επίπεδο ευφυΐας δεδομένων για άτομα που μετατρέπει διάσπαρτα δημόσια αρχεία και διαδικτυακά σήματα σε αξιόπιστες, έτοιμες προς χρήση πληροφορίες.",
+  "1 Day": "1 Ημέρα"
 }

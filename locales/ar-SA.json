@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "ستحتاج إلى رموز %symbol% المميزة للمشاركة في IFO (العرض الأولي للمزرعة)!",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "احصل على %symbol%، أو تأكَّد من أن رموزك المميزة غير مرهونة في أي مكانٍ آخر.",
   "Refresh": "تحديث",
-  "TradingView chart not available": "مخطط TradingView غير متوفر",
   "Everyone’s a winner!": "الجميع فائزون!",
   "Sign up for battle and you’re guaranteed a prize!": "سجل المشاركة في معركة ونضمن حصولك على جائزة!",
   "Compete with other teams for the highest trading volume!": "تنافس مع الفرق الأخرى لتحقيق أعلى أحجام تداول!",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "يمكن لأي شخص إنشاء رموز بأي اسم، بما في ذلك الإصدارات المزيفة أو المضللة للمشاريع الحالية.",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "شراء مثل هذه الرموز الاحتيالية يمكن أن يؤدي إلى خسارة دائمة للأموال.",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "ضريبة متدرجة بناءً على نسبة الاكتتاب %: تنخفض الرسوم كلما زاد الاكتتاب الفائض.",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "سيتم استخدام جميع رسوم CAKE.PAD المحصلة في حرق CAKE."
+  "All CAKE.PAD fees collected will be used in CAKE burn": "سيتم استخدام جميع رسوم CAKE.PAD المحصلة في حرق CAKE.",
+  "Sigma.Money IFO": "عرض المزرعة الأولي لـ Sigma.Money",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "Sigma.Money هي منصة تمويل لامركزي (DeFi) حيث يمكن للمستخدمين تداول أصول مثل BNB برافعة مالية تصل إلى 7x دون دفع رسوم تمويل. وهي مدعومة بـ bnbUSD، وهي عملة مستقرة يمكن سكها باستخدام BNB.",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "Whitebridge Network هي طبقة استخبارات لامركزية لبيانات الأشخاص تحول السجلات العامة المتفرقة والإشارات عبر الإنترنت إلى رؤى موثوقة وجاهزة للاستخدام.",
+  "1 Day": "يوم واحد"
 }

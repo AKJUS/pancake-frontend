@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "Tarvitset %symbol%-poletteja osallistuaksesi IFO:hon!",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "Hanki %symbol%-poletteja tai varmista, ettei polettejasi ole panostettu muualle.",
   "Refresh": "Päivitä",
-  "TradingView chart not available": "TradingView-kaavio ei ole käytettävissä",
   "Everyone’s a winner!": "Kaikki ovat voittajia!",
   "Sign up for battle and you’re guaranteed a prize!": "Rekisteröidy taisteluun, ja saat taatun palkinnon!",
   "Compete with other teams for the highest trading volume!": "Kilpaile muiden tiimien kanssa suurimmasta kaupankäyntivolyymista!",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "Kuka tahansa voi luoda tokeneita millä tahansa nimellä, mukaan lukien väärennettyjä tai harhaanjohtavia versioita olemassa olevista projekteista.",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "Tällaisten petollisten tokenien ostaminen voi johtaa pysyvään varojen menetykseen.",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "Porrastettu maksu merkintäprosentin mukaan: Maksut laskevat ylimerkinnän kasvaessa.",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "Kaikki kerätyt CAKE.PAD-maksut käytetään CAKE-polttoon."
+  "All CAKE.PAD fees collected will be used in CAKE burn": "Kaikki kerätyt CAKE.PAD-maksut käytetään CAKE-polttoon.",
+  "Sigma.Money IFO": "Sigma.Money IFO",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "Sigma.Money on DeFi-alusta, jossa käyttäjät voivat käydä kauppaa BNB:n kaltaisilla omaisuuserillä jopa 7-kertaisella vivulla ilman rahoituskuluja. Sen voimanlähteenä on bnbUSD, BNB:llä mintattava stablecoin.",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "Whitebridge Network on hajautettu ihmisdataan perustuva älykerros, joka muuntaa hajanaiset julkiset tiedot ja verkkosignaalit luotettaviksi, käyttövalmiiksi näkemyksiksi.",
+  "1 Day": "1 päivä"
 }

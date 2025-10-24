@@ -1280,7 +1280,6 @@
   "You’ll need %symbol% tokens to participate in the IFO!": "Anda memerlukan token %symbol% untuk ikut serta dalam IFO!",
   "Get %symbol%, or make sure your tokens aren’t staked somewhere else.": "Dapatkan %symbol%, atau pastikan bahwa token Anda tidak ditumpuk di tempat lain.",
   "Refresh": "Segarkan",
-  "TradingView chart not available": "Grafik TradingView tidak tersedia",
   "Everyone’s a winner!": "Semua adalah pemenang!",
   "Sign up for battle and you’re guaranteed a prize!": "Daftarkan diri Anda ikut perang, maka Anda pasti akan mendapatkan hadiah!",
   "Compete with other teams for the highest trading volume!": "Bersainglah dengan tim-tim lain untuk merebut volume perdagangan tertinggi!",
@@ -4283,5 +4282,10 @@
   "Anyone can create tokens with any name, including fake or misleading versions of existing projects.": "Siapa pun dapat membuat token dengan nama apa pun, termasuk versi palsu atau menyesatkan dari proyek yang sudah ada.",
   "Buying such fraudulent tokens can lead to permanent loss of funds.": "Membeli token penipuan semacam itu dapat menyebabkan kehilangan dana permanen.",
   "Tiered Tax based on subscription % : Fees decrease as oversubscription increases.": "Pajak Bertingkat berdasarkan % langganan : Biaya menurun seiring meningkatnya kelebihan langganan.",
-  "All CAKE.PAD fees collected will be used in CAKE burn": "Semua biaya CAKE.PAD yang terkumpul akan digunakan untuk pembakaran CAKE."
+  "All CAKE.PAD fees collected will be used in CAKE burn": "Semua biaya CAKE.PAD yang terkumpul akan digunakan untuk pembakaran CAKE.",
+  "Sigma.Money IFO": "IFO Sigma.Money",
+  "Sigma.Money is a DeFi platform where users can trade assets like BNB with up to 7x leverage without paying funding fees. It's powered by bnbUSD, a stablecoin that can be minted with BNB.": "Sigma.Money adalah platform DeFi tempat pengguna dapat memperdagangkan aset seperti BNB dengan leverage hingga 7x tanpa membayar biaya pendanaan. Platform ini didukung oleh bnbUSD, sebuah stablecoin yang dapat dicetak dengan BNB.",
+  "Whitebridge Network": "Whitebridge Network",
+  "Whitebridge Network is a decentralised people-data intelligence layer that turns scattered public records and online signals into trustable, ready-to-use insights.": "Whitebridge Network adalah lapisan intelijen data orang terdesentralisasi yang mengubah catatan publik dan sinyal online yang tersebar menjadi wawasan yang dapat dipercaya dan siap pakai.",
+  "1 Day": "1 Hari"
 }
