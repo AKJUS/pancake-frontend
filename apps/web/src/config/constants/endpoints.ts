@@ -75,7 +75,7 @@ export const QUOTING_API = `${QUOTING_API_PREFIX}/get-price`
 export const FARMS_API = 'https://farms-api.pancakeswap.com'
 export const FARMS_API_V2 = 'https://v3-farm-api-prod-6ulht.ondigitalocean.app/api'
 
-export const WALLET_API = 'https://wallet-api.pancakeswap.com'
+export const WALLET_API = process.env.NEXT_PUBLIC_WALLET_API || 'https://wallet-api.pancakeswap.com'
 
 export const BINANCE_DATA_API = 'https://data-api.binance.vision/api'
 

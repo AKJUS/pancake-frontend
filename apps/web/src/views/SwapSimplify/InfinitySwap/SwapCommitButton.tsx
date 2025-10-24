@@ -20,7 +20,7 @@ import { useUnifiedCurrencyBalances } from 'hooks/useUnifiedCurrencyBalance'
 import useWrapCallback, { WrapType } from 'hooks/useWrapCallback'
 import { useAtomValue } from 'jotai'
 import { baseAllTypeBestTradeAtom } from 'quoter/atom/bestTradeUISyncAtom'
-import { BridgeTradeError, NoValidRouteError } from 'quoter/quoter.types'
+import { BridgeTradeError, NoValidRouteError, XTradeError } from 'quoter/quoter.types'
 import { Field } from 'state/swap/actions'
 import { useSwapState } from 'state/swap/hooks'
 import { useSwapActionHandlers } from 'state/swap/useSwapActionHandlers'
@@ -159,7 +159,7 @@ const SwapCommitButtonComp: React.FC<SwapCommitButtonPropsType & CommitButtonPro
 export const SwapCommitButton = memo(SwapCommitButtonComp)
 
 function isSupportedErrorType(err: any) {
-  return err instanceof NoValidRouteError || err instanceof TimeoutError
+  return err instanceof NoValidRouteError || err instanceof TimeoutError || err instanceof XTradeError
 }
 
 const SwapCommitButtonInner = memo(function SwapCommitButtonInner({
@@ -259,15 +259,17 @@ const SwapCommitButtonInner = memo(function SwapCommitButtonInner({
   )
 
   const hasBridgeTradeError = useMemo(() => Boolean(tradeError && tradeError instanceof BridgeTradeError), [tradeError])
+  const hasXTradeError = useMemo(() => Boolean(tradeError && tradeError instanceof XTradeError), [tradeError])
 
   const isValid = useMemo(
     () =>
       !swapInputError &&
       !tradeLoading &&
       !hasBridgeTradeError &&
+      !hasXTradeError &&
       parsedAmounts[Field.INPUT]?.greaterThan(BIG_INT_ZERO) &&
       parsedAmounts[Field.OUTPUT]?.greaterThan(BIG_INT_ZERO),
-    [swapInputError, tradeLoading, hasBridgeTradeError, parsedAmounts],
+    [swapInputError, tradeLoading, hasBridgeTradeError, hasXTradeError, parsedAmounts],
   )
 
   const { isLoading: isBridgeCheckApprovalLoading } = useBridgeCheckApproval(order)
@@ -458,6 +460,10 @@ const SwapCommitButtonInner = memo(function SwapCommitButtonInner({
     return <TimeoutButton />
   }
 
+  if (noRoute && userHasSpecifiedInputOutput && tradeError instanceof XTradeError) {
+    return <ErrorButton tradeError={tradeError} />
+  }
+
   if (noRoute && userHasSpecifiedInputOutput && (hasNoValidRouteError || !tradeLoading)) {
     return <ResetRoutesButton />
   }
@@ -476,6 +482,33 @@ const SwapCommitButtonInner = memo(function SwapCommitButtonInner({
     </CommitButton>
   )
 })
+
+const ErrorButton = ({ tradeError }: { tradeError: XTradeError }) => {
+  const { t } = useTranslation()
+  const message = useMemo(() => {
+    if (tradeError instanceof XTradeError) {
+      if (tradeError.code === 'MARKET_CLOSED') {
+        return t('Market is closed.')
+      }
+      if (tradeError.code === 'MARKET_PAUSED') {
+        return t('Market is temporarily paused.')
+      }
+      if (tradeError.code === 'ASSET_PAUSED') {
+        return t('Specific asset is paused.')
+      }
+      return t('Market is temporarily unavailable.')
+    }
+    throw new Error('Unsupported error type')
+  }, [tradeError, t])
+
+  return (
+    <AutoColumn gap="12px">
+      <GreyCard style={{ textAlign: 'center', padding: '0.75rem' }}>
+        <Text color="textSubtle">{message}</Text>
+      </GreyCard>
+    </AutoColumn>
+  )
+}
 
 const TimeoutButton = () => {
   const { refreshTrade, pauseQuoting, resumeQuoting } = useAtomValue(baseAllTypeBestTradeAtom)

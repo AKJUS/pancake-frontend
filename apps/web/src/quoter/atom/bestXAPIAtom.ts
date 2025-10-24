@@ -1,17 +1,19 @@
 import { getRequestBody, parseQuoteResponse } from '@pancakeswap/price-api-sdk'
-import { TradeType } from '@pancakeswap/swap-sdk-core'
+import { TradeType, getCurrencyAddress } from '@pancakeswap/swap-sdk-core'
+import type { Currency } from '@pancakeswap/swap-sdk-core'
 import { withTimeout } from '@pancakeswap/utils/withTimeout'
 import { QUOTING_API } from 'config/constants/endpoints'
 import { atomFamily } from 'jotai/utils'
-import { QUOTE_TIMEOUT, X_API_TIMEOUT } from 'quoter/consts'
+import { X_API_TIMEOUT } from 'quoter/consts'
 import { quoteTraceAtom } from 'quoter/perf/quoteTracker'
-import { QuoteQuery } from 'quoter/quoter.types'
+import { QuoteQuery, XTradeError } from 'quoter/quoter.types'
 import { gasPriceWeiAtom } from 'quoter/utils/gasPriceAtom'
 import { getAllowedPoolTypesX } from 'quoter/utils/getAllowedPoolTypes'
 import { isEqualQuoteQuery } from 'quoter/utils/PoolHashHelper'
 import { basisPointsToPercent } from 'utils/exchange'
 import { InterfaceOrder } from 'views/Swap/utils'
 import { atomWithLoadable } from './atomWithLoadable'
+import { getRwaTokenStatus, rwaTokenListAtom } from './rwaTokenAtoms'
 
 const PCSX_AUTO_SLIPPAGE_BPS = 10 // 0.1%
 
@@ -26,6 +28,29 @@ export const bestXApiAtom = atomFamily((option: QuoteQuery) => {
 
     if (!amount || !amount.currency || !currency || !slippage) {
       throw new Error('Invalid amount or currency')
+    }
+
+    const currencies = [option.baseCurrency, currency].filter(Boolean) as Currency[]
+    const rwaTokens = get(rwaTokenListAtom)
+    const seen = new Set<string>()
+    const statuses = await Promise.all(
+      currencies.map(async (curr) => {
+        const address = getCurrencyAddress(curr)?.toLowerCase()
+        if (!address) {
+          return undefined
+        }
+        const key = `${curr.chainId}:${address}`
+        if (seen.has(key)) {
+          return undefined
+        }
+        seen.add(key)
+        return getRwaTokenStatus(rwaTokens, curr.chainId, address)
+      }),
+    )
+
+    const upcomingStatus = statuses.find((s) => s?.status === 'upcoming')
+    if (upcomingStatus) {
+      throw new XTradeError('RWA token is paused', upcomingStatus.code)
     }
     const controller = new AbortController()
     const perf = get(quoteTraceAtom(option))

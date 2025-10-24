@@ -11,7 +11,7 @@ import { isAddress } from 'viem'
 
 import { useActiveChainId } from 'hooks/useActiveChainId'
 import useNativeCurrency from 'hooks/useNativeCurrency'
-import { useAllLists, useInactiveListUrls } from 'state/lists/hooks'
+import { sanitizeTokenInfos, useAllLists, useInactiveListUrls } from 'state/lists/hooks'
 import { safeGetAddress } from 'utils'
 
 import { useTokenComparator } from 'hooks/useTokenComparator'
@@ -61,7 +61,8 @@ function useSearchInactiveTokenLists(
       const list = lists[url]?.current
       // eslint-disable-next-line no-continue
       if (!list) continue
-      for (const tokenInfo of list.tokens) {
+      const sanitizedTokens = sanitizeTokenInfos(list)
+      for (const tokenInfo of sanitizedTokens) {
         if (
           tokenInfo.chainId === chainId &&
           !(tokenInfo.address in activeTokens) &&

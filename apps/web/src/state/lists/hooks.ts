@@ -19,11 +19,12 @@ import _pickBy from 'lodash/pickBy'
 import uniqBy from 'lodash/uniqBy'
 import { useMemo } from 'react'
 import { isNotUndefinedOrNull } from 'utils/isNotUndefinedOrNull'
+import { USDON_TOKEN_ADDRESS } from 'quoter/atom/rwaTokenAtoms'
 import DEFAULT_TOKEN_LIST from '../../config/constants/tokenLists/pancake-default.tokenlist.json'
 import ONRAMP_TOKEN_LIST from '../../config/constants/tokenLists/pancake-supported-onramp-currency-list.json'
 import UNSUPPORTED_TOKEN_LIST from '../../config/constants/tokenLists/pancake-unsupported.tokenlist.json'
 import WARNING_TOKEN_LIST from '../../config/constants/tokenLists/pancake-warning.tokenlist.json'
-import { safeGetAddress } from '../../utils'
+import { isAddressEqual, safeGetAddress } from '../../utils'
 import { listsAtom } from './lists'
 
 type TokenAddressMap = TTokenAddressMap<ChainId>
@@ -152,12 +153,32 @@ export const combinedTokenMapFromWarningUrlsAtom = atom((get) => {
 const listCache: WeakMap<TokenList, TokenAddressMap> | null =
   typeof WeakMap !== 'undefined' ? new WeakMap<TokenList, TokenAddressMap>() : null
 
+export function sanitizeTokenInfos(list: TokenList): TokenInfo[] {
+  if (list.name.includes('Ondo')) {
+    return list.tokens
+  }
+
+  return list.tokens.filter((tokenInfo) => {
+    const name = tokenInfo.name?.toLowerCase()
+    if (name && name.includes('ondo tokenized')) {
+      return false
+    }
+    const usdonAddress = USDON_TOKEN_ADDRESS[tokenInfo.chainId]
+    if (isAddressEqual(usdonAddress, tokenInfo.address)) {
+      return false
+    }
+    return true
+  })
+}
+
 export function listToTokenMap(list: TokenList, key?: string): TokenAddressMap {
   const result = listCache?.get(list)
   if (result) return result
 
+  const sanitizedTokens = sanitizeTokenInfos(list)
+
   const tokenMap: WrappedTokenInfo[] = uniqBy(
-    list.tokens,
+    sanitizedTokens,
     (tokenInfo: TokenInfo) => `${tokenInfo.chainId}#${tokenInfo.address}`,
   )
     .map((tokenInfo) => {

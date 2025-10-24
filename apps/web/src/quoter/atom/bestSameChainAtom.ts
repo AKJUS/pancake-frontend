@@ -10,7 +10,7 @@ import { warningSeverity } from 'utils/exchange'
 import { InterfaceOrder, isBridgeOrder, isSVMOrder } from 'views/Swap/utils'
 import { OrderType } from '@pancakeswap/price-api-sdk'
 import { computeTradePriceBreakdown } from 'views/Swap/V3Swap/utils/exchange'
-import { NoValidRouteError, QuoteQuery, SVMQuoteQuery } from '../quoter.types'
+import { NoValidRouteError, QuoteQuery, SVMQuoteQuery, XTradeError } from '../quoter.types'
 import { activeQuoteHashAtom } from './abortControlAtoms'
 import { bestSVMOrderAtom } from './bestSVMOrderAtom'
 import { placeholderAtom } from './placeholderAtom'
@@ -19,8 +19,12 @@ import { handlePlaceholderForPendingResult } from '../utils/placeholderHandler'
 
 function getFailReason(errors: any[]) {
   const someTimeout = errors.find((x) => x instanceof TimeoutError)
+  const someXTradeError = errors.find((x) => x instanceof XTradeError)
   if (someTimeout) {
     return someTimeout
+  }
+  if (someXTradeError) {
+    return someXTradeError
   }
   return new NoValidRouteError()
 }
@@ -147,7 +151,7 @@ export const bestSameChainWithoutPlaceHolderAtom = atomFamily((_option: QuoteQue
       const strategies = get(routingStrategyAtom(option))
       const p1 = strategies.filter((x) => x.priority === 1)
       const p2 = strategies.filter((x) => x.priority === 2)
-      const tests = [p1, p2]
+      const tests = [p1, p2].filter((x) => x.length > 0)
       for (let i = 0; i < tests.length; i++) {
         const strategy = tests[i]
         if (strategy.length === 0) {

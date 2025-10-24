@@ -10,6 +10,7 @@ import { bestAMMTradeFromQuoterWorker2Atom } from './bestAMMTradeFromQuoterWorke
 import { bestAMMTradeFromQuoterWorkerAtom } from './bestAMMTradeFromQuoterWorkerAtom'
 import { bestRoutingSDKTradeAtom } from './bestRoutingSDKTradeAtom'
 import { bestXApiAtom } from './bestXAPIAtom'
+import { isRwaTokenAtom } from './rwaTokenAtoms'
 
 type AtomType = AtomFamily<QuoteQuery, Atom<Loadable<InterfaceOrder>>>
 export interface StrategyRoute {
@@ -47,6 +48,13 @@ interface StrategyConfig {
   priority: number
   isShadow?: boolean
 }
+
+const RWA_ONLY_ROUTING_CONFIG: StrategyConfig[] = [
+  {
+    key: 'x',
+    priority: 1,
+  },
+]
 
 const defaultRoutingConfig: StrategyConfig[] = [
   // Single hop route & with light pools
@@ -105,18 +113,39 @@ export const routingStrategyAtom = atomFamily(
         throw new Error('Routing config not loaded')
       }
 
-      return getRoutingStrategy(query, config.unwrap())
+      const { baseCurrency } = query
+      const quoteCurrency = query.currency
+
+      const baseAddress = baseCurrency ? getCurrencyAddress(baseCurrency)?.toLowerCase() : undefined
+      const quoteAddress = quoteCurrency ? getCurrencyAddress(quoteCurrency)?.toLowerCase() : undefined
+
+      const isRwaTrade =
+        (baseCurrency && baseAddress
+          ? get(isRwaTokenAtom({ chainId: baseCurrency.chainId, address: baseAddress }))
+          : false) ||
+        (quoteCurrency && quoteAddress
+          ? get(isRwaTokenAtom({ chainId: quoteCurrency.chainId, address: quoteAddress }))
+          : false)
+
+      return getRoutingStrategy(query, config.unwrap(), isRwaTrade)
     })
   },
   (a, b) => a.hash === b.hash,
 )
 
-function getRoutingStrategy(query: QuoteQuery, tokenSpecificConfig: TokenSpecificRoutingStrategy): StrategyRoute[] {
+function getRoutingStrategy(
+  query: QuoteQuery,
+  tokenSpecificConfig: TokenSpecificRoutingStrategy,
+  isRwaTrade: boolean,
+): StrategyRoute[] {
   const currencyA = query.baseCurrency!
   const currencyB = query.currency!
-  const chainId = currencyA.chainId
+  const { chainId } = currencyA
   const addressA = getCurrencyAddress(currencyA)
   const addressB = getCurrencyAddress(currencyB)
+  if (isRwaTrade) {
+    return RWA_ONLY_ROUTING_CONFIG.map((x) => ({ ...Strategies[x.key], ...x })) as StrategyRoute[]
+  }
   const config =
     tokenSpecificConfig[chainId]?.[addressA] || tokenSpecificConfig[chainId]?.[addressB] || defaultRoutingConfig
 

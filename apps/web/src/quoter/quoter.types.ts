@@ -37,6 +37,18 @@ export class NoValidRouteError extends Error {
   }
 }
 
+export type XTradeErrorCode = 'MARKET_CLOSED' | 'MARKET_PAUSED' | 'ASSET_PAUSED'
+
+export class XTradeError extends Error {
+  public readonly code?: XTradeErrorCode
+
+  constructor(message?: string, code?: XTradeErrorCode) {
+    super(message)
+    this.name = 'XTradeError'
+    this.code = code
+  }
+}
+
 export type UseBetterQuoteOptions = {
   factorGasCost?: false
 }

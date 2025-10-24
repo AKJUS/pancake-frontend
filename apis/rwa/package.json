@@ -1,0 +1,20 @@
+{
+  "name": "rwa-worker",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@pancakeswap/worker-utils": "workspace:*",
+    "itty-router": "^2.6.1",
+    "itty-router-extras": "^0.4.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^3.10.0",
+    "@pancakeswap/tsconfig": "workspace:*",
+    "@types/itty-router-extras": "^0.4.0",
+    "wrangler": "catalog:"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler publish"
+  }
+}

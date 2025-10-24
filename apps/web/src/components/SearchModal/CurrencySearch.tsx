@@ -8,7 +8,7 @@ import { useSolanaTokenInfo } from 'hooks/solana/useSolanaTokenInfo'
 import { useSolanaTokenBalances } from 'state/token/solanaTokenBalances'
 import { useSolanaTokenPrices } from 'hooks/solana/useSolanaTokenPrice'
 import { FixedSizeList } from 'react-window'
-import { useAllLists, useInactiveListUrls } from 'state/lists/hooks'
+import { sanitizeTokenInfos, useAllLists, useInactiveListUrls } from 'state/lists/hooks'
 import { UpdaterByChainId } from 'state/lists/updater'
 import { useAllTokenBalances } from 'state/wallet/hooks'
 import { safeGetAddress } from 'utils'
@@ -89,7 +89,8 @@ function useSearchInactiveTokenLists(search: string | undefined, minResults = 10
       const list = lists[url]?.current
       // eslint-disable-next-line no-continue
       if (!list) continue
-      for (const tokenInfo of list.tokens) {
+      const sanitizedTokens = sanitizeTokenInfos(list)
+      for (const tokenInfo of sanitizedTokens) {
         if (
           tokenInfo.chainId === chainId &&
           !(tokenInfo.address in activeTokens) &&

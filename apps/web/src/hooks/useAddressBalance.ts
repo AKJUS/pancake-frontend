@@ -7,6 +7,7 @@ import { useCallback, useMemo } from 'react'
 import { useCombinedActiveList } from 'state/lists/hooks'
 import { safeGetAddress } from 'utils/safeGetAddress'
 
+import { WALLET_API } from 'config/constants/endpoints'
 import { useAccountActiveChain } from './useAccountActiveChain'
 
 export interface TokenData {
@@ -41,7 +42,7 @@ interface UseAddressBalanceOptions {
   enabled?: boolean
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_WALLET_API_BASE_URL || 'https://wallet-api.pancakeswap.com/v1'
+const API_BASE_URL = `${WALLET_API}/v1`
 
 function isNative(address: string): boolean {
   return address === ZERO_ADDRESS

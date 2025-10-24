@@ -310,6 +310,31 @@ importers:
         specifier: 'catalog:'
         version: 3.81.0(@cloudflare/workers-types@3.19.0)(bufferutil@4.0.8)(utf-8-validate@6.0.3)
 
+  apis/rwa:
+    dependencies:
+      '@pancakeswap/worker-utils':
+        specifier: workspace:*
+        version: link:../../packages/worker-utils
+      itty-router:
+        specifier: ^2.6.1
+        version: 2.6.6
+      itty-router-extras:
+        specifier: ^0.4.2
+        version: 0.4.5
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^3.10.0
+        version: 3.19.0
+      '@pancakeswap/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/itty-router-extras':
+        specifier: ^0.4.0
+        version: 0.4.3
+      wrangler:
+        specifier: 'catalog:'
+        version: 3.81.0(@cloudflare/workers-types@3.19.0)(bufferutil@4.0.8)(utf-8-validate@6.0.3)
+
   apps/aptos:
     dependencies:
       '@aptos-labs/ts-sdk':
