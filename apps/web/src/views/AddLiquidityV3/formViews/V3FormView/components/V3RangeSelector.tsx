@@ -113,38 +113,46 @@ export default function V3RangeSelector({
 
   const leftValue = useMemo(() => {
     if (ticksAtLimit[isSorted ? Bound.LOWER : Bound.UPPER]) return '0'
+    if (leftPrice?.denominator === 0n) return ''
+    try {
+      if (
+        tickSpaceLimits?.[Bound.LOWER] !== undefined &&
+        leftPrice &&
+        priceToClosestTick(leftPrice) <= tickSpaceLimits[Bound.LOWER]
+      ) {
+        return '0'
+      }
 
-    if (
-      tickSpaceLimits?.[Bound.LOWER] !== undefined &&
-      leftPrice &&
-      priceToClosestTick(leftPrice) <= tickSpaceLimits[Bound.LOWER]
-    ) {
-      return '0'
+      return formatRangeSelectorPrice(leftPrice)
+    } catch (error) {
+      return ''
     }
-
-    return formatRangeSelectorPrice(leftPrice)
   }, [isSorted, leftPrice, tickSpaceLimits, ticksAtLimit])
 
   const rightValue = useMemo(() => {
     if (ticksAtLimit[isSorted ? Bound.UPPER : Bound.LOWER]) return '∞'
+    if (rightPrice?.denominator === 0n) return ''
+    try {
+      if (
+        tickSpaceLimits?.[Bound.LOWER] !== undefined &&
+        rightPrice &&
+        priceToClosestTick(rightPrice) <= tickSpaceLimits[Bound.LOWER]
+      ) {
+        return '0'
+      }
 
-    if (
-      tickSpaceLimits?.[Bound.LOWER] !== undefined &&
-      rightPrice &&
-      priceToClosestTick(rightPrice) <= tickSpaceLimits[Bound.LOWER]
-    ) {
-      return '0'
+      if (
+        tickSpaceLimits?.[Bound.UPPER] !== undefined &&
+        rightPrice &&
+        priceToClosestTick(rightPrice) >= tickSpaceLimits[Bound.UPPER]
+      ) {
+        return '∞'
+      }
+
+      return formatRangeSelectorPrice(rightPrice)
+    } catch (error) {
+      return ''
     }
-
-    if (
-      tickSpaceLimits?.[Bound.UPPER] !== undefined &&
-      rightPrice &&
-      priceToClosestTick(rightPrice) >= tickSpaceLimits[Bound.UPPER]
-    ) {
-      return '∞'
-    }
-
-    return formatRangeSelectorPrice(rightPrice)
   }, [isSorted, rightPrice, tickSpaceLimits, ticksAtLimit])
 
   const quickActionConfigs = useQuickActionConfigs({
