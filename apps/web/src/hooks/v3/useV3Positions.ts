@@ -3,6 +3,7 @@ import { masterChefV3ABI } from '@pancakeswap/v3-sdk'
 import { useActiveChainId } from 'hooks/useActiveChainId'
 import { useMasterchefV3, useV3NFTPositionManagerContract } from 'hooks/useContract'
 import { useReadContracts, useReadContract } from '@pancakeswap/wagmi'
+import isUndefinedOrNull from '@pancakeswap/utils/isUndefinedOrNull'
 import { useEffect, useMemo } from 'react'
 import { Address } from 'viem'
 
@@ -16,14 +17,19 @@ interface UseV3PositionResults {
   position: PositionDetails | undefined
 }
 
-export function useV3PositionsFromTokenIds(tokenIds: bigint[] | undefined): UseV3PositionsResults {
+export function useV3PositionsFromTokenIds(tokenIds: bigint | bigint[] | undefined): UseV3PositionsResults {
   const positionManager = useV3NFTPositionManagerContract()
   const { chainId } = useActiveChainId()
 
+  const normalizedTokenIds = useMemo(() => {
+    if (tokenIds === undefined) return []
+    return Array.isArray(tokenIds) ? tokenIds : [tokenIds]
+  }, [tokenIds])
+
   const inputs = useMemo(
     () =>
-      tokenIds && positionManager
-        ? tokenIds.map(
+      normalizedTokenIds.length > 0 && positionManager
+        ? normalizedTokenIds.map(
             (tokenId) =>
               ({
                 abi: positionManager.abi,
@@ -34,10 +40,10 @@ export function useV3PositionsFromTokenIds(tokenIds: bigint[] | undefined): UseV
               } as const),
           )
         : [],
-    [chainId, positionManager, tokenIds],
+    [chainId, positionManager, normalizedTokenIds],
   )
 
-  const { isLoading, data: positions = [] } = useReadContracts({
+  const { isLoading, data: positions } = useReadContracts({
     contracts: inputs,
     allowFailure: true,
     query: {
@@ -48,44 +54,39 @@ export function useV3PositionsFromTokenIds(tokenIds: bigint[] | undefined): UseV
 
   return {
     loading: isLoading,
-    positions: useMemo(
-      () =>
-        positions
-          .filter((p) => p.status === 'success')
-          .map((p) => {
-            const r = p.result!
-            return {
-              nonce: r[0],
-              operator: r[1],
-              token0: r[2],
-              token1: r[3],
-              fee: r[4],
-              tickLower: r[5],
-              tickUpper: r[6],
-              liquidity: r[7],
-              feeGrowthInside0LastX128: r[8],
-              feeGrowthInside1LastX128: r[9],
-              tokensOwed0: r[10],
-              tokensOwed1: r[11],
-            } as Omit<PositionDetails, 'tokenId'>
-          })
-          .map((position, i) =>
-            position && typeof inputs?.[i]?.args[0] !== 'undefined'
-              ? {
-                  ...position,
-                  tokenId: inputs?.[i]?.args[0],
-                }
-              : null,
-          )
-          // filter boolean assert
-          .filter(Boolean) as PositionDetails[],
-      [inputs, positions],
-    ),
+    positions: useMemo(() => {
+      if (!positions || !inputs) return []
+
+      return inputs
+        .map((input, i) => {
+          const p = positions[i]
+          if (!p || p.status !== 'success' || !p.result) return undefined
+
+          const r = p.result
+
+          return {
+            nonce: r[0],
+            operator: r[1],
+            token0: r[2],
+            token1: r[3],
+            fee: r[4],
+            tickLower: r[5],
+            tickUpper: r[6],
+            liquidity: r[7],
+            feeGrowthInside0LastX128: r[8],
+            feeGrowthInside1LastX128: r[9],
+            tokensOwed0: r[10],
+            tokensOwed1: r[11],
+            tokenId: input.args[0],
+          } as PositionDetails
+        })
+        .filter((p): p is PositionDetails => !!p && !Object.values(p).some(isUndefinedOrNull))
+    }, [inputs, positions]),
   }
 }
 
 export function useV3PositionFromTokenId(tokenId: bigint | undefined): UseV3PositionResults {
-  const position = useV3PositionsFromTokenIds(tokenId ? [tokenId] : undefined)
+  const position = useV3PositionsFromTokenIds(tokenId)
 
   return useMemo(
     () => ({
