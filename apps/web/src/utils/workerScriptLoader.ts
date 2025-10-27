@@ -9,7 +9,9 @@ async function retryFetch(url, retries = 5, baseDelay = 3000) {
       // eslint-disable-next-line no-await-in-loop
       const response = await fetch(url, { cache: 'force-cache' })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      return response
+      // eslint-disable-next-line no-await-in-loop
+      const blob = await response.blob()
+      return blob
     } catch (err) {
       lastError = err
       attempt++
@@ -34,14 +36,13 @@ export function createWorkerScriptLoader() {
   return async function loadWorkerScript() {
     if (!loadScriptPromise) {
       loadScriptPromise = retryFetch(worker.url)
-        .then((r) => r.blob())
         .then((b) => {
           const base = typeof window !== 'undefined' ? window.location.href : undefined
-          const addtionalWorkerSource = `
+          const additionalWorkerSource = `
             const originalImportScripts = self.importScripts;
             self.importScripts = (url) => originalImportScripts.call(self, new URL(url, "${base}").toString());
           `
-          return new Blob([addtionalWorkerSource, b], { type: 'application/javascript' })
+          return new Blob([additionalWorkerSource, b], { type: 'application/javascript' })
         })
         .then((b) => URL.createObjectURL(b))
     }
