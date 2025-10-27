@@ -81,7 +81,13 @@ const CandleChart = ({
 
   // if chart not instantiated in canvas, create it
   useEffect(() => {
-    if (!chartCreated && data && data?.length > 0 && !!chartRef?.current?.parentElement) {
+    if (
+      !chartCreated &&
+      data &&
+      data?.length > 0 &&
+      !!chartRef?.current?.parentElement &&
+      !!chartRef.current?.ownerDocument?.defaultView
+    ) {
       const chart = createChart(chartRef.current, {
         height,
         width: chartRef.current.parentElement.clientWidth - 32,

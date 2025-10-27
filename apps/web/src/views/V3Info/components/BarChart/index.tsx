@@ -89,7 +89,7 @@ const BarChart = ({
 
   // if chart not instantiated in canvas, create it
   useEffect(() => {
-    if (!chartCreated && data && !!chartRef?.current?.parentElement) {
+    if (!chartCreated && data && !!chartRef?.current?.parentElement && !!chartRef.current?.ownerDocument?.defaultView) {
       const chart = createChart(chartRef.current, {
         height,
         width: chartRef.current.parentElement.clientWidth - 62,

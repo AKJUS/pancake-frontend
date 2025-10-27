@@ -39,7 +39,7 @@ const LineChart = ({ data, setHoverValue, setHoverDate, dateFormat = 'h:mm a' }:
   }, [data])
 
   useEffect(() => {
-    if (!chartRef?.current || !transformedData || transformedData.length === 0) return
+    if (!chartRef.current?.ownerDocument?.defaultView || !transformedData || transformedData.length === 0) return
 
     const chart = createChart(chartRef?.current, {
       layout: {

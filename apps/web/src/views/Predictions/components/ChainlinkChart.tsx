@@ -237,7 +237,7 @@ const Chart = ({
   const [chartCreated, setChart] = useState<IChartApi | undefined>()
 
   useEffect(() => {
-    if (!chartRef?.current) return
+    if (!chartRef.current?.ownerDocument?.defaultView) return
 
     const chart = createChart(chartRef?.current, {
       layout: {

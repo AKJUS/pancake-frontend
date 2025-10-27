@@ -24,7 +24,7 @@ const CandleChart = ({ data, setValue, setLabel }: LineChartProps) => {
 
   // if chart not instantiated in canvas, create it
   useEffect(() => {
-    if (!chartRef.current || !data) return
+    if (!chartRef.current?.ownerDocument?.defaultView || !data) return
     const chart = createChart(chartRef.current, {
       autoSize: true,
       // height: CANDLE_CHART_HEIGHT,

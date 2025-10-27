@@ -171,7 +171,7 @@ export const PairPriceChart: React.FC<PairPriceChartNewProps> = ({
   }, [setHoverValue, setHoverDate, legendRef]);
 
   useEffect(() => {
-    if (!chartRef?.current) return;
+    if (!chartRef.current?.ownerDocument?.defaultView) return;
 
     const chart = createChart(chartRef?.current, {
       layout: {

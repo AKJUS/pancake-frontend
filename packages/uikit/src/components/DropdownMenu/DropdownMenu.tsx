@@ -229,7 +229,7 @@ const DropdownMenu: React.FC<React.PropsWithChildren<DropdownMenuProps>> = ({
       });
       hideDropdownMenu.cancel();
     };
-  }, [setIsOpen, tooltipRef, targetRef, isBottomNav, hasItems]);
+  }, [setIsOpen, tooltipRef, targetRef, isBottomNav, hasItems, trigger]);
 
   useEffect(() => {
     if (setMenuOpenByIndex && index !== undefined) {
