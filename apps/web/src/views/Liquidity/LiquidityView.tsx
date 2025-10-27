@@ -212,7 +212,7 @@ export const LiquidityView = () => {
 
   const parsedTokenId = Number.isFinite(Number(tokenIdFromUrl)) ? BigInt(tokenIdFromUrl as string) : undefined
 
-  const { loading, position: positionDetails } = useV3PositionFromTokenId(parsedTokenId)
+  const { loading: positionDetailsLoading, position: positionDetails } = useV3PositionFromTokenId(parsedTokenId)
 
   const {
     token0: token0Address,
@@ -511,7 +511,8 @@ export const LiquidityView = () => {
     'TransactionConfirmationModalCollectFees',
   )
 
-  const isLoading = loading || poolState === PoolState.LOADING || poolState === PoolState.INVALID || !feeAmount
+  const isPositionDetailsLoading = positionDetailsLoading || (positionDetails && !feeAmount)
+  const isLoading = isPositionDetailsLoading || poolState === PoolState.LOADING || poolState === PoolState.INVALID
 
   const { isMobile } = useMatchBreakpoints()
 
@@ -519,7 +520,7 @@ export const LiquidityView = () => {
 
   const { hasMerkl } = useMerklInfo(poolAddress)
 
-  if (!isLoading && poolState === PoolState.NOT_EXISTS) {
+  if ((!isPositionDetailsLoading && !positionDetails) || poolState === PoolState.NOT_EXISTS) {
     return (
       <NotFound LinkComp={Link}>
         <NextSeo title="404" />

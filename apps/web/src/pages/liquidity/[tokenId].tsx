@@ -21,7 +21,7 @@ const PoolPage = () => {
     }
   }, [tokenId, router])
 
-  if (!tokenId || !chainId || !isEvm(chainId)) {
+  if (!router.isReady || !tokenId || !chainId || !isEvm(chainId)) {
     return null
   }
 
