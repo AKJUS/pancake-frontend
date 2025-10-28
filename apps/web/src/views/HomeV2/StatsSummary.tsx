@@ -1,7 +1,7 @@
 import { useTranslation } from '@pancakeswap/localization'
 import { Box, Flex, useMatchBreakpoints } from '@pancakeswap/uikit'
 import { formatAmount } from '@pancakeswap/utils/formatInfoNumbers'
-import { SiteStats } from 'pages/api/home/types'
+import { SiteStats } from 'edge/home/types'
 import React from 'react'
 import CountUp from 'react-countup'
 import styled from 'styled-components'

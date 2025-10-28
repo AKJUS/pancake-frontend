@@ -1,15 +1,24 @@
 import { cacheByLRU } from '@pancakeswap/utils/cacheByLRU'
 import { NextApiHandler } from 'next'
-import { homePageChainsInfo, homePageCurrencies, partners } from './homePageDataQuery'
-import { queryPools } from './queries/queryPools'
-import { queryPredictionUser } from './queries/queryPrediction'
-import { queryTokens } from './queries/queryTokens'
-import { querySiteStats } from './querySiteStats'
-import { HomePageData } from './types'
+import { homePageChainsInfo, homePageCurrencies, partners } from 'edge/home/homePageDataQuery'
+import { queryPools } from 'edge/home/queries/queryPools'
+import { queryPredictionUser } from 'edge/home/queries/queryPrediction'
+import { queryTokens } from 'edge/home/queries/queryTokens'
+import { querySiteStats } from 'edge/home/querySiteStats'
+import { HomePageData } from 'edge/home/types'
 
 async function _load() {
-  const [{ topTokens }, stats, topWinner] = await Promise.all([queryTokens(), querySiteStats(), queryPredictionUser()])
-  const pools = await queryPools()
+  const [tokensResult, statsResult, topWinnerResult, poolsResult] = await Promise.allSettled([
+    queryTokens(),
+    querySiteStats(),
+    queryPredictionUser(),
+    queryPools(),
+  ])
+
+  const topTokens = tokensResult.status === 'fulfilled' ? tokensResult.value.topTokens : []
+  const stats = statsResult.status === 'fulfilled' ? statsResult.value : undefined
+  const topWinner = topWinnerResult.status === 'fulfilled' ? topWinnerResult.value : undefined
+  const pools = poolsResult.status === 'fulfilled' ? poolsResult.value : []
   const currencies = homePageCurrencies
   const chains = homePageChainsInfo()
   return {

@@ -1,6 +1,6 @@
 import { useTranslation } from '@pancakeswap/localization'
 import { useMatchBreakpoints } from '@pancakeswap/uikit'
-import { HomepageChain, HomePageCurrency } from 'pages/api/home/types'
+import { HomepageChain, HomePageCurrency } from 'edge/home/types'
 import React from 'react'
 import { CardRowLayout } from './component/CardRowLayout'
 import { CardRowSectionButton } from './component/CardRowSectionButton'

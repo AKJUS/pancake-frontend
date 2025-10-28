@@ -1,5 +1,5 @@
 import { NextApiHandler } from 'next'
-import { queryTokenList } from './queries/queryTokenList'
+import { queryTokenList } from 'edge/home/queries/queryTokenList'
 
 async function load() {
   return queryTokenList()

@@ -1,5 +1,5 @@
 import { Flex, Text, useMatchBreakpoints } from '@pancakeswap/uikit'
-import { HomePagePartner } from 'pages/api/home/types'
+import { HomePagePartner } from 'edge/home/types'
 import styled from 'styled-components'
 
 type Props = {

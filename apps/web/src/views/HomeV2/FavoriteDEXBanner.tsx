@@ -1,6 +1,6 @@
 import { useTranslation } from '@pancakeswap/localization'
 import { Box, Flex, MotionBox, Text, useMatchBreakpoints } from '@pancakeswap/uikit'
-import { HomepageChain } from 'pages/api/home/types'
+import { HomepageChain } from 'edge/home/types'
 import React from 'react'
 import styled from 'styled-components'
 import { MultipleLogos } from './cards/component/MultipleLogos'

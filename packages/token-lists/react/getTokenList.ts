@@ -20,7 +20,7 @@ export async function getTokenList(listUrl: string): Promise<TokenList | undefin
         const preFilterErrors = validator.errors
         json.tokens = json.tokens.filter((token: any) => validator({ ...json, tokens: [token] }))
         if (!validator(json)) {
-          const errors = validator.errors
+          const { errors } = validator
           throw new Error(`Validation failed after filtering: ${JSON.stringify(errors)}`)
         }
         console.warn(`Pre-filter validation errors: ${JSON.stringify(preFilterErrors)}`)
@@ -30,6 +30,7 @@ export async function getTokenList(listUrl: string): Promise<TokenList | undefin
       // if (i === urls.length - 1) {
       // throw new Error(`Failed to download list ${listUrl}`)
       // }
+      console.error(`Failed to download or validate list from ${url}:`, error)
 
       return undefined
     }

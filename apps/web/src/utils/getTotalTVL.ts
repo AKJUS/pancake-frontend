@@ -1,4 +1,4 @@
-import { ChainId, testnetChainIds } from '@pancakeswap/chains'
+import { ChainId, NonEVMChainId, testnetChainIds } from '@pancakeswap/chains'
 import addresses from 'config/constants/contracts'
 import dayjs from 'dayjs'
 import { gql } from 'graphql-request'
@@ -67,14 +67,15 @@ export const getTotalTvl = async () => {
           querySuccess = true
         })
       } catch (error) {
-        if (process.env.NODE_ENV === 'production') {
-          console.error('Error when fetching address count', error)
-        }
+        console.error('Error when fetching address count', error)
       }
     }
 
     const [v2Stats, v3Stats, stableStats, cakePriceResponse, totalCakeInVault, totalCakeInVE] = await Promise.all([
-      getStats('v2', mainnetChainIds),
+      getStats(
+        'v2',
+        mainnetChainIds.filter((id) => id !== NonEVMChainId.SOLANA),
+      ),
       getStats('v3', mainnetChainIds),
       getStats('stable', [ChainId.ARBITRUM_ONE, ChainId.BSC]),
       fetch('https://farms-api.pancakeswap.com/price/cake').then((res) => res.json()),
@@ -132,10 +133,7 @@ const getStats = async (type: 'v2' | 'v3' | 'stable', chainIds: number[]) => {
             },
           })
         } catch (error) {
-          console.error(error)
-          if (process.env.NODE_ENV === 'production') {
-            console.error('Error when fetching tvl stats', error)
-          }
+          console.error('Error when fetching tvl stats', type, chainName, error)
         }
         return result
       }),

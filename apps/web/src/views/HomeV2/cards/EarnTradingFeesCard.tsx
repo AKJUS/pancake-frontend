@@ -1,7 +1,7 @@
 import { useTranslation } from '@pancakeswap/localization'
 import { Box, Flex, Text, useMatchBreakpoints } from '@pancakeswap/uikit'
 import { useRouter } from 'next/router'
-import { HomePagePoolInfo } from 'pages/api/home/types'
+import { HomePagePoolInfo } from 'edge/home/types'
 import styled from 'styled-components'
 import { getNetworkFullName } from 'views/BuyCrypto/constants'
 import { CardRowLayout } from './component/CardRowLayout'
