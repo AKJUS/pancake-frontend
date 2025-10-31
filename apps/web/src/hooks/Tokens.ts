@@ -280,7 +280,7 @@ export function useToken(tokenAddress?: string, chainId?: number): ERC20Token | 
 // otherwise returns the token
 export function useTokenByChainId(tokenAddress?: string, chainId?: number): ERC20Token | undefined | null {
   const unsupportedTokens = useUnsupportedTokens()
-  const tokens = useAllTokensByChainIds(chainId ? [chainId] : [])
+  const tokens = useAllTokensByChainIds(useMemo(() => (chainId ? [chainId] : []), [chainId]))
 
   const address = safeGetAddress(tokenAddress)
 
@@ -333,7 +333,7 @@ export function useTokensByChainId(
   chainId?: number,
 ): Record<string, ERC20Token | undefined | null> {
   const unsupportedTokens = useUnsupportedTokens()
-  const tokens = useAllTokensByChainIds(chainId ? [chainId] : [])
+  const tokens = useAllTokensByChainIds(useMemo(() => (chainId ? [chainId] : []), [chainId]))
 
   // Process addresses and separate existing tokens from ones that need to be fetched
   const processedData = useMemo(() => {

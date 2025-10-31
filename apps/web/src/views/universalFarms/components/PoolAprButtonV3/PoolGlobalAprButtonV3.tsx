@@ -5,11 +5,10 @@ import BigNumber from 'bignumber.js'
 import { useCurrencyByChainId } from 'hooks/Tokens'
 import { useEffect, useMemo } from 'react'
 import { AprInfo, usePoolApr } from 'state/farmsV4/hooks'
-import { InfinityPoolInfo, PoolInfo, SolanaV3PoolInfo } from 'state/farmsV4/state/type'
+import { InfinityPoolInfo, PoolInfo } from 'state/farmsV4/state/type'
 import { isInfinityProtocol } from 'utils/protocols'
 import { useMyPositions } from 'views/PoolDetail/components/MyPositionsContext'
 
-import { SolanaV3Pool } from 'state/pools/solana'
 import { APRBreakdownModal } from './AprBreakdownModal'
 import { PoolAprButtonV3 } from './PoolAprButtonV3'
 

@@ -4,7 +4,7 @@ import { isSolana, NonEVMChainId } from '@pancakeswap/chains'
 import { selectedEvmWalletAtom, selectedSolanaWalletAtom } from '@pancakeswap/ui-wallets/src/state/atom'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
 import { useLocalStorage, useWallet } from '@solana/wallet-adapter-react'
-import { EvmConnectorNames, SolanaProviderLocalStorageKey, WalletAdaptedNetwork } from '@pancakeswap/ui-wallets'
+import { SolanaProviderLocalStorageKey, WalletAdaptedNetwork } from '@pancakeswap/ui-wallets'
 import { WalletName } from '@solana/wallet-adapter-base'
 import { multicallABI } from 'config/abi/Multicall'
 import { FAST_INTERVAL } from 'config/constants'
@@ -20,7 +20,6 @@ import { publicClient } from 'utils/viem'
 import { Address, erc20Abi, getAddress, isAddress } from 'viem'
 import { useAccount, useBalance } from 'wagmi'
 import { useAtomValue } from 'jotai'
-import { useSelectedWallet } from '@pancakeswap/ui-wallets/src/state/hooks'
 import { useMultipleContractSingleDataWagmi } from '../multicall/hooks'
 
 /**
@@ -104,6 +103,9 @@ export function useTokenBalance(account?: string, token?: Token): CurrencyAmount
   return tokenBalances[`${token.chainId}-${token.address}`]
 }
 
+/**
+ * Note: `currencies` should be memoized to prevent unnecessary recomputation and rerenders.
+ */
 export function useCurrencyBalances(
   account?: string,
   currencies?: (UnifiedCurrency | undefined | null)[],

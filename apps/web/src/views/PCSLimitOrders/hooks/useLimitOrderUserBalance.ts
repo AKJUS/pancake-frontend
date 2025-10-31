@@ -6,7 +6,6 @@ import { BigNumber as BN } from 'bignumber.js'
 import { formatAmount } from '@pancakeswap/utils/formatFractions'
 import { Rounding } from '@pancakeswap/swap-sdk-core'
 import { useUnifiedUSDPriceAmount } from 'hooks/useStablecoinPrice'
-import { useRouter } from 'next/router'
 import { formattedAmountsAtom } from '../state/form/inputAtoms'
 import { Field } from '../types/limitOrder.types'
 import { inputCurrencyAtom, outputCurrencyAtom } from '../state/currency/currencyAtoms'
@@ -16,14 +15,15 @@ import { MIN_BNB_VALUE, MIN_USD_VALUE } from '../constants'
  * Check token balance for Limit Order
  */
 export const useLimitOrderUserBalance = () => {
-  const router = useRouter()
   const { account } = useAccountActiveChain()
   const inputCurrency = useAtomValue(inputCurrencyAtom)
   const outputCurrency = useAtomValue(outputCurrencyAtom)
   const formattedAmounts = useAtomValue(formattedAmountsAtom)
 
-  const [inputBalance] = useCurrencyBalances(account, [inputCurrency ?? undefined])
-  const [outputBalance] = useCurrencyBalances(account, [outputCurrency ?? undefined])
+  const [inputBalance, outputBalance] = useCurrencyBalances(
+    account,
+    useMemo(() => [inputCurrency ?? undefined, outputCurrency ?? undefined], [inputCurrency, outputCurrency]),
+  )
 
   const amountUSD = useUnifiedUSDPriceAmount(
     inputCurrency ?? undefined,

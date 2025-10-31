@@ -1,4 +1,3 @@
-import { isSolana } from '@pancakeswap/chains'
 import { Protocol } from '@pancakeswap/farms'
 import { SORT_ORDER } from '@pancakeswap/uikit'
 import { CHAIN_QUERY_NAME } from 'config/chains'

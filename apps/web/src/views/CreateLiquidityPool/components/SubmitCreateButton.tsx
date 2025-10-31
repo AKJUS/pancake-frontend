@@ -178,7 +178,10 @@ export const SubmitCreateButton: React.FC<SubmitCreateButtonProps> = ({ ...boxPr
   const { binStep, lowerBinId, upperBinId, activeId } = useInfinityBinQueryState()
   const { maxBinId, minBinId } = useBinIdRange()
 
-  const [currency0Balance, currency1Balance] = useCurrencyBalances(account, [currency0, currency1])
+  const [currency0Balance, currency1Balance] = useCurrencyBalances(
+    account,
+    useMemo(() => [currency0, currency1], [currency0, currency1]),
+  )
   const {
     approve: approveACallback,
     revoke: revokeACallback,

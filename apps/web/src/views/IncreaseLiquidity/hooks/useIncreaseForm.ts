@@ -32,7 +32,10 @@ export const useIncreaseForm = ({
   const [outputAmountRaw, setOutputAmountRaw] = useState('')
 
   const { address: account } = useAccount()
-  const [inputBalance, outputBalance] = useCurrencyBalances(account, [currency0, currency1])
+  const [inputBalance, outputBalance] = useCurrencyBalances(
+    account,
+    useMemo(() => [currency0, currency1], [currency0, currency1]),
+  )
 
   const inputAmount: CurrencyAmount<Currency> | undefined = useMemo(() => {
     return tryParseCurrencyAmount(inputAmountRaw, currency0)

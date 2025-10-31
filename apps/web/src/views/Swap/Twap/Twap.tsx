@@ -30,12 +30,12 @@ import { useQuoteContext } from 'quoter/hook/QuoteContext'
 import { multicallGasLimitAtom } from 'quoter/hook/useMulticallGasLimit'
 import { QuoteProvider } from 'quoter/QuoteProvider'
 import { createQuoteQuery } from 'quoter/utils/createQuoteQuery'
-import { memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, Suspense, useCallback, useMemo, useRef } from 'react'
 import { useCurrentBlock } from 'state/block/hooks'
 import { Field } from 'state/swap/actions'
 import { useDefaultsFromURLSearch, useSwapState } from 'state/swap/hooks'
 import { useSwapActionHandlers } from 'state/swap/useSwapActionHandlers'
-import { useCurrencyBalances } from 'state/wallet/hooks'
+import { useCurrencyBalance } from 'state/wallet/hooks'
 import { keyframes, styled } from 'styled-components'
 import { maxAmountSpend } from 'utils/maxAmountSpend'
 import { useAccount } from 'wagmi'
@@ -182,7 +182,7 @@ const TokenPanelInput = ({
   const { t } = useTranslation()
   const loadedUrlParams = useDefaultsFromURLSearch()
 
-  const [inputBalance] = useCurrencyBalances(account, [inputCurrency, outputCurrency])
+  const inputBalance = useCurrencyBalance(account, inputCurrency)
 
   const maxAmountInput = useMemo(() => maxAmountSpend(inputBalance), [inputBalance])
 

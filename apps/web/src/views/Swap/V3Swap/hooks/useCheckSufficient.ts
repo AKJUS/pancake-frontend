@@ -7,6 +7,7 @@ import { useSwapState } from 'state/swap/hooks'
 import { useCurrencyBalances } from 'state/wallet/hooks'
 
 import { InterfaceOrder } from 'views/Swap/utils'
+import { useMemo } from 'react'
 import { useSlippageAdjustedAmounts } from './useSlippageAdjustedAmounts'
 
 export function useCheckInsufficientError(order?: InterfaceOrder | null | undefined) {
@@ -22,10 +23,10 @@ export function useCheckInsufficientError(order?: InterfaceOrder | null | undefi
 
   const slippageAdjustedAmounts = useSlippageAdjustedAmounts(order)
 
-  const currencyBalances = useCurrencyBalances(account ?? undefined, [
-    inputCurrency ?? undefined,
-    outputCurrency ?? undefined,
-  ])
+  const currencyBalances = useCurrencyBalances(
+    account ?? undefined,
+    useMemo(() => [inputCurrency ?? undefined, outputCurrency ?? undefined], [inputCurrency, outputCurrency]),
+  )
 
   const [balanceIn, amountIn] = [
     first(currencyBalances),

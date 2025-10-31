@@ -17,7 +17,7 @@ import { InfinityFeeTierBreakdown } from 'components/FeeTierBreakdown'
 import { TokenPairLogo } from 'components/TokenImage'
 import { useMemo } from 'react'
 import type { PoolInfo } from 'state/farmsV4/state/type'
-import { getHookByAddress } from 'utils/getHookByAddress'
+import { getHookByAddress, isHookWhitelisted } from 'utils/getHookByAddress'
 import { isInfinityProtocol } from 'utils/protocols'
 
 import { useHookByPoolId } from 'hooks/infinity/useHooksList'
@@ -184,6 +184,7 @@ export const usePoolFeatureConfig = (showPoolType = true) => {
 }
 
 export const PoolTokenOverview = <T extends PoolInfo = PoolInfo>({ data }: { data: T }) => {
+  const { t } = useTranslation()
   const token0 =
     useUnifiedToken(getCurrencyAddress(data.token0), data.chainId, {
       unwrapWSol: true,
@@ -195,18 +196,33 @@ export const PoolTokenOverview = <T extends PoolInfo = PoolInfo>({ data }: { dat
 
   const provider = getRewardProvider(data.chainId, data.lpAddress)
   const multiplier = getRewardMultiplier(data.chainId, data.lpAddress)
-  const showReward = !!provider
   const { tokensMap } = useAtomValue(tokensMapAtom)
-  const riskToken = getUnwhitelistedToken(data.farm!, tokensMap)
-  const showRisk = Boolean(riskToken)
-  const { t } = useTranslation()
+  const riskToken = useMemo(() => getUnwhitelistedToken(data.farm!, tokensMap), [data.farm, tokensMap])
+  const isHookUnverified = useMemo(() => {
+    if ('hookAddress' in data && data.hookAddress) {
+      return !isHookWhitelisted(data.chainId, data.hookAddress)
+    }
+    return false
+  }, [data])
+  const showRisk = Boolean(riskToken || isHookUnverified)
+  const showReward = Boolean(provider)
 
   const { targetRef, tooltip, tooltipVisible } = useTooltip(
     <Text>
-      {t(
-        'Caution: %token% is currently unverified. Always confirm the address and do your own research before trading or interacting with this pool.',
-        { token: riskToken?.symbol },
+      {riskToken &&
+        t(
+          'Caution: %token% is currently unverified. Always confirm the address and do your own research before trading or interacting with this pool.',
+          { token: riskToken?.symbol },
+        )}
+      {riskToken && isHookUnverified && (
+        <>
+          <br /> <br />
+        </>
       )}
+      {isHookUnverified &&
+        t(
+          'Caution: This pool uses an unverified hook. Please conduct your own research before interacting with it, as doing so may result in a loss of funds that cannot be recovered.',
+        )}
     </Text>,
     { placement: 'top' },
   )

@@ -6,7 +6,6 @@ import { useUserShowTestnet } from 'state/user/hooks/useUserShowTestnet'
 import { DEFAULT_ACTIVE_LIST_URLS } from 'config/constants/lists'
 import { useTokenListPrepared } from 'hooks/useTokenListPrepared'
 import { PoolSearcher, PoolSearcherState, PoolSearchEvent } from '../atom/PoolSearcher'
-import { isInWhitelist } from '../atom/farmSearch.filter'
 import { tokensMapAtom } from '../atom/tokensMapAtom'
 import { searchQueryAtom, setPageAtom } from '../atom/searchQueryAtom'
 
@@ -18,7 +17,7 @@ export const useFarmSearch = () => {
   const searcher = useMemo(() => new PoolSearcher(), [])
   const [pools, setPools] = useState<PoolInfo[]>([])
   const [state, setState] = useState<PoolSearcherState>(searcher.getState())
-  const hash = getHashKey(query)
+  const hash = useMemo(() => getHashKey(query), [query])
   const { tokensMap } = useAtomValue(tokensMapAtom)
   const [showTestnet] = useUserShowTestnet()
 
@@ -31,7 +30,7 @@ export const useFarmSearch = () => {
       console.log(`[farm] search with token list`, Object.keys(tokensMap).length)
       searcher.search(query, tokensMap, showTestnet)
     }
-  }, [hash, searcher, listPrepared, tokensMap])
+  }, [hash, searcher, listPrepared, tokensMap, showTestnet])
 
   useEffect(() => {
     const s1 = searcher.on(PoolSearchEvent.POOLS_UPDATED, (pools: PoolInfo[]) => {
@@ -46,7 +45,7 @@ export const useFarmSearch = () => {
       s1()
       s2()
     }
-  }, [])
+  }, [searcher])
 
   return {
     pools,

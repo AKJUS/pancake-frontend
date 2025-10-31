@@ -2,7 +2,6 @@ import { ChainId, isSolana, NonEVMChainId } from '@pancakeswap/chains'
 import { Token } from '@pancakeswap/sdk'
 import memoize from 'lodash/memoize'
 import { safeGetAddress } from 'utils'
-import { isAddress } from 'viem'
 
 const mapping = {
   [ChainId.BSC]: 'smartchain',
@@ -14,27 +13,26 @@ const mapping = {
   [NonEVMChainId.SOLANA]: 'solana',
 }
 
+const buildTrustWalletLogoURL = (address?: string, chainId?: number): string | null => {
+  if (!address || !chainId || !mapping[chainId]) return null
+
+  const formattedAddress = isSolana(chainId) ? address : safeGetAddress(address)
+
+  if (!formattedAddress) return null
+
+  return `https://assets-cdn.trustwallet.com/blockchains/${mapping[chainId]}/assets/${formattedAddress}/logo.png`
+}
+
 const getTokenLogoURL = memoize(
   (token?: Token) => {
-    if (token && mapping[token.chainId] && isAddress(token.address)) {
-      return `https://assets-cdn.trustwallet.com/blockchains/${mapping[token.chainId]}/assets/${
-        isSolana(token.chainId) ? token.address : safeGetAddress(token.address)
-      }/logo.png`
-    }
-    return null
+    if (!token) return null
+    return buildTrustWalletLogoURL(token.address, token.chainId)
   },
   (t) => `${t?.chainId}#${t?.address}`,
 )
 
 export const getTokenLogoURLByAddress = memoize(
-  (address?: string, chainId?: number) => {
-    if (address && chainId && mapping[chainId] && isAddress(address)) {
-      return `https://assets-cdn.trustwallet.com/blockchains/${mapping[chainId]}/assets/${safeGetAddress(
-        address,
-      )}/logo.png`
-    }
-    return null
-  },
+  (address?: string, chainId?: number) => buildTrustWalletLogoURL(address, chainId),
   (address, chainId) => `${chainId}#${address}`,
 )
 

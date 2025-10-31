@@ -1,5 +1,6 @@
 import { ChainId } from '@pancakeswap/chains'
 
+import { Address } from 'viem'
 import { HOOK_CATEGORY, HookType, POOL_TYPE, type HookData, type PoolType } from '../../types'
 import { CL_DYNAMIC_FEE_HOOKS_BY_CHAIN } from './dynamicFeeHook'
 
@@ -256,3 +257,9 @@ export const bscDynamicHooks: Record<PoolType, HookData | undefined> = {
   CL: CL_DYNAMIC_HOOK,
   Bin: undefined,
 }
+
+// whitelisted hooks but without metadata, just for eliminating the fe warning
+export const bscWhitelistLabeledHooks: Address[] = [
+  '0x9a9B5331ce8d74b2B721291D57DE696E878353fd', // IDO TGE
+  '0x72e09eBd9b24F47730b651889a4eD984CBa53d90',
+]

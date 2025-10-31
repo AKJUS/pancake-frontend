@@ -107,7 +107,10 @@ export const SubmitButton = (props: AtomBoxProps) => {
     }),
     [depositCurrencyAmount0, depositCurrencyAmount1],
   )
-  const [currency0Balance, currency1Balance] = useCurrencyBalances(account ?? undefined, [currencyA, currencyB])
+  const [currency0Balance, currency1Balance] = useCurrencyBalances(
+    account ?? undefined,
+    useMemo(() => [currencyA, currencyB], [currencyA, currencyB]),
+  )
 
   const {
     approve: approveACallback,

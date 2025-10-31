@@ -6,8 +6,6 @@ import styled from 'styled-components'
 import isEqual from 'lodash/isEqual'
 
 import { useTranslation } from '@pancakeswap/localization'
-import { DEFAULT_ACTIVE_LIST_URLS } from 'config/constants/lists'
-import { useTokenListPrepared } from 'hooks/useTokenListPrepared'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { getFarmKey } from 'state/farmsV4/search/farm.util'
 import { PoolInfo } from 'state/farmsV4/state/type'
