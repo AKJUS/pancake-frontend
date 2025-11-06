@@ -56,7 +56,7 @@ export const InfinityPositionActions = ({
     hasUnclaimedRewards,
   } = useFarmInfinityActions({
     chainId,
-    onDone: (resp) => setLatestTxReceipt(resp),
+    onDone: setLatestTxReceipt,
   })
   const { onCollect, attemptingTx: collectAttemptingTxn } = useInfinityCollectFeeAction({ chainId })
 
@@ -93,10 +93,7 @@ export const InfinityPositionActions = ({
     })
   }, [poolKey, onCollect, pos])
 
-  const isAttemptingTx = useMemo(
-    () => collectAttemptingTxn || harvestAttemptingTxn,
-    [collectAttemptingTxn, harvestAttemptingTxn],
-  )
+  const isAttemptingTx = collectAttemptingTxn || harvestAttemptingTxn
 
   if (!currency0 || !currency1) {
     return null

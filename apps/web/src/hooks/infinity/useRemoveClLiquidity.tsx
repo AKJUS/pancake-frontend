@@ -106,7 +106,7 @@ export const useRemoveClLiquidity = (
         const receipt = await waitForTransaction({
           hash: response,
         })
-        // wating for transaction receipt
+        // waiting for transaction receipt
         setLatestTxReceipt({ blockHash: receipt.blockHash, status: receipt.status })
         setAttemptingTx?.(false)
         onDone?.(response)

@@ -42,6 +42,8 @@ interface PositionsTableProps {
   onlyFarmHarvest?: boolean
 }
 
+const EMPTY_ARRAY = []
+
 export const PositionsTable: React.FC<PositionsTableProps> = ({
   poolInfo,
   totalLiquidityUSD,
@@ -148,7 +150,7 @@ export const PositionsTable: React.FC<PositionsTableProps> = ({
               render: (actions) => <div>{actions}</div>,
             },
           ]}
-          data={data || []}
+          data={data || EMPTY_ARRAY}
           onRowClick={onRowClick}
         />
       ) : (

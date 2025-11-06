@@ -29,9 +29,10 @@ interface PoolFarmRewardsProps {
   address?: Address
   poolId?: string
   timestamp?: number
+  signal?: AbortSignal
 }
 
-const fetchUserFarmRewards = async ({ chainId, address, poolId, timestamp }: PoolFarmRewardsProps) => {
+const fetchUserFarmRewards = async ({ chainId, address, poolId, timestamp, signal }: PoolFarmRewardsProps) => {
   if (!(chainId && address)) {
     return []
   }
@@ -52,6 +53,7 @@ const fetchUserFarmRewards = async ({ chainId, address, poolId, timestamp }: Poo
       params: {
         path,
       },
+      signal,
     },
   )
 
@@ -61,8 +63,9 @@ const fetchUserFarmRewards = async ({ chainId, address, poolId, timestamp }: Poo
 interface UserClaimedRewardsProps {
   chainId?: number
   address?: Address
+  signal?: AbortSignal
 }
-const fetchUserClaimedRewards = async ({ chainId, address }: UserClaimedRewardsProps) => {
+const fetchUserClaimedRewards = async ({ chainId, address, signal }: UserClaimedRewardsProps) => {
   if (!(chainId && address)) {
     return []
   }
@@ -77,6 +80,7 @@ const fetchUserClaimedRewards = async ({ chainId, address }: UserClaimedRewardsP
         address,
       },
     },
+    signal,
   })
   return resp.data ?? []
 }
@@ -84,8 +88,9 @@ const fetchUserClaimedRewards = async ({ chainId, address }: UserClaimedRewardsP
 interface FetchMerkleRootByTimestampProps {
   chainId?: number
   timestamp?: string
+  signal?: AbortSignal
 }
-const fetchMerkleRootByTimestamp = async ({ chainId, timestamp }: FetchMerkleRootByTimestampProps) => {
+const fetchMerkleRootByTimestamp = async ({ chainId, timestamp, signal }: FetchMerkleRootByTimestampProps) => {
   if (!(chainId && timestamp)) {
     return undefined
   }
@@ -96,6 +101,7 @@ const fetchMerkleRootByTimestamp = async ({ chainId, timestamp }: FetchMerkleRoo
         timestamp,
       },
     },
+    signal,
   })
   if (!resp.data?.epochEndTimestamp) {
     resp = await rewardApiClient.GET('/farms/epoch-root/{chainId}/{timestamp}', {
@@ -105,6 +111,7 @@ const fetchMerkleRootByTimestamp = async ({ chainId, timestamp }: FetchMerkleRoo
           timestamp,
         },
       },
+      signal,
     })
   }
   return resp.data ?? undefined
@@ -113,7 +120,7 @@ const fetchMerkleRootByTimestamp = async ({ chainId, timestamp }: FetchMerkleRoo
 export const usePoolFarmRewardsFormAPI = ({ chainId, address, poolId, timestamp }: PoolFarmRewardsProps) => {
   return useQuery({
     queryKey: ['poolFarmRewards', chainId, address, poolId, timestamp],
-    queryFn: () => fetchUserFarmRewards({ chainId, address, poolId, timestamp }),
+    queryFn: ({ signal }) => fetchUserFarmRewards({ chainId, address, poolId, timestamp, signal }),
     enabled: !!(chainId && address && timestamp),
     ...FETCH_OPTIONS,
   })
@@ -123,7 +130,7 @@ const useClaimedRewardsFromAPI = ({ chainId, address }: UserClaimedRewardsProps)
   const [latestTxReceipt] = useLatestTxReceipt()
   const { data: claimedHistory } = useQuery({
     queryKey: ['ClaimedRewardsFromAPI', chainId, address, latestTxReceipt?.blockHash],
-    queryFn: () => fetchUserClaimedRewards({ chainId, address }),
+    queryFn: ({ signal }) => fetchUserClaimedRewards({ chainId, address, signal }),
     enabled: !!(chainId && address),
     ...FETCH_OPTIONS,
   })
@@ -131,10 +138,11 @@ const useClaimedRewardsFromAPI = ({ chainId, address }: UserClaimedRewardsProps)
 
   const { data: merkleRoot } = useQuery({
     queryKey: ['fetchMerkleRootByTimestamp', chainId, address, latestClaimedTimestamp],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       fetchMerkleRootByTimestamp({
         chainId,
         timestamp: (Math.floor(new Date(latestClaimedTimestamp!.toString()).getTime() / 1000) - 1).toString(),
+        signal,
       }),
     enabled: !!(chainId && latestClaimedTimestamp),
     ...FETCH_OPTIONS,
@@ -151,8 +159,10 @@ export const useFarmRewardsFromAPIByChains = ({ chainIds = [], address }: FarmRe
   const [latestTxReceipt] = useLatestTxReceipt()
   const { data } = useQuery({
     queryKey: ['poolFarmRewards', ...chainIds, address, latestTxReceipt?.blockHash],
-    queryFn: async () => {
-      const result = await Promise.allSettled(chainIds.map((chainId) => fetchUserFarmRewards({ chainId, address })))
+    queryFn: async ({ signal }) => {
+      const result = await Promise.allSettled(
+        chainIds.map((chainId) => fetchUserFarmRewards({ chainId, address, signal })),
+      )
       return chainIds.reduce<Record<number, Awaited<ReturnType<typeof fetchUserFarmRewards>>>>((acc, id, idx) => {
         const rewards = result[idx]
         if (rewards.status === 'fulfilled') {
@@ -377,7 +387,7 @@ interface UserFarmRewardsProps {
 export const useUserAllFarmRewardsByChainIdFromAPI = ({ chainId, user, timestamp }: UserFarmRewardsProps) => {
   const { data: allRewards } = useQuery({
     queryKey: ['userAllFarmRewards', chainId, user, timestamp],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!(chainId && user)) {
         return []
       }
@@ -392,6 +402,7 @@ export const useUserAllFarmRewardsByChainIdFromAPI = ({ chainId, user, timestamp
             timestamp: timestamp?.toString() ?? Math.floor(Date.now() / 1000).toString(),
           },
         },
+        signal,
       })
 
       return resp.data?.rewards ?? []

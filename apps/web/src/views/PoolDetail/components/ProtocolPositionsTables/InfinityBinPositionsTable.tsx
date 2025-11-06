@@ -496,6 +496,14 @@ export const InfinityBinPositionsTable: React.FC<InfinityBinPositionsTableProps>
     return denominator.isZero() ? 0 : numerator.div(denominator).toNumber()
   }, [numerator, denominator])
 
+  const positionList = useMemo(() => allInfinityPositions || [], [allInfinityPositions])
+
+  const tableRows = useMemo(() => filteredPositions?.map((position) => position.tableRow) || [], [filteredPositions])
+
+  const totalLiquidityUSD = useMemo(() => {
+    return filteredPositions?.reduce((sum, pos) => sum + (pos.liquidityUSD || 0), 0) || 0
+  }, [filteredPositions])
+
   if (isLoading) {
     return <LoadingCard />
   }
@@ -512,20 +520,16 @@ export const InfinityBinPositionsTable: React.FC<InfinityBinPositionsTableProps>
       {/* The actual table component */}
       <PositionsTable
         poolInfo={poolInfo}
-        totalLiquidityUSD={filteredPositions.reduce((sum, pos) => sum + (pos.liquidityUSD || 0), 0)}
+        totalLiquidityUSD={totalLiquidityUSD}
         totalApr={totalAprValue}
         totalEarnings={formatPoolDetailFiatNumber(rewardsUSD)}
-        data={filteredPositions.map((position) => position.tableRow)}
+        data={tableRows}
         showInactiveOnly={filter === PositionFilter.Inactive}
         toggleInactiveOnly={() =>
           setFilter(filter === PositionFilter.Inactive ? PositionFilter.All : PositionFilter.Inactive)
         }
         harvestAllButton={
-          <InfinityPositionActions
-            positionList={allInfinityPositions || []}
-            showPositionFees={false}
-            chainId={poolInfo.chainId}
-          />
+          <InfinityPositionActions positionList={positionList} showPositionFees={false} chainId={poolInfo.chainId} />
         }
         onRowClick={(position) => {
           router.push(

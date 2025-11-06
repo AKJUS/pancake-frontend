@@ -31,6 +31,8 @@ interface PositionCardProps {
   allInfinityPositions?: Array<InfinityCLPositionDetail | InfinityBinPositionDetail>
 }
 
+const EMPTY_ARRAY = []
+
 export const PositionCard = ({ data, poolLength, allInfinityPositions }: PositionCardProps) => {
   switch (data.protocol) {
     case Protocol.InfinityCLAMM:
@@ -38,7 +40,10 @@ export const PositionCard = ({ data, poolLength, allInfinityPositions }: Positio
         <InfinityCLPositionItem
           data={data as InfinityCLPositionDetail}
           action={
-            <InfinityPositionActions pos={data as InfinityCLPositionDetail} positionList={allInfinityPositions || []} />
+            <InfinityPositionActions
+              pos={data as InfinityCLPositionDetail}
+              positionList={allInfinityPositions || EMPTY_ARRAY}
+            />
           }
         />
       )
@@ -49,7 +54,7 @@ export const PositionCard = ({ data, poolLength, allInfinityPositions }: Positio
           action={
             <InfinityPositionActions
               pos={data as InfinityBinPositionDetail}
-              positionList={allInfinityPositions || []}
+              positionList={allInfinityPositions || EMPTY_ARRAY}
             />
           }
         />

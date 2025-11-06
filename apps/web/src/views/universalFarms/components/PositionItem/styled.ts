@@ -17,6 +17,7 @@ export const Container = styled(Flex)<{ $withLink?: boolean }>`
   background: ${({ theme }) => theme.card.background};
   margin: 8px 0;
   cursor: pointer;
+  transition: background 0.15s ease-in-out, transform 0s;
 
   ${({ theme, $withLink }) =>
     $withLink &&
@@ -28,6 +29,8 @@ export const Container = styled(Flex)<{ $withLink?: boolean }>`
       background: ${theme.colors.backgroundTapped};
     }
   `}
+
+  transform: translateZ(0);
 
   &:first-of-type {
     margin-top: 0;

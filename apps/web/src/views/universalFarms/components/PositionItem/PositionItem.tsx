@@ -64,13 +64,18 @@ const SolanaPoolAddressTooltip: React.FC<{
 export const PositionItem: React.FC<PropsWithChildren<PositionItemProps>> = (props) => {
   const { isDesktop } = useMatchBreakpoints()
   const { link, currency0, currency1, chainId, children, miniMode = !isDesktop } = props
+  const showTooltip = Boolean(
+    currency0 && currency1 && chainId === NonEVMChainId.SOLANA && (props.pool as SolanaV3PoolInfo)?.poolId,
+  )
   const { targetRef, tooltip, tooltipVisible } = useTooltip(
-    <SolanaPoolAddressTooltip
-      chainId={chainId}
-      currency0={currency0}
-      currency1={currency1}
-      poolId={(props.pool as SolanaV3PoolInfo)?.poolId}
-    />,
+    showTooltip ? (
+      <SolanaPoolAddressTooltip
+        chainId={chainId}
+        currency0={currency0}
+        currency1={currency1}
+        poolId={(props.pool as SolanaV3PoolInfo)?.poolId}
+      />
+    ) : null,
   )
 
   const router = useRouter()
@@ -103,7 +108,7 @@ export const PositionItem: React.FC<PropsWithChildren<PositionItemProps>> = (pro
     <Container $withLink={Boolean(linkWithChain)}>
       {!miniMode && (
         <TokenPairLogo
-          ref={targetRef}
+          ref={showTooltip ? targetRef : undefined}
           width={48}
           height={48}
           variant="inverted"
@@ -112,7 +117,7 @@ export const PositionItem: React.FC<PropsWithChildren<PositionItemProps>> = (pro
           withChainLogo
         />
       )}
-      {tooltipVisible && tooltip}
+      {showTooltip && tooltipVisible && tooltip}
       <DetailsContainer>
         <Column gap="8px">
           <PositionInfo {...props} />

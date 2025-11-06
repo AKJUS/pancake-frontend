@@ -549,8 +549,11 @@ export const LiquidityView = () => {
 
   if (tokenIdFromUrl === 'pools') {
     router.replace('/liquidity/pools')
-  } else if (!parsedTokenId) {
+    return null
+  }
+  if (!parsedTokenId) {
     router.replace('/liquidity/positions')
+    return null
   }
 
   return (

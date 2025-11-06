@@ -9,6 +9,7 @@ import { Connector, useAccount, useSwitchChain } from 'wagmi'
 import { accountActiveChainAtom } from 'wallet/atoms/accountStateAtoms'
 import { SwitchChainRequest, switchChainUpdatingAtom } from 'wallet/atoms/switchChainRequestAtom'
 import { SOLANA_SUPPORTED_PATH } from 'wallet/network.switch.config'
+import { normalizeChainId } from 'wallet/util/normalizeChainId'
 
 type SwitchFrom = 'wagmi' | 'url' | 'switch' | 'connect'
 export interface SwitchChainOption {
@@ -112,6 +113,7 @@ const requireLogout = async (connector: Connector, chainId: number, address: `0x
 
 const useProcessSwitchChainRequest = () => {
   const { switchChainAsync: switchNetworkWagmiAsync } = useSwitchChain()
+  const { connector } = useAccount()
   const { logout } = useAuth()
   const updateAccountState = useSetAtom(accountActiveChainAtom)
   const setSwitching = useSetAtom(switchChainUpdatingAtom)
@@ -156,9 +158,26 @@ const useProcessSwitchChainRequest = () => {
       try {
         setSwitching(true)
         if (isEvm(requestChainId)) {
+          // from = wagmi -> no need call switch again
           if (from !== 'wagmi') {
-            // from = wagmi -> no need call switch again
-            await switchNetworkWagmiAsync({ chainId: requestChainId })
+            let shouldSwitch = true
+
+            if (connector && typeof connector.getChainId === 'function') {
+              try {
+                const connectorChainId = normalizeChainId(await connector.getChainId())
+                // Only switch if chain IDs differ
+                shouldSwitch = connectorChainId !== requestChainId
+              } catch (error) {
+                console.warn('Error getting connector chain ID, switching anyway:', error)
+                shouldSwitch = true
+              }
+            }
+
+            if (shouldSwitch) {
+              await switchNetworkWagmiAsync({ chainId: requestChainId })
+            } else {
+              console.info('Chain IDs match — no switch needed.')
+            }
           }
           const isWrongNetwork = Boolean(
             !requestChainId ||
@@ -214,7 +233,7 @@ const useProcessSwitchChainRequest = () => {
         }, 60)
       }
     },
-    [router, switchNetworkWagmiAsync, setSwitching, updateAccountState, logout],
+    [router, switchNetworkWagmiAsync, setSwitching, updateAccountState, logout, connector],
   )
 
   const handleRequestChainIdChange = useCallback(

@@ -39,7 +39,7 @@ export const V3PositionActions = ({
   const [, setLatestTxReceipt] = useLatestTxReceipt()
   const { onStake, onUnstake, onHarvest, attemptingTxn } = useFarmV3Actions({
     tokenId: tokenId?.toString() ?? '',
-    onDone: (resp) => setLatestTxReceipt(resp),
+    onDone: setLatestTxReceipt,
   })
   const stakeModal = useModalV2()
   const { switchNetworkIfNecessary, isLoading: isSwitchingNetwork } = useCheckShouldSwitchNetwork()
