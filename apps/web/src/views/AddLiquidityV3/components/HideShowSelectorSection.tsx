@@ -1,22 +1,22 @@
 import { useTranslation } from '@pancakeswap/localization'
-import { AutoRow, Button, ChevronDownIcon, Text, useIsomorphicEffect, useMatchBreakpoints } from '@pancakeswap/uikit'
+import { AutoRow, Button, ChevronDownIcon, Text, useMatchBreakpoints } from '@pancakeswap/uikit'
 import { LightGreyCard } from 'components/Card'
-import { Dispatch, ReactNode, SetStateAction, useRef } from 'react'
+import { Dispatch, ReactNode, SetStateAction } from 'react'
 import styled from 'styled-components'
 
 const StyledLightGreyCard = styled(LightGreyCard)`
   padding: 16px;
   border-radius: 16px;
-  height: fit-content;
   border: 1px solid ${({ theme }) => theme.colors.cardBorder};
   border-bottom: 2px solid ${({ theme }) => theme.colors.cardBorder};
 
-  height: 0px;
-
-  transition: height 0.2s ease-in-out;
-  will-change: height;
-
+  max-height: 100px;
   overflow: hidden;
+  transition: max-height 0.5s ease-in-out;
+
+  &.expanded {
+    max-height: 1000px;
+  }
 `
 
 interface HideShowSelectorSectionPropsType {
@@ -26,8 +26,6 @@ interface HideShowSelectorSectionPropsType {
   heading: ReactNode
   content: ReactNode
 }
-
-const PADDING = 32
 
 export default function HideShowSelectorSection({
   noHideButton,
@@ -40,31 +38,9 @@ export default function HideShowSelectorSection({
 
   const { isXs } = useMatchBreakpoints()
 
-  const parentRef = useRef<HTMLDivElement>(null)
-  const headerRef = useRef<HTMLDivElement>(null)
-  const contentRef = useRef<HTMLDivElement>(null)
-
-  useIsomorphicEffect(() => {
-    const parent = parentRef.current
-    const header = headerRef.current
-    const content = contentRef.current
-    if (parent && content && showOptions) {
-      const headerHeight = header?.scrollHeight ?? 0
-      const contentHeight = content.scrollHeight
-      parent.style.height = `${contentHeight + headerHeight + PADDING * 2 + 16}px`
-    } else if (parent && !showOptions) {
-      parent.style.height = `${header?.scrollHeight ?? 0 + PADDING * 2}px`
-    }
-  }, [showOptions])
-
   return (
-    <StyledLightGreyCard ref={parentRef}>
-      <AutoRow
-        justifyContent="space-between"
-        alignItems="center"
-        marginBottom={showOptions ? '8px' : '0px'}
-        ref={headerRef}
-      >
+    <StyledLightGreyCard className={showOptions ? 'expanded' : ''}>
+      <AutoRow justifyContent="space-between" alignItems="center" marginBottom={showOptions ? '8px' : '0px'}>
         {heading ?? <div />}
         {noHideButton || (
           <Button
@@ -88,7 +64,7 @@ export default function HideShowSelectorSection({
           </Button>
         )}
       </AutoRow>
-      {showOptions && <div ref={contentRef}>{content}</div>}
+      {showOptions ? content : <></>}
     </StyledLightGreyCard>
   )
 }

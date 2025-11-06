@@ -170,7 +170,7 @@ export default function FeeSelector({
   return (
     <HideShowSelectorSection
       showOptions={showOptions || (!v2PairHasBetterTokenAmounts && isError)}
-      noHideButton={!feeAmount}
+      noHideButton={!feeAmount || (!v2PairHasBetterTokenAmounts && isError)}
       setShowOptions={setShowOptions}
       heading={
         feeAmount ? (
