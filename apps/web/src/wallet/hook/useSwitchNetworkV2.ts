@@ -5,6 +5,7 @@ import useAuth from 'hooks/useAuth'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { safeGetAddress } from 'utils'
 import { Connector, useAccount, useSwitchChain } from 'wagmi'
 import { accountActiveChainAtom } from 'wallet/atoms/accountStateAtoms'
 import { SwitchChainRequest, switchChainUpdatingAtom } from 'wallet/atoms/switchChainRequestAtom'
@@ -98,12 +99,17 @@ const requireLogout = async (connector: Connector, chainId: number, address: `0x
 
     const provider = (await connector.getProvider()) as any
 
+    const checksummedAddress = safeGetAddress(address)
+
     return Boolean(
-      provider &&
-        Array.isArray(provider.session?.namespaces?.eip155?.accounts) &&
-        !provider.session.namespaces.eip155.accounts.some((account: string) =>
-          account?.includes(`${chainId}:${address}`),
-        ),
+      !checksummedAddress ||
+        (provider &&
+          Array.isArray(provider.session?.namespaces?.eip155?.accounts) &&
+          !provider.session.namespaces.eip155.accounts.some(
+            (account: string) =>
+              account?.includes(`${chainId}:${checksummedAddress}`) ||
+              account?.includes(`${chainId}:${checksummedAddress.toLowerCase()}`),
+          )),
     )
   } catch (error) {
     console.error(error, 'Error detecting provider')
