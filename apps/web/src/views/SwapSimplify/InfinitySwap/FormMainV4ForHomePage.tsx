@@ -64,7 +64,7 @@ export function FormMainForHomePage({ inputAmount, outputAmount, tradeLoading }:
     (newCurrency: UnifiedCurrency, field: Field) => {
       const isInput = field === Field.INPUT
 
-      if (isInput) {
+      if (isInput && newCurrency.chainId !== outputChainId) {
         const isOutputChainSupported =
           isSolana(newCurrency.chainId) ||
           isSolana(outputChainId) ||

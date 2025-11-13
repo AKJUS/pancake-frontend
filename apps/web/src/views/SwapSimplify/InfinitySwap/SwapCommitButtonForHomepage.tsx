@@ -66,26 +66,37 @@ const SwapCommitButtonInner = memo(function SwapCommitButtonInner() {
   const router = useRouter()
 
   const handleSwap = useCallback(() => {
-    const [input, output] = [inputCurrency, outputCurrency].map((currency) => currencyId(currency))
+    const [input, output] = [inputCurrency, outputCurrency].map((currency) => {
+      try {
+        return currencyId(currency)
+      } catch {
+        return undefined
+      }
+    })
     const searchParams = new URLSearchParams()
     searchParams.append('chain', CHAIN_QUERY_NAME[inputCurrency?.chainId ?? chainId])
     searchParams.append('chainOut', CHAIN_QUERY_NAME[outputCurrency?.chainId ?? chainId])
-    searchParams.append('inputCurrency', input)
-    searchParams.append('outputCurrency', output)
+    if (input) searchParams.append('inputCurrency', input)
+    if (output) searchParams.append('outputCurrency', output)
     searchParams.append('exactAmount', typedValue)
     searchParams.append('exactField', independentField)
 
-    router.push(`/swap?${searchParams.toString()}`)
-  }, [chainId, inputCurrency, outputCurrency, typedValue, independentField, router])
+    const url = `/swap?${searchParams.toString()}`
 
-  const buttonText = useMemo(() => {
-    return t('Get Started')
-  }, [t])
+    if (!input || !output) {
+      // Full page reload, needed when input/output is missing (potential list loading issue)
+      if (typeof window !== 'undefined') {
+        window.location.href = url
+      }
+    } else {
+      router.push(url)
+    }
+  }, [chainId, inputCurrency, outputCurrency, typedValue, independentField, router])
 
   return (
     <Box mt="0.25rem">
       <CommitButton id="swap-button" width="100%" data-dd-action-name="Swap commit button" onClick={handleSwap}>
-        {buttonText}
+        {t('Get Started')}
       </CommitButton>
     </Box>
   )
