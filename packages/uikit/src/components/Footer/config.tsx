@@ -144,7 +144,7 @@ export const socials = [
   {
     label: "Instagram",
     icon: InstagramIcon,
-    href: "https://instagram.com/pancakeswap_official",
+    href: "https://instagram.com/pancakeswapfinance",
   },
   {
     label: "Github",

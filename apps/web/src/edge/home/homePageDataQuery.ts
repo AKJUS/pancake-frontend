@@ -20,7 +20,7 @@ export const partners: HomePagePartner[] = [
   },
   {
     logo: `${ASSET_CDN}/web/landing/partner/instagram.png`,
-    link: 'https://instagram.com/pancakeswap_official',
+    link: 'https://instagram.com/pancakeswapfinance',
     name: 'Instagram',
   },
   {
