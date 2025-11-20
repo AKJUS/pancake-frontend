@@ -55,3 +55,6 @@ export const ZAP_V3_POOL_ADDRESSES: Record<number, string[]> = {
     '0xe2d9b612446180334D56e10e82Dc78E3dEe814B0', // WETH-ETHx 0.01%
   ],
 }
+
+// Infinity CLMM Zap is only supported on BNB Chain (BSC)
+export const ZAP_INFINITY_CL_SUPPORTED_CHAINS: number[] = [ChainId.BSC]

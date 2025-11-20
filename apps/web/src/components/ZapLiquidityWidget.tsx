@@ -26,6 +26,7 @@ import { isAddressEqual } from 'utils'
 import WalletModalManager from 'components/WalletModalManager'
 import { useMasterchefV3 } from 'hooks/useContract'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
+import { PoolType } from '@kyberswap/pancake-liquidity-widgets'
 
 const ActionText = styled(Text)`
   white-space: nowrap;
@@ -45,6 +46,8 @@ interface ZapLiquidityProps {
   quoteCurrency?: Currency | null
   quoteCurrencyAmount?: string | null
   onSubmit?: () => void
+  poolId?: string
+  poolType?: PoolType
 }
 
 const LiquidityWidget = dynamic(
@@ -67,6 +70,8 @@ export const ZapLiquidityWidget: React.FC<ZapLiquidityProps> = ({
   quoteCurrency,
   quoteCurrencyAmount,
   onSubmit,
+  poolId,
+  poolType,
 }) => {
   const { t } = useTranslation()
 
@@ -80,7 +85,14 @@ export const ZapLiquidityWidget: React.FC<ZapLiquidityProps> = ({
 
   const { toastSuccess } = useToast()
 
-  const poolAddress = useMemo(() => pool && Pool.getAddress(pool.token0, pool.token1, pool.fee), [pool])
+  const poolAddress = useMemo(() => {
+    // For Infinity pools, use poolId directly
+    if (poolId) {
+      return poolId
+    }
+    // For V3 pools, calculate address from pool
+    return pool && Pool.getAddress(pool.token0, pool.token1, pool.fee)
+  }, [pool, poolId])
 
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -96,7 +108,13 @@ export const ZapLiquidityWidget: React.FC<ZapLiquidityProps> = ({
 
   const masterChefV3 = useMasterchefV3()
 
-  const masterChefV3Addresses = useMemo(() => (masterChefV3 ? [masterChefV3.address] : undefined), [masterChefV3])
+  // For Infinity pools, don't use MasterChef V3 addresses
+  const masterChefV3Addresses = useMemo(() => {
+    if (poolType === PoolType.DEX_PANCAKE_INFINITY_CL) {
+      return undefined
+    }
+    return masterChefV3 ? [masterChefV3.address] : undefined
+  }, [masterChefV3, poolType])
 
   const handleOnClick = useCallback(() => {
     setDepositTokens(
@@ -218,12 +236,16 @@ export const ZapLiquidityWidget: React.FC<ZapLiquidityProps> = ({
               color="#02919D"
               onClick={handleOnClick}
               role="presentation"
-              data-dd-action-name="Zap V3 Liquidity"
+              data-dd-action-name={
+                poolType === PoolType.DEX_PANCAKE_INFINITY_CL ? 'Zap InfinityCL Liquidity' : 'Zap V3 Liquidity'
+              }
               bold
             >
               {t('Try Zap')}{' '}
             </ActionText>
-            {t('to automatically balance and provide V3 liquidity in one click.')}
+            {poolType === PoolType.DEX_PANCAKE_INFINITY_CL
+              ? t('to automatically balance and provide Infinity liquidity in one click.')
+              : t('to automatically balance and provide V3 liquidity in one click.')}
           </MessageText>
         </Flex>
       </Message>
@@ -233,6 +255,7 @@ export const ZapLiquidityWidget: React.FC<ZapLiquidityProps> = ({
           {chainId ? (
             <LiquidityWidget
               theme={isDark ? 'dark' : 'light'}
+              poolType={poolType ?? PoolType.DEX_PANCAKESWAPV3}
               feeAddress="0xB82bb6Ce9A249076Ca7135470e7CA634806De168"
               feePcm={0}
               walletClient={walletClient}
@@ -254,6 +277,7 @@ export const ZapLiquidityWidget: React.FC<ZapLiquidityProps> = ({
               onDismiss={handleOnDismiss}
               onTxSubmit={handleTransaction}
               source="pancakeswap"
+              includedSources="pancake-infinity-cl,pancake-infinity-bin,pancake-v3,pancake-stable,pancake,pancake-legacy"
             />
           ) : null}
         </ModalContainer>

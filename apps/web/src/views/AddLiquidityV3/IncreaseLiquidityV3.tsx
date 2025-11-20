@@ -35,7 +35,7 @@ import { getViemClients } from 'utils/viem'
 import { hexToBigInt } from 'viem'
 
 import { ZapLiquidityWidget } from 'components/ZapLiquidityWidget'
-import { ZAP_V3_POOL_ADDRESSES } from 'config/constants/zapV3'
+import { ZAP_V3_POOL_ADDRESSES } from 'config/constants/zap'
 import { useSingleCallResult } from 'state/multicall/hooks'
 import { transactionErrorToUserReadableMessage } from 'utils/transactionErrorToUserReadableMessage'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
