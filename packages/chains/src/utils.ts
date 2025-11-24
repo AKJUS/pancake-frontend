@@ -7,6 +7,9 @@ import {
   mainnetChainNamesInKebabCase,
 } from './chainNames'
 
+const MAX_EVM_CHAIN_ID = Math.max(...Object.values(ChainId).filter((v) => typeof v === 'number'))
+const NON_EVM_MIN = Math.min(...Object.values(NonEVMChainId).filter((v) => typeof v === 'number'))
+
 export function getChainName(chainId: UnifiedChainId) {
   return chainNames[chainId]
 }
@@ -34,7 +37,7 @@ export function isTestnetChainId(chainId: UnifiedChainId) {
 
 export function isEvm(chainId?: number) {
   if (!chainId) return false
-  return chainId < 1_000_000
+  return chainId <= MAX_EVM_CHAIN_ID && chainId < NON_EVM_MIN
 }
 
 export function isSolana(chainId?: UnifiedChainId) {
