@@ -2,6 +2,7 @@ import { useTranslation } from '@pancakeswap/localization'
 import { Route, RouteType, SVMPool } from '@pancakeswap/smart-router'
 import {
   AutoColumn,
+  ButtonProps,
   Flex,
   Modal,
   ModalV2,
@@ -14,7 +15,7 @@ import {
 import { CurrencyLogo } from '@pancakeswap/widgets-internal'
 import { memo, useMemo, useState } from 'react'
 
-import { RoutingSettingsButtonView, RoutingSettingsModalContent } from 'components/Menu/GlobalSettings/SettingsModalV2'
+import { RoutingSettingsModalContent } from 'components/Menu/GlobalSettings/SettingsModalV2'
 import { CurrencyLogoWrapper, RouterBox, RouterTypeText } from 'views/Swap/components/RouterViewer'
 import { useHookDiscount } from 'views/SwapSimplify/hooks/useHookDiscount'
 import { Currency, SPLToken, UnifiedCurrency } from '@pancakeswap/sdk'
@@ -34,27 +35,20 @@ interface Props extends UseModalV2Props {
   routes: RouteDisplayEssentials[]
 }
 
-export const RoutesDisplayButtonView = ({ onClick, children }: { onClick: () => void; children: React.ReactNode }) => {
+interface RoutesDisplayButtonViewProps extends ButtonProps {
+  onClick: () => void
+  children: React.ReactNode
+}
+export const RoutesDisplayButtonView = ({ onClick, children, ...props }: RoutesDisplayButtonViewProps) => {
   const { theme } = useTheme()
   return (
-    <TertiaryButton
-      role="button"
-      $color={theme.colors.primary60}
-      endIcon={<PoolTypeIcon color={theme.colors.primary60} width={20} ml="2px" />}
-      onClick={onClick}
-    >
+    <TertiaryButton role="button" $color={theme.colors.primary60} onClick={onClick} {...props}>
       {children}
     </TertiaryButton>
   )
 }
 
-const RoutesDisplayView = ({
-  routes,
-  onRoutingSettingsModalOpen,
-}: {
-  routes: RouteDisplayEssentials[]
-  onRoutingSettingsModalOpen: () => void
-}) => {
+const RoutesDisplayView = ({ routes }: { routes: RouteDisplayEssentials[] }) => {
   const { t } = useTranslation()
   const isBridgeRouting = routes?.some((route) => route.type === RouteType.BRIDGE)
 
@@ -71,23 +65,16 @@ const RoutesDisplayView = ({
         </Flex>
       }
       minHeight="0px"
-      bodyPadding="24px"
+      bodyPadding="24px 24px 48px"
     >
       {isBridgeRouting ? (
-        <>
-          <BridgeRoutesDisplay routes={routes} />
-          {isSolana(routes[0]?.inputAmount?.currency?.chainId) ||
-          isSolana(routes[0]?.outputAmount?.currency?.chainId) ? null : (
-            <RoutingSettingsButtonView onClick={onRoutingSettingsModalOpen} />
-          )}
-        </>
+        <BridgeRoutesDisplay routes={routes} />
       ) : (
         <AutoColumn gap="56px" height="100%" pb="16px">
           {routes.map((route, i) => (
             // eslint-disable-next-line react/no-array-index-key
             <RouteDisplay key={i} route={route} />
           ))}
-          <RoutingSettingsButtonView onClick={onRoutingSettingsModalOpen} />
         </AutoColumn>
       )}
     </Modal>
@@ -110,7 +97,7 @@ export const RouteDisplayModal = memo(function RouteDisplayModal({ isOpen, onDis
       {showRoutingSettingsModal ? (
         <RoutingSettingsModalContent onBack={() => setShowRoutingSettingsModal(false)} />
       ) : (
-        <RoutesDisplayView routes={routes} onRoutingSettingsModalOpen={() => setShowRoutingSettingsModal(true)} />
+        <RoutesDisplayView routes={routes} />
       )}
     </ModalV2>
   )

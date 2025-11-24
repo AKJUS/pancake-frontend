@@ -10,11 +10,11 @@ import {
 } from '@pancakeswap/sdk'
 import { LegacyPair as Pair } from '@pancakeswap/smart-router/legacy-router'
 import { AutoColumn, Box, Link, QuestionHelperV2, SkeletonV2, Text } from '@pancakeswap/uikit'
-import { formatAmount, formatFraction } from '@pancakeswap/utils/formatFractions'
+import { formatAmount } from '@pancakeswap/utils/formatFractions'
 import { memo, useMemo, useState } from 'react'
 
 import { BridgeOrder, OrderType, PriceOrder } from '@pancakeswap/price-api-sdk'
-import { NumberDisplay, SwapUIV2 } from '@pancakeswap/widgets-internal'
+import { SwapUIV2 } from '@pancakeswap/widgets-internal'
 import BigNumber from 'bignumber.js'
 import { LightGreyCard } from 'components/Card'
 import { RowBetween, RowFixed } from 'components/Layout/Row'
@@ -27,10 +27,10 @@ import { BridgeOrderFee, getBridgeOrderPriceImpact } from 'views/Swap/Bridge/uti
 import { formatDollarAmount } from 'views/V3Info/utils/numbers'
 
 import { isSolanaBridge, isSVMOrder } from 'views/Swap/utils'
+import { useStablecoinPriceAmount } from 'hooks/useStablecoinPrice'
 import { EstimatedTime } from '../../Swap/Bridge/CrossChainConfirmSwapModal/components/EstimatedTime'
 import { SlippageAdjustedAmounts, SVMTradePriceBreakdown, TradePriceBreakdown } from '../../Swap/V3Swap/utils/exchange'
 import FormattedPriceImpact from '../../Swap/components/FormattedPriceImpact'
-import { useFeeSaved } from '../../Swap/hooks/useFeeSaved'
 import { SVMTradingFee } from './TradingFee'
 
 export const DetailsTitle = styled(Text)`
@@ -205,6 +205,104 @@ const SolanaBridgeTradingFeeViewSection = ({ order }: { order: BridgeOrder }) =>
   return <BridgeFeeView feeData={feeData} isOpen={isOpen} onToggle={() => setIsOpen(!isOpen)} />
 }
 
+const TradingFeeDisplay = memo(function TradingFeeDisplay({
+  priceBreakdown,
+  inputAmount,
+  isX,
+  hasDynamicHook,
+  loading,
+  order,
+}: {
+  priceBreakdown: TradePriceBreakdown | SVMTradePriceBreakdown
+  inputAmount?: UnifiedCurrencyAmount<UnifiedCurrency>
+  isX?: boolean
+  hasDynamicHook?: boolean
+  loading?: boolean
+  order?: PriceOrder
+}) {
+  const { t } = useTranslation()
+  const lpFeeAmount = priceBreakdown?.lpFeeAmount
+
+  const feeAmountNumber = useMemo(() => {
+    if (!lpFeeAmount) return undefined
+    return parseFloat(lpFeeAmount.toExact())
+  }, [lpFeeAmount])
+
+  const feeCurrency = useMemo(() => {
+    if (!lpFeeAmount || SPLToken.isSPLToken(lpFeeAmount.currency)) return undefined
+    return lpFeeAmount.currency as Currency
+  }, [lpFeeAmount])
+
+  const feeUsdValue = useStablecoinPriceAmount(feeCurrency, feeAmountNumber, {
+    enabled: Boolean(feeCurrency && feeAmountNumber && !isX),
+  })
+
+  return (
+    <RowBetween mt="10px">
+      <RowFixed>
+        <QuestionHelperV2
+          text={
+            <>
+              <Text mb="12px">
+                <Text bold display="inline-block">
+                  {t('AMM')}
+                </Text>
+                : {t('Trading fee varies by pool fee tier. Check it via the magnifier icon under "Route."')}
+              </Text>
+              <Text mt="12px">
+                <Link
+                  style={{ display: 'inline' }}
+                  ml="4px"
+                  external
+                  href="https://docs.pancakeswap.finance/products/pancakeswap-exchange/faq#what-will-be-the-trading-fee-breakdown-for-v3-exchange"
+                >
+                  {t('Fee Breakdown and Tokenomics')}
+                </Link>
+              </Text>
+              <Text mt="10px">
+                <Text bold display="inline-block">
+                  {t('X')}
+                </Text>
+                : {t('No fee when trading through PancakeSwap X (subject to change).')}
+              </Text>
+            </>
+          }
+          placement="top"
+        >
+          <DetailsTitle fontSize="14px" color="textSubtle">
+            {t('Trading Fee')}
+          </DetailsTitle>
+        </QuestionHelperV2>
+      </RowFixed>
+      {isSVMOrder(order) && inputAmount?.currency?.symbol ? (
+        <SVMTradingFee routes={order.trade.routes} inputCurrencySymbol={inputAmount?.currency?.symbol} />
+      ) : (
+        <SkeletonV2 width="70px" height="16px" borderRadius="8px" minHeight="auto" isDataReady={!loading}>
+          {isX ? (
+            <Text color="primary" fontSize="14px">
+              0 {inputAmount?.currency?.symbol}
+            </Text>
+          ) : hasDynamicHook ? (
+            <QuestionHelperV2 text={t('This route uses a dynamic fee pool; actual fees may vary.')}>
+              <Text fontSize="14px" style={{ textDecoration: 'underline dotted', cursor: 'help' }}>
+                {feeUsdValue !== undefined
+                  ? `~${formatDollarAmount(feeUsdValue, 3)}`
+                  : `~${formatAmount(priceBreakdown.lpFeeAmount, 4)} ${inputAmount?.currency?.symbol}`}
+              </Text>
+            </QuestionHelperV2>
+          ) : (
+            <Text fontSize="14px">
+              {feeUsdValue !== undefined
+                ? formatDollarAmount(feeUsdValue, 3)
+                : `${formatAmount(priceBreakdown.lpFeeAmount, 4)} ${inputAmount?.currency?.symbol}`}
+            </Text>
+          )}
+        </SkeletonV2>
+      )}
+    </RowBetween>
+  )
+})
+
 export const TradeSummary = memo(function TradeSummary({
   inputAmount,
   outputAmount,
@@ -231,11 +329,6 @@ export const TradeSummary = memo(function TradeSummary({
 }) {
   const { t } = useTranslation()
   const isExactIn = tradeType === TradeType.EXACT_INPUT
-
-  const { feeSavedAmount, feeSavedUsdValue } = useFeeSaved(
-    SPLToken.isSPLToken(inputAmount?.currency) ? undefined : (inputAmount as CurrencyAmount<Currency>),
-    SPLToken.isSPLToken(outputAmount?.currency) ? undefined : (outputAmount as CurrencyAmount<Currency>),
-  )
 
   return (
     <AutoColumn px="4px">
@@ -264,42 +357,6 @@ export const TradeSummary = memo(function TradeSummary({
           </SkeletonV2>
         </RowFixed>
       </RowBetween>
-      {feeSavedAmount ? (
-        <RowBetween align="flex-start" mt="10px">
-          <RowFixed>
-            <QuestionHelperV2
-              text={
-                <>
-                  <Text>{t('Fees saved on PancakeSwap compared to major DEXs charging interface fees.')}</Text>
-                </>
-              }
-              placement="top"
-            >
-              <DetailsTitle>{t('Fee saved')}</DetailsTitle>
-            </QuestionHelperV2>
-          </RowFixed>
-          <SkeletonV2 width="100px" height="16px" borderRadius="8px" minHeight="auto" isDataReady={!loading}>
-            <RowFixed>
-              <NumberDisplay
-                as="span"
-                fontSize={14}
-                value={formatAmount(feeSavedAmount, 2)}
-                suffix={` ${outputAmount?.currency?.symbol}`}
-                color="positive60"
-              />
-              <NumberDisplay
-                as="span"
-                fontSize={14}
-                color="positive60"
-                value={formatFraction(feeSavedUsdValue, 2)}
-                prefix="(~$"
-                suffix=")"
-                ml={1}
-              />
-            </RowFixed>
-          </SkeletonV2>
-        </RowBetween>
-      ) : null}
       {priceBreakdown && (
         <RowBetween mt="10px">
           <RowFixed>
@@ -329,65 +386,14 @@ export const TradeSummary = memo(function TradeSummary({
       ) : isSolanaBridge(order) ? (
         <SolanaBridgeTradingFeeViewSection order={order as BridgeOrder} />
       ) : priceBreakdown?.lpFeeAmount || isX ? (
-        <RowBetween mt="10px">
-          <RowFixed>
-            <QuestionHelperV2
-              text={
-                <>
-                  <Text mb="12px">
-                    <Text bold display="inline-block">
-                      {t('AMM')}
-                    </Text>
-                    : {t('Trading fee varies by pool fee tier. Check it via the magnifier icon under "Route."')}
-                  </Text>
-                  <Text mt="12px">
-                    <Link
-                      style={{ display: 'inline' }}
-                      ml="4px"
-                      external
-                      href="https://docs.pancakeswap.finance/products/pancakeswap-exchange/faq#what-will-be-the-trading-fee-breakdown-for-v3-exchange"
-                    >
-                      {t('Fee Breakdown and Tokenomics')}
-                    </Link>
-                  </Text>
-                  <Text mt="10px">
-                    <Text bold display="inline-block">
-                      {t('X')}
-                    </Text>
-                    : {t('No fee when trading through PancakeSwap X (subject to change).')}
-                  </Text>
-                </>
-              }
-              placement="top"
-            >
-              <DetailsTitle fontSize="14px" color="textSubtle">
-                {t('Trading Fee')}
-              </DetailsTitle>
-            </QuestionHelperV2>
-          </RowFixed>
-          {isSVMOrder(order) && inputAmount?.currency?.symbol ? (
-            <SVMTradingFee routes={order.trade.routes} inputCurrencySymbol={inputAmount?.currency?.symbol} />
-          ) : (
-            <SkeletonV2 width="70px" height="16px" borderRadius="8px" minHeight="auto" isDataReady={!loading}>
-              {isX ? (
-                <Text color="primary" fontSize="14px">
-                  0 {inputAmount?.currency?.symbol}
-                </Text>
-              ) : hasDynamicHook ? (
-                <QuestionHelperV2 text={t('This route uses a dynamic fee pool; actual fees may vary.')}>
-                  <Text
-                    fontSize="14px"
-                    style={{ textDecoration: 'underline dotted', cursor: 'help' }}
-                  >{`~${formatAmount(priceBreakdown.lpFeeAmount, 4)} ${inputAmount?.currency?.symbol}`}</Text>
-                </QuestionHelperV2>
-              ) : (
-                <Text fontSize="14px">{`${formatAmount(priceBreakdown.lpFeeAmount, 4)} ${
-                  inputAmount?.currency?.symbol
-                }`}</Text>
-              )}
-            </SkeletonV2>
-          )}
-        </RowBetween>
+        <TradingFeeDisplay
+          priceBreakdown={priceBreakdown}
+          inputAmount={inputAmount}
+          isX={isX}
+          hasDynamicHook={hasDynamicHook}
+          loading={loading}
+          order={order}
+        />
       ) : null}
 
       {expectedFillTimeSec && (

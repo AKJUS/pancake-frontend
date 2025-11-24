@@ -38,7 +38,7 @@ export default function SwapModalHeaderV2({
 
   const priceImpactSeverity = warningSeverity(priceImpactWithoutFee)
 
-  const displayDecimals = isMobile ? 6 : 12
+  const displayDecimals = 6
 
   const inputTextColor =
     showAcceptChanges && tradeType === TradeType.EXACT_OUTPUT && isEnoughInputBalance
