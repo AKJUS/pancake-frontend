@@ -47,6 +47,7 @@ export interface DropdownMenuItemsDetails {
   type?: DropdownMenuItemType;
   status?: LinkStatus;
   disabled?: boolean;
+  display?: boolean;
   iconName?: string;
   isMobileOnly?: boolean;
   confirmModalId?: string;

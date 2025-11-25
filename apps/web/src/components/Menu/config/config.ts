@@ -69,6 +69,16 @@ const config: (
           href: '/swap',
         },
         {
+          label: t('TWAP'),
+          href: '/swap/twap',
+          display: false,
+        },
+        {
+          label: t('Limit Orders'),
+          href: '/swap/limit',
+          display: false,
+        },
+        {
           label: t('Buy Crypto'),
           href: '/buy-crypto',
           supportChainIds: EVM_CHAIN_IDS,

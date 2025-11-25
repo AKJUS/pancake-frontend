@@ -22,7 +22,7 @@ import { SWAP_CHART_UNSUPPORTED_CHAINS } from 'config/constants/supportChains'
 import { chartDisplayAtom } from './atoms'
 
 import { SwapType } from '../../Swap/types'
-import { isTwapSupported } from '../../Swap/utils'
+import { isTwapSupported, isLimitSupported } from '../../Swap/utils'
 
 const ColoredIconButton = styled(IconButton)`
   color: ${({ theme }) => theme.colors.textSubtle};
@@ -140,13 +140,13 @@ export const SwapSelection = ({
   }, [chainId, theme.colors.textDisabled, isSmartAccount])
 
   const limitProps = useMemo(() => {
-    const isLimitSupported = isEvm(chainId)
+    const isLimitSwapSupported = isLimitSupported(chainId)
     return {
-      disabled: !isLimitSupported,
+      disabled: !isLimitSwapSupported,
       style: {
-        cursor: isLimitSupported ? 'pointer' : 'not-allowed',
-        pointerEvents: isLimitSupported ? 'auto' : 'none',
-        color: !isLimitSupported ? theme.colors.textDisabled : undefined,
+        cursor: isLimitSwapSupported ? 'pointer' : 'not-allowed',
+        pointerEvents: isLimitSwapSupported ? 'auto' : 'none',
+        color: !isLimitSwapSupported ? theme.colors.textDisabled : undefined,
         userSelect: 'none',
       } as React.CSSProperties,
     }

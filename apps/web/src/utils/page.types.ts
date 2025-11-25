@@ -14,6 +14,10 @@ export type NextPageWithLayout = NextPage & {
   isShowScrollToTopButton?: true
   screen?: true
   /**
+   * force multiple network modal to show even if only one chain is supported
+   */
+  forceMultipleNetworkModal?: boolean
+  /**
    * Meta component for page, hacky solution for static build page to avoid `PersistGate` which blocks the page from rendering
    */
   Meta?: React.FC<React.PropsWithChildren<unknown>>

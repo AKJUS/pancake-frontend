@@ -138,7 +138,7 @@ export const ConfirmSwapModalV3: React.FC<ConfirmSwapModalV3Props> = ({
     }
 
     onDismiss?.()
-  }, [customOnDismiss, onDismiss])
+  }, [customOnDismiss, setActiveBridgeOrderMetadata, onDismiss])
 
   const modalTitle = useMemo(() => {
     switch (confirmModalState) {
@@ -388,6 +388,8 @@ export const ConfirmSwapModalV3: React.FC<ConfirmSwapModalV3Props> = ({
     showAddToWalletButton,
     orderHash,
     token,
+    blockExplorerName,
+    getBlockExploreLink,
   ])
 
   if (!chainId) return null

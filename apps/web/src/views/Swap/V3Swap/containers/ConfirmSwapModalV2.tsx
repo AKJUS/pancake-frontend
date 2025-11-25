@@ -300,6 +300,8 @@ export const ConfirmSwapModalV2: React.FC<ConfirmSwapModalV2Props> = ({
     showAddToWalletButton,
     orderHash,
     token,
+    blockExplorerName,
+    getBlockExploreLink,
   ])
 
   if (!chainId) return null

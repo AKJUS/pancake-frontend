@@ -54,7 +54,7 @@ const ChartAndFormGrid = styled(Box)<{ $isChartDisplayed: boolean }>`
 export const PCSLimitOrdersView = () => {
   const { t } = useTranslation()
 
-  const { isDesktop } = useMatchBreakpoints()
+  const { isDesktop, isMobile } = useMatchBreakpoints()
 
   const inputCurrency = useAtomValue(inputCurrencyAtom)
   const outputCurrency = useAtomValue(outputCurrencyAtom)
@@ -64,7 +64,11 @@ export const PCSLimitOrdersView = () => {
   return (
     <>
       <Page style={{ paddingTop: 0, paddingLeft: 0, paddingRight: 0 }}>
-        <ChartAndFormGrid $isChartDisplayed={isChartDisplayed}>
+        <ChartAndFormGrid
+          p={isMobile ? '16px' : '24px'}
+          mt={isMobile ? '18px' : '42px'}
+          $isChartDisplayed={isChartDisplayed}
+        >
           {isDesktop && isChartDisplayed && (
             <FlexGap width="100%" maxWidth="928px" flexDirection="column" style={{ gap: 20 }}>
               <ChartWithPriceHeader

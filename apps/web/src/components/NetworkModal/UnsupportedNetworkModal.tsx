@@ -3,13 +3,13 @@ import { useTranslation } from '@pancakeswap/localization'
 import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
 import Image from 'next/image'
 import useAuth from 'hooks/useAuth'
-import { useMenuItems } from 'components/Menu/hooks/useMenuItems'
 import { useRouter } from 'next/router'
 import { getActiveMenuItem, getActiveSubMenuItem } from 'components/Menu/utils'
 import { useAccount } from 'wagmi'
 import { useMemo } from 'react'
 import { ChainId, isTestnetChainId } from '@pancakeswap/chains'
 import { viemClients } from 'utils/viem'
+import config from 'components/Menu/config/config'
 import Dots from '../Loader/Dots'
 
 // Where chain is not supported or page not supported
@@ -22,15 +22,15 @@ export function UnsupportedNetworkModal({ pageSupportedChains }: { pageSupported
   const { isConnected } = useAccount()
   const { logout } = useAuth()
   const { t } = useTranslation()
-  const menuItems = useMenuItems()
   const { pathname } = useRouter()
 
   const title = useMemo(() => {
+    const menuItems = config(t, false)
     const activeMenuItem = getActiveMenuItem({ menuConfig: menuItems, pathname })
     const activeSubMenuItem = getActiveSubMenuItem({ menuItem: activeMenuItem, pathname })
 
     return activeSubMenuItem?.label || activeMenuItem?.label
-  }, [menuItems, pathname])
+  }, [t, pathname])
 
   const supportedMainnetChains = useMemo(
     () =>
@@ -44,7 +44,7 @@ export function UnsupportedNetworkModal({ pageSupportedChains }: { pageSupported
     <Modal title={t('Check your network')} hideCloseButton headerBackground="gradientCardHeader">
       <Grid style={{ gap: '16px' }} maxWidth={['100%', null, '336px']}>
         <Text>
-          {t('Currently %feature% only supported in', { feature: typeof title === 'string' ? title : 'this page' })}{' '}
+          {t('Currently %feature% are only supported on', { feature: typeof title === 'string' ? title : 'this page' })}{' '}
           {supportedMainnetChains?.map((c) => c?.name).join(', ')}
         </Text>
         <div style={{ textAlign: 'center' }}>

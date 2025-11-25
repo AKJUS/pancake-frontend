@@ -34,9 +34,9 @@ export const useMenuItems = ({ onClick }: UseMenuItemsParams = {}): ConfigMenuIt
       chainIdNumber?: number,
     ): T => {
       if (item?.items && item.items.length > 0) {
-        const innerItems = item.items.map((currentItem) =>
-          traverseItems(currentItem, menuStatus, translationFn, onClickFn, chainIdNumber),
-        )
+        const innerItems = item.items
+          .filter((item) => item.display !== false)
+          .map((currentItem) => traverseItems(currentItem, menuStatus, translationFn, onClickFn, chainIdNumber))
         return { ...item, items: innerItems }
       }
 

@@ -21,7 +21,7 @@ import { useRouter } from 'next/router'
 import { chainNameConverter } from 'utils/chainNameConverter'
 import { useBridgeAvailableChains } from 'views/Swap/Bridge/hooks'
 import { chains as evmChains } from 'utils/wagmi'
-import { TWAP_SUPPORTED_CHAINS } from 'views/Swap/utils'
+import { TWAP_LIMIT_SUPPORTED_CHAINS } from 'views/Swap/utils'
 
 import { BaseWrapper, ButtonWrapper, RowWrapper } from './CommonBases'
 
@@ -62,12 +62,12 @@ const useIsTwap = () => {
 
 const useCustomChains = () => {
   const isTWAP = useIsTwap()
-  return useMemo(() => {
-    if (isTWAP) {
-      return TWAP_SUPPORTED_CHAINS
-    }
-    return undefined
-  }, [isTWAP])
+
+  if (isTWAP) {
+    return TWAP_LIMIT_SUPPORTED_CHAINS
+  }
+
+  return undefined
 }
 
 export default function SwapNetworkSelection({

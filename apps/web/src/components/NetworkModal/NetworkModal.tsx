@@ -23,14 +23,21 @@ const UnsupportedNetworkModal = dynamic(
   { ssr: false },
 )
 
-export const NetworkModal = ({ pageSupportedChains = SUPPORT_ONLY_BSC }: { pageSupportedChains?: number[] }) => {
+export const NetworkModal = ({
+  pageSupportedChains = SUPPORT_ONLY_BSC,
+  forceMultipleNetworkModal = false,
+}: {
+  pageSupportedChains?: number[]
+  forceMultipleNetworkModal?: boolean
+}) => {
   const { chainId, isWrongNetwork } = useActiveChainId()
   const { chain } = useAccount()
   const [mustSwitchNetworkModal, setMustSwitchNetworkModal] = useAtom(mustSwitchNetworkModalAtom)
 
   const isBNBOnlyPage = useMemo(() => {
+    if (forceMultipleNetworkModal) return false
     return pageSupportedChains?.length === 1 && pageSupportedChains[0] === ChainId.BSC
-  }, [pageSupportedChains])
+  }, [pageSupportedChains, forceMultipleNetworkModal])
 
   const isPageNotSupported = useMemo(
     () => Boolean(pageSupportedChains.length) && chainId && !pageSupportedChains.includes(chainId),

@@ -45,7 +45,7 @@ export function useBridgeAvailableChains(params?: GetAvailableRoutesParams) {
       ...(acrossSupportedChains.length > 0 && isBridgeV2Enabled ? [NonEVMChainId.SOLANA] : []),
       ...acrossSupportedChains,
     ]
-  }, [data, params?.originChainId, privyAddress])
+  }, [data, params?.originChainId, privyAddress, isBridgeV2Enabled])
 
   return useMemo(() => {
     return {

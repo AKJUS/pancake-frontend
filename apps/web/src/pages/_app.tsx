@@ -185,7 +185,10 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
       <EasterEgg iterations={2} />
       <ToastListener />
       <FixedSubgraphHealthIndicator />
-      <NetworkModal pageSupportedChains={Component.chains} />
+      <NetworkModal
+        pageSupportedChains={Component.chains}
+        forceMultipleNetworkModal={Component.forceMultipleNetworkModal}
+      />
       <TransactionsDetailModal />
       {isShowScrollToTopButton && <ScrollToTopButtonV2 />}
       {shouldScreenWallet && <Blocklist />}
