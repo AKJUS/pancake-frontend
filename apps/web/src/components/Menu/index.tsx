@@ -24,6 +24,8 @@ const LinkComponent = (linkProps) => {
   return <NextLinkFromReactRouter to={linkProps.href} {...linkProps} prefetch={false} />
 }
 
+const EMPTY_ARRAY = []
+
 const Menu = (props) => {
   const { enabled } = useWebNotifications()
   const { chainId } = useActiveChainId()
@@ -73,6 +75,8 @@ const Menu = (props) => {
     return footerLinks(t)
   }, [t])
 
+  const filteredLinks = useMemo(() => filterItemsProps(menuItems), [menuItems])
+
   return (
     <UikitMenu
       linkComponent={LinkComponent}
@@ -94,12 +98,12 @@ const Menu = (props) => {
       toggleTheme={toggleTheme}
       showLangSelector={false}
       cakePriceUsd={cakePrice.eq(BIG_ZERO) ? undefined : cakePrice}
-      links={filterItemsProps(menuItems)}
+      links={filteredLinks}
       subLinks={
         activeSubMenuItem?.overrideSubNavItems ??
         activeMenuItem?.overrideSubNavItems ??
         (activeMenuItem?.hideSubNav || activeSubMenuItem?.hideSubNav
-          ? []
+          ? EMPTY_ARRAY
           : activeSubMenuItem?.items ?? activeMenuItem?.items)
       }
       footerLinks={getFooterLinks}

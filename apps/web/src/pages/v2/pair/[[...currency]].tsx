@@ -42,6 +42,8 @@ import { formatAmount } from 'utils/formatInfoNumbers'
 import { useAccount } from 'wagmi'
 import { DISABLED_ADD_LIQUIDITY_CHAINS } from 'config/constants/liquidity'
 import { IncentraTag } from 'components/Incentra/IncentraTag'
+import { CHAIN_QUERY_NAME } from 'config/chains'
+import { PERSIST_CHAIN_KEY } from 'config/constants'
 
 export const BodyWrapper = styled(Card)`
   border-radius: 24px;
@@ -159,13 +161,19 @@ export default function PoolV2Page() {
           buttons={
             !isMobile && (
               <>
-                <NextLinkFromReactRouter to={`/v2/add/${pair?.token0.address}/${pair?.token1.address}?increase=1`}>
+                <NextLinkFromReactRouter
+                  to={`/v2/add/${pair?.token0.address}/${pair?.token1.address}?increase=1${
+                    pair?.chainId ? `&chain=${CHAIN_QUERY_NAME[pair.chainId]}&${PERSIST_CHAIN_KEY}=1` : ''
+                  }`}
+                >
                   <Button width="100%" disabled={!pair || !!DISABLED_ADD_LIQUIDITY_CHAINS[chainId]}>
                     {t('Add')}
                   </Button>
                 </NextLinkFromReactRouter>
                 <NextLinkFromReactRouter
-                  to={`/v2/remove/${pair?.token0.address}/${pair?.token1.address}`}
+                  to={`/v2/remove/${pair?.token0.address}/${pair?.token1.address}${
+                    pair?.chainId ? `?chain=${CHAIN_QUERY_NAME[pair.chainId]}&${PERSIST_CHAIN_KEY}=1` : ''
+                  }`}
                   style={{ margin: '0px 8px' }}
                 >
                   <Button variant="secondary" width="100%" disabled={!pair || isFullyStaked}>
@@ -173,7 +181,11 @@ export default function PoolV2Page() {
                   </Button>
                 </NextLinkFromReactRouter>
                 {isFarmExistActiveForPair === 'notexist' && (
-                  <NextLinkFromReactRouter to={`/v2/migrate/${pair?.liquidityToken?.address}`}>
+                  <NextLinkFromReactRouter
+                    to={`/v2/migrate/${pair?.liquidityToken?.address}${
+                      pair?.chainId ? `?chain=${CHAIN_QUERY_NAME[pair.chainId]}&${PERSIST_CHAIN_KEY}=1` : ''
+                    }`}
+                  >
                     <Button variant="secondary" width="100%" disabled={!pair || isFullyStaked}>
                       {t('Migrate')}
                     </Button>
@@ -186,18 +198,30 @@ export default function PoolV2Page() {
         <CardBody>
           {isMobile && (
             <>
-              <NextLinkFromReactRouter to={`/v2/add/${pair?.token0.address}/${pair?.token1.address}?increase=1`}>
+              <NextLinkFromReactRouter
+                to={`/v2/add/${pair?.token0.address}/${pair?.token1.address}?increase=1${
+                  pair?.chainId ? `&chain=${CHAIN_QUERY_NAME[pair.chainId]}&${PERSIST_CHAIN_KEY}=1` : ''
+                }`}
+              >
                 <Button width="100%" mb="8px" disabled={!pair || !!DISABLED_ADD_LIQUIDITY_CHAINS[chainId]}>
                   {t('Add')}
                 </Button>
               </NextLinkFromReactRouter>
-              <NextLinkFromReactRouter to={`/v2/remove/${pair?.token0.address}/${pair?.token1.address}`}>
+              <NextLinkFromReactRouter
+                to={`/v2/remove/${pair?.token0.address}/${pair?.token1.address}${
+                  pair?.chainId ? `?chain=${CHAIN_QUERY_NAME[pair.chainId]}&${PERSIST_CHAIN_KEY}=1` : ''
+                }`}
+              >
                 <Button variant="secondary" width="100%" mb="8px" disabled={!pair || isFullyStaked}>
                   {t('Remove')}
                 </Button>
               </NextLinkFromReactRouter>
               {isFarmExistActiveForPair === 'notexist' && (
-                <NextLinkFromReactRouter to={`/v2/migrate/${pair?.liquidityToken?.address}`}>
+                <NextLinkFromReactRouter
+                  to={`/v2/migrate/${pair?.liquidityToken?.address}${
+                    pair?.chainId ? `?chain=${CHAIN_QUERY_NAME[pair.chainId]}&${PERSIST_CHAIN_KEY}=1` : ''
+                  }`}
+                >
                   <Button variant="secondary" width="100%" mb="8px" disabled={!pair || isFullyStaked}>
                     {t('Migrate')}
                   </Button>

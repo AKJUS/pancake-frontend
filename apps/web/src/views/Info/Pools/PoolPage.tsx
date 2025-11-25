@@ -49,6 +49,7 @@ import Percent from 'views/Info/components/Percent'
 import { DISABLED_ADD_LIQUIDITY_CHAINS } from 'config/constants/liquidity'
 import { logGTMClickAddLiquidityEvent } from 'utils/customGTMEventTracking'
 import { ChainId } from '@pancakeswap/chains'
+import { PERSIST_CHAIN_KEY } from 'config/constants'
 
 const ContentLayout = styled.div`
   display: grid;
@@ -205,7 +206,7 @@ const PoolPage: React.FC<React.PropsWithChildren<{ address: string }>> = ({ addr
               </Flex>
               <Flex>
                 <NextLinkFromReactRouter
-                  to={`/add/${poolData.token0.address}/${poolData.token1.address}?chain=${CHAIN_QUERY_NAME[chainId]}`}
+                  to={`/add/${poolData.token0.address}/${poolData.token1.address}?chain=${CHAIN_QUERY_NAME[chainId]}&${PERSIST_CHAIN_KEY}=1`}
                 >
                   <Button
                     mr="8px"
@@ -219,7 +220,7 @@ const PoolPage: React.FC<React.PropsWithChildren<{ address: string }>> = ({ addr
                   </Button>
                 </NextLinkFromReactRouter>
                 <NextLinkFromReactRouter
-                  to={`/swap?inputCurrency=${poolData.token0.address}&outputCurrency=${poolData.token1.address}&chainId=${multiChainId[chainName]}`}
+                  to={`/swap?inputCurrency=${poolData.token0.address}&outputCurrency=${poolData.token1.address}&chainId=${multiChainId[chainName]}&${PERSIST_CHAIN_KEY}=1`}
                 >
                   <Button>{t('Trade')}</Button>
                 </NextLinkFromReactRouter>

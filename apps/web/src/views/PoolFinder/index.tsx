@@ -14,7 +14,9 @@ import { usePairAdder } from 'state/user/hooks'
 import { useTokenBalance } from 'state/wallet/hooks'
 import { styled } from 'styled-components'
 import { currencyId } from 'utils/currencyId'
-import { useAccount } from 'wagmi'
+import { CHAIN_QUERY_NAME } from 'config/chains'
+import { PERSIST_CHAIN_KEY } from 'config/constants'
+import useAccountActiveChain from 'hooks/useAccountActiveChain'
 import { AppBody, AppHeader } from '../../components/App'
 import Row from '../../components/Layout/Row'
 import Dots from '../../components/Loader/Dots'
@@ -35,7 +37,7 @@ const StyledButton = styled(Button)`
 `
 
 export default function PoolFinder() {
-  const { address: account } = useAccount()
+  const { account, chainId } = useAccountActiveChain()
   const { t } = useTranslation()
   const native = useNativeCurrency()
 
@@ -144,7 +146,9 @@ export default function PoolFinder() {
                   <MinimalPositionCard pair={pair} />
                   <Button
                     as={NextLinkFromReactRouter}
-                    to={`/v2/pair/${pair.token0.address}/${pair.token1.address}`}
+                    to={`/v2/pair/${pair.token0.address}/${pair.token1.address}${
+                      pair?.chainId ? `?chain=${CHAIN_QUERY_NAME[pair.chainId]}&${PERSIST_CHAIN_KEY}=1` : ''
+                    }`}
                     variant="secondary"
                     width="100%"
                   >
@@ -157,7 +161,9 @@ export default function PoolFinder() {
                     <Text textAlign="center">{t('You don’t have liquidity in this pair yet.')}</Text>
                     <Button
                       as={NextLinkFromReactRouter}
-                      to={`/v2/add/${currencyId(currency0)}/${currencyId(currency1)}`}
+                      to={`/v2/add/${currencyId(currency0)}/${currencyId(currency1)}?chain=${
+                        CHAIN_QUERY_NAME[chainId]
+                      }&${PERSIST_CHAIN_KEY}=1`}
                       variant="secondary"
                     >
                       {t('Add Liquidity')}
@@ -171,7 +177,9 @@ export default function PoolFinder() {
                   <Text textAlign="center">{t('No pair found.')}</Text>
                   <Button
                     as={NextLinkFromReactRouter}
-                    to={`/v2/add/${currencyId(currency0)}/${currencyId(currency1)}`}
+                    to={`/v2/add/${currencyId(currency0)}/${currencyId(currency1)}?chain=${
+                      CHAIN_QUERY_NAME[chainId]
+                    }&${PERSIST_CHAIN_KEY}=1`}
                     variant="secondary"
                   >
                     {t('Create pair')}

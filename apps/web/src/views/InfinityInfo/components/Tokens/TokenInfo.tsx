@@ -57,6 +57,7 @@ import TransactionTable from 'views/V3Info/components/TransactionsTable'
 import { MonoSpace, StyledCMCLink } from 'views/V3Info/components/shared'
 import { unixToDate } from 'views/V3Info/utils/date'
 import { formatDollarAmount } from 'views/V3Info/utils/numbers'
+import { PERSIST_CHAIN_KEY } from 'config/constants'
 import { infinityInfoPath } from '../../constants'
 import { usePoolsDataForToken } from './hooks/usePoolsDataForToken'
 import { useTokenChartData } from './hooks/useTokenChartData'
@@ -265,7 +266,9 @@ const TokenInfo: React.FC<{ address: string }> = ({ address }) => {
                     </NextLinkFromReactRouter>
                   ) : null}
                   <NextLinkFromReactRouter
-                    to={`/swap?outputCurrency=${swapOutputCurrency}&chain=${CHAIN_QUERY_NAME[multiChainId[chainName]]}`}
+                    to={`/swap?outputCurrency=${swapOutputCurrency}&chain=${
+                      CHAIN_QUERY_NAME[multiChainId[chainName]]
+                    }&${PERSIST_CHAIN_KEY}=1`}
                   >
                     <Button>{t('Trade')}</Button>
                   </NextLinkFromReactRouter>

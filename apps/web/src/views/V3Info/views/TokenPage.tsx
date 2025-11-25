@@ -43,6 +43,7 @@ import { CurrencyLogo } from 'views/Info/components/CurrencyLogo'
 import useCMCLink from 'views/Info/hooks/useCMCLink'
 import { DISABLED_ADD_LIQUIDITY_CHAINS } from 'config/constants/liquidity'
 import { useRouter } from 'next/router'
+import { PERSIST_CHAIN_KEY } from 'config/constants'
 import BarChart from '../components/BarChart/alt'
 import { LocalLoader } from '../components/Loader'
 import Percent from '../components/Percent'
@@ -240,7 +241,9 @@ const TokenPage: React.FC<{ address: string; chain?: string }> = ({ address, cha
                 {t('Add Liquidity')}
               </Button>
               <NextLinkFromReactRouter
-                to={`/swap?outputCurrency=${address}&chain=${CHAIN_QUERY_NAME[multiChainId[chainName]]}`}
+                to={`/swap?outputCurrency=${address}&chain=${
+                  CHAIN_QUERY_NAME[multiChainId[chainName]]
+                }&${PERSIST_CHAIN_KEY}=1`}
               >
                 <Button>{t('Trade')}</Button>
               </NextLinkFromReactRouter>

@@ -47,6 +47,7 @@ import TransactionTable from 'views/Info/components/InfoTables/TransactionsTable
 import Percent from 'views/Info/components/Percent'
 import useCMCLink from 'views/Info/hooks/useCMCLink'
 import { DISABLED_ADD_LIQUIDITY_CHAINS } from 'config/constants/liquidity'
+import { PERSIST_CHAIN_KEY } from 'config/constants'
 
 dayjs.extend(duration)
 
@@ -173,7 +174,9 @@ const TokenPage: React.FC<React.PropsWithChildren<{ routeAddress: string }>> = (
             >
               {t('Add Liquidity')}
             </Button>
-            <NextLinkFromReactRouter to={`/swap?outputCurrency=${address}&chainId=${multiChainId[chainName]}`}>
+            <NextLinkFromReactRouter
+              to={`/swap?outputCurrency=${address}&chainId=${multiChainId[chainName]}&${PERSIST_CHAIN_KEY}=1`}
+            >
               <Button>{t('Trade')}</Button>
             </NextLinkFromReactRouter>
           </Flex>
