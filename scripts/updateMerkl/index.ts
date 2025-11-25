@@ -23,7 +23,7 @@ const fetchAllMerklConfig = async (): Promise<any[]> => {
   const response = await fetch(
     `https://api.merkl.xyz/v4/opportunities/?chainId=${Object.keys(chainIdToChainName).join(
       ',',
-    )}&test=false&mainProtocolId=pancake-swap&action=POOL,HOLD&status=LIVE`,
+    )}&test=false&mainProtocolId=pancake-swap&action=POOL,HOLD&status=LIVE&items=100`,
   )
 
   if (!response.ok) {
