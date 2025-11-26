@@ -203,7 +203,7 @@
         "symbol": {
           "type": "string",
           "description": "The symbol for the token; must be alphanumeric",
-          "pattern": "^[a-zA-Z0-9+\\-%/$.\\s\\u4e00-\\u9fa5]+$",
+          "pattern": "^[a-zA-Z0-9+\\-%/$.\\s_\\u4e00-\\u9fa5]+$",
           "minLength": 1,
           "maxLength": 20,
           "examples": ["USDC", "币安"]
@@ -263,7 +263,7 @@
         "symbol": {
           "type": "string",
           "description": "The symbol for the token; must be alphanumeric",
-          "pattern": "^[a-zA-Z0-9+\\-%/$.]+$",
+          "pattern": "^[a-zA-Z0-9+\\-%/$._]+$",
           "minLength": 1,
           "maxLength": 20,
           "examples": ["USDC"]
