@@ -10,7 +10,6 @@ export type RemoveLiquidityParams = {
   liquidity: bigint
   amountMinA: bigint
   amountMinB: bigint
-  harvest: boolean
   simulateOnly?: boolean
 }
 export const removeLiquidity = async ({
@@ -20,7 +19,6 @@ export const removeLiquidity = async ({
   liquidity,
   amountMinA,
   amountMinB,
-  harvest,
   simulateOnly,
 }: RemoveLiquidityParams) => {
   if (!raydium) return undefined

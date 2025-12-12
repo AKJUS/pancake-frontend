@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { SLOW_INTERVAL } from 'config/constants'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { useMemo } from 'react'
@@ -62,10 +62,12 @@ export function useSolanaV3Pools(poolIds: (string | undefined)[]): (SolanaV3Pool
 
   useQuery({
     queryKey: ['solanaV3Pools', poolIdsString, latestTxReceipt?.blockHash],
-    queryFn: () =>
-      fetchSolanaPoolsData(poolsNotFetched).then((pools) => pools.forEach((pool) => addSolanaV3Pool(pool))),
+    queryFn: async () => {
+      const pools = await fetchSolanaPoolsData(poolsNotFetched)
+      pools.forEach(addSolanaV3Pool)
+      return true
+    },
     enabled: poolsNotFetched.length > 0,
-    placeholderData: keepPreviousData,
     refetchInterval: SLOW_INTERVAL,
   })
 
