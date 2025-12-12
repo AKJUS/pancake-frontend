@@ -30,11 +30,13 @@ export default function useSwapRecordTransaction(chainId?: number, account?: str
       hash,
       type,
       receipt,
+      isMultisig = false,
     }: {
       order: InterfaceOrder | undefined
       hash: Address
       type: LogTradeType
       receipt?: SerializableTransactionReceipt
+      isMultisig?: boolean
     }) => {
       const trade = order?.trade
       if (!trade || !account || !chainId) return
@@ -81,24 +83,26 @@ export default function useSwapRecordTransaction(chainId?: number, account?: str
           ? 'Swap %inputAmount% %inputSymbol% for min. %outputAmount% %outputSymbol%'
           : 'Swap %inputAmount% %inputSymbol% for min. %outputAmount% %outputSymbol% to %recipientAddress%'
 
-      addTransaction(
-        { hash },
-        {
-          summary: withRecipient,
-          translatableSummary: {
-            text: translatableWithRecipient,
-            data: {
-              inputAmount,
-              inputSymbol,
-              outputAmount,
-              outputSymbol,
-              ...(recipientAddress !== account && { recipientAddress: recipientAddressText }),
+      if (!isMultisig) {
+        addTransaction(
+          { hash },
+          {
+            summary: withRecipient,
+            translatableSummary: {
+              text: translatableWithRecipient,
+              data: {
+                inputAmount,
+                inputSymbol,
+                outputAmount,
+                outputSymbol,
+                ...(recipientAddress !== account && { recipientAddress: recipientAddressText }),
+              },
             },
+            type: 'swap',
+            receipt,
           },
-          type: 'swap',
-          receipt,
-        },
-      )
+        )
+      }
 
       logSwap({
         tradeType: trade.tradeType,
@@ -110,6 +114,7 @@ export default function useSwapRecordTransaction(chainId?: number, account?: str
         input: trade.inputAmount.currency,
         output: trade.outputAmount.currency,
         type,
+        isMultisig,
       })
       logTx({ account, chainId, hash })
     },

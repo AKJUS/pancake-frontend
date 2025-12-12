@@ -38,11 +38,13 @@ export function TransactionSubmittedContent({
   chainId,
   hash,
   currencyToAdd,
+  isMultisig = false,
 }: {
   onDismiss?: () => void
-  hash: string | undefined
+  hash?: string
   chainId?: ChainId
-  currencyToAdd?: Currency | undefined | null
+  currencyToAdd?: Currency | null
+  isMultisig?: boolean
 }) {
   const { t } = useTranslation()
   const blockExplorerName = useBlockExploreName(chainId)
@@ -64,16 +66,23 @@ export function TransactionSubmittedContent({
           <ArrowUpIcon strokeWidth={0.5} width="90px" color="primary" />
         </ConfirmedIcon>
         <AutoColumn gap="12px" justify="center">
-          <Text fontSize="20px">{t('Transaction Submitted')}</Text>
-          {chainId && hash && (
-            <Link external small href={getBlockExploreLink(hash, 'transaction', chainId)}>
-              {t('View on %site%', {
-                site: blockExplorerName,
-              })}
-              {chainId === ChainId.BSC && <BscScanIcon color="primary" ml="4px" />}
-            </Link>
+          <Text fontSize="20px" bold>
+            {isMultisig ? t('Multisig transaction submitted') : t('Transaction Submitted')}
+          </Text>
+          {isMultisig ? (
+            <Text textAlign="center">
+              {t('Transaction pending approvals. Execution will occur after multisig confirmation.')}
+            </Text>
+          ) : (
+            chainId &&
+            hash && (
+              <Link external small href={getBlockExploreLink(hash, 'transaction', chainId)}>
+                {t('View on %site%', { site: blockExplorerName })}
+                {chainId === ChainId.BSC && <BscScanIcon color="primary" ml="4px" />}
+              </Link>
+            )
           )}
-          {showAddToWalletButton && (
+          {showAddToWalletButton && !isMultisig && (
             <AddToWalletButton
               variant="tertiary"
               mt="12px"
@@ -104,6 +113,7 @@ interface ConfirmationModalProps {
   attemptingTxn: boolean
   pendingText: string
   currencyToAdd?: Currency | undefined | null
+  isMultisig?: boolean
 }
 
 const TransactionConfirmationModal: React.FC<
@@ -118,6 +128,7 @@ const TransactionConfirmationModal: React.FC<
   pendingText,
   content,
   currencyToAdd,
+  isMultisig,
   ...props
 }) => {
   const { chainId } = useActiveChainId()
@@ -139,6 +150,7 @@ const TransactionConfirmationModal: React.FC<
         <TransactionSubmittedContent
           chainId={chainId}
           hash={hash}
+          isMultisig={isMultisig}
           onDismiss={handleDismiss}
           currencyToAdd={currencyToAdd}
         />

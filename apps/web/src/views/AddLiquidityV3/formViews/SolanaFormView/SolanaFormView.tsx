@@ -93,6 +93,8 @@ import { useUnifiedTokenUsdPrice } from 'hooks/useUnifiedTokenUsdPrice'
 import { useQuickActionConfigs } from 'views/AddLiquidityV3/hooks/useQuickActionConfigs'
 import { useTransactionAdder } from 'state/transactions/hooks'
 
+import { useWallet } from '@solana/wallet-adapter-react'
+import { isMultisigWallet } from 'utils/solana/isMultisigWallet'
 import LockedDeposit from '../V3FormView/components/LockedDeposit'
 import { RangeSelector } from './RangeSelector'
 import { useV3MintActionHandlers } from '../V3FormView/form/hooks/useV3MintActionHandlers'
@@ -362,6 +364,9 @@ export function SolanaFormView({
 
   const createClmm = useCreateClmmPool()
   const addLiquidity = useCreatePosition()
+  const { wallet } = useWallet()
+
+  const isMultisig = isMultisigWallet(wallet)
 
   const onAdd = useCallback(async () => {
     logGTMClickAddLiquidityConfirmEvent()
@@ -403,15 +408,17 @@ export function SolanaFormView({
       logGTMAddLiquidityTxSentEvent()
       const hash = res ? ('txId' in res ? res.txId : 'txIds' in res ? res.txIds[0] : '') : ''
       setTxHash(hash)
-      addTransaction(
-        { hash },
-        {
-          type: 'add-liquidity-v3',
-          summary: `Add ${parsedAmounts[independentField]?.toExact()} ${
-            parsedAmounts[independentField]?.currency?.symbol
-          } and ${parsedAmounts[dependentField]?.toExact()} ${parsedAmounts[dependentField]?.currency?.symbol}`,
-        },
-      )
+      if (!isMultisig) {
+        addTransaction(
+          { hash },
+          {
+            type: 'add-liquidity-v3',
+            summary: `Add ${parsedAmounts[independentField]?.toExact()} ${
+              parsedAmounts[independentField]?.currency?.symbol
+            } and ${parsedAmounts[dependentField]?.toExact()} ${parsedAmounts[dependentField]?.currency?.symbol}`,
+          },
+        )
+      }
       onAddLiquidityCallback(hash)
     } catch (e: any) {
       setAttemptingTxn(false)
@@ -436,6 +443,7 @@ export function SolanaFormView({
     ticks,
     onAddLiquidityCallback,
     raydium,
+    isMultisig,
   ])
 
   const confirmationContent = useCallback(() => {
@@ -566,6 +574,7 @@ export function SolanaFormView({
       customOnDismiss={handleDismissConfirmation}
       attemptingTxn={attemptingTxn}
       hash={txHash}
+      isMultisig={isMultisig}
       errorMessage={txnErrorMessage}
       content={confirmationContent}
       pendingText={pendingText}

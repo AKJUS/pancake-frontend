@@ -47,6 +47,7 @@ export const SolanaWalletNames = {
   Bitget: 'Bitget Wallet' as WalletName<'Bitget Wallet'>,
   Exodus: ExodusWalletName,
   Backpack: 'Backpack' as WalletName<'Backpack'>,
+  SquadsX: 'SquadsX' as WalletName<'SquadsX'>,
 } as const
 
 export type SolanaConnectorNames = {

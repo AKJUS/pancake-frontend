@@ -232,9 +232,18 @@ export const ConfirmSwapModalV2: React.FC<ConfirmSwapModalV2Props> = ({
       )
     }
 
-    if (confirmModalState === ConfirmModalState.COMPLETED && txHash) {
+    if (
+      (confirmModalState === ConfirmModalState.COMPLETED ||
+        confirmModalState === ConfirmModalState.MULTISIG_SUBMITTED) &&
+      txHash
+    ) {
       if (chainId === NonEVMChainId.SOLANA) {
-        return <SolanaSwapTxReceiptModalContent txHash={txHash} />
+        return (
+          <SolanaSwapTxReceiptModalContent
+            txHash={txHash}
+            isMultisig={confirmModalState === ConfirmModalState.MULTISIG_SUBMITTED}
+          />
+        )
       }
       return (
         <SwapTransactionReceiptModalContent

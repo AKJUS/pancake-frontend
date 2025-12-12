@@ -18,6 +18,7 @@ export const useBridgeStatus = (
   txHash?: string,
   metadata?: ActiveBridgeOrderMetadata['metadata'],
   destinationChainId?: number,
+  isMultisig?: boolean,
 ) => {
   const queryResult = useQuery({
     queryKey: bridgeStatusQueryKey(chainId, txHash, destinationChainId),
@@ -30,7 +31,7 @@ export const useBridgeStatus = (
         : 15_000,
     retry: 3,
     retryDelay: 1_000,
-    enabled: !!chainId && !!txHash,
+    enabled: !!chainId && !!txHash && !isMultisig,
     notifyOnChangeProps: ['data', 'isFetching'],
   })
 
@@ -51,12 +52,12 @@ export const useBridgeStatus = (
   const inputCurrencyAmount = useMemo(() => {
     if (!inputCurrency || !data || !data?.inputAmount) return undefined
     return UnifiedCurrencyAmount.fromRawAmount(inputCurrency, formatScientificToDecimal(data?.inputAmount))
-  }, [inputCurrency, data?.inputAmount])
+  }, [inputCurrency, data])
 
   const outputCurrencyAmount = useMemo(() => {
     if (!outputCurrency || !data || !data?.outputAmount) return undefined
     return UnifiedCurrencyAmount.fromRawAmount(outputCurrency, formatScientificToDecimal(data?.outputAmount))
-  }, [outputCurrency, data?.outputAmount])
+  }, [outputCurrency, data])
 
   const feesBreakdown = useMemo(() => {
     if (!data?.data?.length) return { totalFeesUSD: 0, swapFeesUSD: 0, bridgeFeesUSD: 0 }
@@ -86,19 +87,27 @@ export const useBridgeStatus = (
     }
   }, [data])
 
-  const bridgeStatusData: BridgeStatusData | undefined = useMemo(
-    () =>
-      data
-        ? {
-            ...data,
-            inputCurrencyAmount,
-            outputCurrencyAmount,
-            feesBreakdown,
-            bridgeStatus: data?.data?.find((item) => item.command === Command.BRIDGE)?.metadata?.bridgeStatus,
-          }
-        : undefined,
-    [data, inputCurrencyAmount, outputCurrencyAmount],
-  )
+  const bridgeStatusData: BridgeStatusData | undefined = useMemo(() => {
+    if (!data) return undefined
+
+    if (isMultisig) {
+      return {
+        ...data,
+        inputCurrencyAmount,
+        outputCurrencyAmount,
+        feesBreakdown: { totalFeesUSD: 0, swapFeesUSD: 0, bridgeFeesUSD: 0 },
+        bridgeStatus: BridgeStatus.MULTISIG_SUBMITTED,
+      }
+    }
+
+    return {
+      ...data,
+      inputCurrencyAmount,
+      outputCurrencyAmount,
+      feesBreakdown,
+      bridgeStatus: data.data?.find((item) => item.command === Command.BRIDGE)?.metadata?.bridgeStatus,
+    }
+  }, [data, inputCurrencyAmount, outputCurrencyAmount, feesBreakdown, isMultisig])
 
   return { data: bridgeStatusData, isLoading: queryResult.isFetching }
 }

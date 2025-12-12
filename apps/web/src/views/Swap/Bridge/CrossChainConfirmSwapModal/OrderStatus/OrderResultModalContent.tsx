@@ -5,6 +5,7 @@ import {
   CheckmarkCircleIcon,
   Flex,
   FlexGap,
+  InfoIcon,
   Message,
   Skeleton,
   SwapSpinner,
@@ -104,7 +105,13 @@ export const OrderResultModalContent = ({ overrideActiveOrderMetadata, ...props 
   const orderInputCurrency = order?.trade.inputAmount.currency
   const orderOutputCurrency = order?.trade.outputAmount.currency
 
-  const { data: bridgeStatus } = useBridgeStatus(originChainId, txHash, metadata, bridgeMetadata?.destinationChainId)
+  const { data: bridgeStatus } = useBridgeStatus(
+    originChainId,
+    txHash,
+    metadata,
+    bridgeMetadata?.destinationChainId,
+    bridgeMetadata?.isMultisig,
+  )
 
   const resultTokenData = useMemo(() => {
     // Derive result token and amount information from last command (swap or bridge)
@@ -224,6 +231,12 @@ export const OrderResultModalContent = ({ overrideActiveOrderMetadata, ...props 
         return (
           <IconContainer>
             <CheckmarkCircleIcon width="36px" color="success" />
+          </IconContainer>
+        )
+      case BridgeStatus.MULTISIG_SUBMITTED:
+        return (
+          <IconContainer>
+            <InfoIcon width="36px" color="warning" />
           </IconContainer>
         )
       case BridgeStatus.PARTIAL_SUCCESS:

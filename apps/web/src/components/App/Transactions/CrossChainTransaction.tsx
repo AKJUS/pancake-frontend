@@ -228,6 +228,7 @@ export function CrossChainTransaction({ order }: { order: UserBridgeOrder }) {
               destinationChainId: order.destinationChainId,
               order: null,
               metadata,
+              isMultisig: false,
             }}
           />
         </MotionModal>

@@ -13,6 +13,8 @@ import { confirmTransaction } from '@pancakeswap/solana-core-sdk'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
 import { useRefreshSolanaTokenBalances } from 'state/token/solanaTokenBalances'
 import { useSolanaConnectionWithRpcAtom } from 'hooks/solana/useSolanaConnectionWithRpcAtom'
+import MultisigToastDescription from 'components/Toast/MultisigToastDescription'
+import { isMultisigWallet } from 'utils/solana/isMultisigWallet'
 import useSwapRecordTransaction from '../useSwapRecordTransaction'
 import { ConfirmStepContext } from './step.type'
 
@@ -83,27 +85,40 @@ export const useSolSwapStep = (context: ConfirmStepContext) => {
           const { signature } = response
           setTxHash(signature)
 
+          const isMultisig = isMultisigWallet(solanaWallet)
+
           try {
             addSwapTransaction({
               order,
               hash: signature as any,
               type: 'SolanaSwap',
               receipt: {} as any,
+              isMultisig,
             })
           } catch (error) {
             console.error('Failed to add transaction', error)
           }
 
           toastSuccess(
-            t('Success!'),
-            <SolanaDescriptionWithTx txHash={signature}>{t('Solana swap submitted')}</SolanaDescriptionWithTx>,
+            isMultisig ? t('Multisig transaction submitted') : t('Success!'),
+            isMultisig ? (
+              <MultisigToastDescription />
+            ) : (
+              <SolanaDescriptionWithTx txHash={signature}>{t('Solana swap submitted')}</SolanaDescriptionWithTx>
+            ),
           )
 
-          setConfirmState(ConfirmModalState.COMPLETED)
-
-          // Wait for transaction confirmation then refresh balances
-          await retryWaitForSolanaTransaction(signature)
-          refreshSolanaBalances()
+          if (!isMultisig) {
+            // Wait for transaction confirmation then refresh balances
+            await retryWaitForSolanaTransaction(signature)
+            refreshSolanaBalances()
+            setConfirmState(ConfirmModalState.COMPLETED)
+          } else {
+            setConfirmState(ConfirmModalState.MULTISIG_SUBMITTED)
+            console.warn(
+              'Transaction submitted to SquadsX multisig. Pending approvals. Balances may not be updated yet.',
+            )
+          }
         } catch (error: any) {
           console.error('Solana swap error', error)
           if (error?.message?.includes('rejected')) {
@@ -130,7 +145,10 @@ export const useSolSwapStep = (context: ConfirmStepContext) => {
     signTransaction,
     retryWaitForSolanaTransaction,
     refreshSolanaBalances,
-    solanaWallet?.adapter.publicKey,
+    solanaWallet,
+    addSwapTransaction,
+    setConfirmState,
+    setTxHash,
   ])
 
   return solanaSwapStep

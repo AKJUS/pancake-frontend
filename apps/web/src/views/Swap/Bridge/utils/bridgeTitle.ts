@@ -12,6 +12,8 @@ export const getBridgeTitle = (t: TranslateFunction, status?: BridgeStatus) => {
       return t('Partial Success')
     case BridgeStatus.FAILED:
       return t('Unsuccessful')
+    case BridgeStatus.MULTISIG_SUBMITTED:
+      return t('Multisig transaction submitted')
     default:
       return t('Order Submitted')
   }

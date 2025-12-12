@@ -32,6 +32,7 @@ export enum ConfirmModalState {
 
   // Cross-Chain Swap
   ORDER_SUBMITTED,
+  MULTISIG_SUBMITTED,
 }
 
 export type PendingApproveModalState = Extract<

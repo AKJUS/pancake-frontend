@@ -1,9 +1,12 @@
 import { NonEVMChainId } from '@pancakeswap/chains'
 import { useTranslation } from '@pancakeswap/localization'
 import { useToast } from '@pancakeswap/uikit'
+import { useWallet } from '@solana/wallet-adapter-react'
 import { SolanaDescriptionWithTx } from 'components/Toast'
+import MultisigToastDescription from 'components/Toast/MultisigToastDescription'
 import React, { useCallback, useState } from 'react'
 import { useTransactionAdder } from 'state/transactions/hooks'
+import { isMultisigWallet } from 'utils/solana/isMultisigWallet'
 
 /**
  * Solana-specific transaction error handling hook
@@ -14,6 +17,8 @@ export default function useSolanaTxError() {
   const { toastError, toastSuccess } = useToast()
   const [loading, setLoading] = useState(false)
   const addTransaction = useTransactionAdder(NonEVMChainId.SOLANA)
+  const { wallet } = useWallet()
+  const isMultisig = isMultisigWallet(wallet)
 
   const handleSolanaError = useCallback(
     (error: any) => {
@@ -61,7 +66,7 @@ export default function useSolanaTxError() {
 
         txResult = await txCallback()
 
-        if (txResult && txResult.hash && typeof txResult.status === 'undefined') {
+        if (txResult && txResult.hash && !isMultisig && typeof txResult.status === 'undefined') {
           addTransaction(
             {
               hash: txResult.hash,
@@ -76,14 +81,18 @@ export default function useSolanaTxError() {
 
         // Show success toast with transaction hash
         if (txResult.hash) {
-          toastSuccess(
-            `${t('Transaction Submitted')}!`,
-            React.createElement(
-              SolanaDescriptionWithTx,
-              { txHash: txResult.hash },
-              t('Your transaction has been submitted to the network'),
-            ),
-          )
+          if (isMultisig) {
+            toastSuccess(t('Multisig transaction submitted'), React.createElement(MultisigToastDescription, null))
+          } else {
+            toastSuccess(
+              t('Transaction Submitted'),
+              React.createElement(
+                SolanaDescriptionWithTx,
+                { txHash: txResult.hash },
+                t('Your transaction has been submitted to the network'),
+              ),
+            )
+          }
         }
 
         return txResult
@@ -101,7 +110,7 @@ export default function useSolanaTxError() {
         setLoading(false)
       }
     },
-    [t, toastSuccess, handleSolanaError, addTransaction],
+    [t, toastSuccess, handleSolanaError, addTransaction, isMultisig],
   )
 
   return {

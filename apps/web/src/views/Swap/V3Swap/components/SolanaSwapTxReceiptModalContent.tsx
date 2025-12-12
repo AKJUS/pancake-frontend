@@ -1,12 +1,18 @@
 import { useTranslation } from '@pancakeswap/localization'
-import { Box, Image, Link } from '@pancakeswap/uikit'
+import { Box, Image, Link, Text } from '@pancakeswap/uikit'
 import truncateHash from '@pancakeswap/utils/truncateHash'
 import { solanaExplorerAtom } from '@pancakeswap/utils/user'
 import { SwapTransactionReceiptModalContent } from '@pancakeswap/widgets-internal'
 import { useAtomValue } from 'jotai'
 import { useMemo } from 'react'
 
-export const SolanaSwapTxReceiptModalContent = ({ txHash }: { txHash: string }) => {
+export const SolanaSwapTxReceiptModalContent = ({
+  txHash,
+  isMultisig = false,
+}: {
+  txHash: string
+  isMultisig?: boolean
+}) => {
   const { t } = useTranslation()
   const explorer = useAtomValue(solanaExplorerAtom)
 
@@ -16,6 +22,7 @@ export const SolanaSwapTxReceiptModalContent = ({ txHash }: { txHash: string }) 
 
   return (
     <SwapTransactionReceiptModalContent
+      isMultisig={isMultisig}
       explorerLink={
         <Link external small href={explorerLink}>
           {t('View on %site%', { site: explorer.name })}: {truncateHash(txHash, 8, 0)}

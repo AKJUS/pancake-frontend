@@ -82,6 +82,7 @@ export enum BridgeStatus {
   PENDING = 'PENDING', // when a transaction is not yet indexed
   BRIDGE_PENDING = 'BRIDGE_PENDING', // when bridging is pending
   FAILED = 'FAILED',
+  MULTISIG_SUBMITTED = 'MULTISIG_SUBMITTED',
 }
 
 export interface BridgeStatusResponse {
@@ -166,6 +167,7 @@ export interface ActiveBridgeOrderMetadata {
   originChainId: number
   txHash: string
   destinationChainId: number
+  isMultisig: boolean
 
   order: Exclude<PriceOrder, SVMOrder> | null | undefined
 

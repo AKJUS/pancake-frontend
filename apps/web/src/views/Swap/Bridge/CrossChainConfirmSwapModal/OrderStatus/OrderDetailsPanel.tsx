@@ -1,5 +1,5 @@
 import { useTranslation } from '@pancakeswap/localization'
-import { CurrencyAmount, UnifiedCurrencyAmount } from '@pancakeswap/sdk'
+import { UnifiedCurrencyAmount } from '@pancakeswap/sdk'
 import {
   AutoColumn,
   Box,
@@ -73,6 +73,7 @@ export const OrderDetailsPanel = ({ overrideActiveOrderMetadata }: OrderDetailsP
     originTxHash,
     metadata,
     bridgeMetadata?.destinationChainId,
+    bridgeMetadata?.isMultisig,
   )
 
   const timelineItems = useTimelineItems({ bridgeStatus, order })
@@ -143,7 +144,8 @@ export const OrderDetailsPanel = ({ overrideActiveOrderMetadata }: OrderDetailsP
                                   ? 'success'
                                   : step.status.code === BridgeStatus.FAILED
                                   ? 'failure'
-                                  : step.status.code === BridgeStatus.PARTIAL_SUCCESS
+                                  : step.status.code === BridgeStatus.PARTIAL_SUCCESS ||
+                                    step.status.code === BridgeStatus.MULTISIG_SUBMITTED
                                   ? 'warning'
                                   : 'inputSecondary'
                               }

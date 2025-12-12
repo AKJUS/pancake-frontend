@@ -66,16 +66,19 @@ export function RecentTransactions() {
     crossChainOrdersResponse?.pages[crossChainOrdersResponse.pages.length - 1].hasNextPage,
   )
 
-  const recentCrossChainOrders: CrossChainTransactionItem[] =
-    crossChainOrdersResponse?.pages.flatMap(
-      (page) =>
-        page?.rows?.map(
-          (order): CrossChainTransactionItem => ({
-            type: 'crossChainOrder',
-            order,
-          }),
-        ) ?? [],
-    ) ?? []
+  const recentCrossChainOrders: CrossChainTransactionItem[] = useMemo(
+    () =>
+      crossChainOrdersResponse?.pages.flatMap(
+        (page) =>
+          page?.rows?.map(
+            (order): CrossChainTransactionItem => ({
+              type: 'crossChainOrder',
+              order,
+            }),
+          ) ?? [],
+      ) ?? [],
+    [crossChainOrdersResponse?.pages],
+  )
 
   const sortedRecentTransactions = useAMMSortedRecentTransactions()
   const ammTransactions: AmmTransactionItem[] = useMemo(
