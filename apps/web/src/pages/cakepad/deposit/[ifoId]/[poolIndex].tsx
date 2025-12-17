@@ -7,9 +7,11 @@ import IfoContainer from 'views/Cakepad/components/IfoContainer'
 import useIfo from 'views/Cakepad/hooks/useIfo'
 import { IfoDeposit } from 'views/Cakepad/components/IfoDeposit'
 import { IFO_SUPPORT_CHAINS } from 'config/cakepad.config'
+import { useCheckAndSwitchChain } from 'hooks/useCheckAndSwitchChain'
 
 const IfoDepositPageContent: React.FC<{ pid: number }> = ({ pid }) => {
   const { config } = useIfo()
+  useCheckAndSwitchChain(config?.chainId)
 
   const steps = <></>
   return (

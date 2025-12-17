@@ -61,14 +61,20 @@ export const IfoChainBoard = memo(function IfoChainBoard({ chainId, isHistory = 
 
   return (
     <Container>
-      {!isMobile && <img alt={`chain-${chainId}`} src={boardImageUrl} width={100} height={85} />}
-      {!isMobile && chainId !== ChainId.MONAD_MAINNET && (
-        <Tag background={BACKGROUND[chainId]} $isHistory={isHistory}>
-          <Text fontSize="0.875rem" bold color="white">
-            {t('On %chainName%', { chainName })}
-          </Text>
-        </Tag>
+      {!isMobile && (
+        <img
+          alt={`chain-${chainId}`}
+          src={boardImageUrl}
+          width={chainId === ChainId.MONAD_MAINNET ? 70 : 100}
+          height={85}
+        />
       )}
+
+      <Tag background={BACKGROUND[chainId]} $isHistory={isHistory}>
+        <Text fontSize="0.875rem" bold color="white">
+          {t('On %chainName%', { chainName })}
+        </Text>
+      </Tag>
     </Container>
   )
 })

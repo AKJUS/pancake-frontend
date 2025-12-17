@@ -27,9 +27,9 @@ export const useIFOPoolInfoCtx = (): PoolInfo[] => {
   const { chainId } = config
   const latestTxReceipt = useLatestTxReceipt()
   const { data: addresses } = useIFOAddresses()
-  const stakeCurrency0 = useCurrency(addresses?.lpToken0)
-  const stakeCurrency1 = useCurrency(addresses?.lpToken1)
-  const offeringCurrency = useCurrency(addresses?.offeringToken)
+  const stakeCurrency0 = useCurrency(addresses?.lpToken0, chainId)
+  const stakeCurrency1 = useCurrency(addresses?.lpToken1, chainId)
+  const offeringCurrency = useCurrency(addresses?.offeringToken, chainId)
   const cakeAddress = CAKE[chainId as keyof typeof CAKE]?.address ?? zeroAddress
   const version = useAtomValue(ifoVersionAtom)
 

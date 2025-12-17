@@ -1,5 +1,5 @@
 import orderBy from 'lodash/orderBy'
-import { ConfigMenuItemsType } from './config/config'
+import { ConfigMenuDropDownItemsType, ConfigMenuItemsType } from './config/config'
 
 export const getActiveMenuItem = ({ pathname, menuConfig }: { pathname: string; menuConfig: ConfigMenuItemsType[] }) =>
   menuConfig.find((menuItem) => {
@@ -49,13 +49,27 @@ export const getActiveSubMenuChildItem = ({
   pathname: string
   menuItem?: ConfigMenuItemsType
 }) => {
-  const getChildItems = menuItem?.items
-    ?.map((i) => [...(i.items ?? []), ...(i.overrideSubNavItems ?? [])])
-    ?.filter(Boolean)
-    .flat()
+  const getChildItems: ConfigMenuDropDownItemsType[] = [
+    ...(menuItem?.overrideSubNavItems ?? []),
+    ...(menuItem?.items
+      ?.map((i) => [...(i.items ?? []), ...(i.overrideSubNavItems ?? [])])
+      ?.filter(Boolean)
+      .flat() ?? []),
+  ] as ConfigMenuDropDownItemsType[]
 
   const activeSubMenuItems =
-    getChildItems?.filter((subMenuItem) => subMenuItem?.href && pathname.startsWith(subMenuItem?.href)) ?? []
+    getChildItems?.filter((subMenuItem) => {
+      if (
+        (subMenuItem?.href && pathname.startsWith(subMenuItem?.href) && subMenuItem?.href !== '/') ||
+        pathname === subMenuItem?.href
+      ) {
+        return true
+      }
+      if (subMenuItem?.matchHrefs?.some((matchHref) => pathname.startsWith(matchHref))) {
+        return true
+      }
+      return false
+    }) ?? []
 
   // Pathname doesn't include any submenu item href - return undefined
   if (!activeSubMenuItems || activeSubMenuItems.length === 0) {

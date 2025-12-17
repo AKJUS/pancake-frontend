@@ -156,6 +156,7 @@ const config: (
         {
           label: t('Latest'),
           href: '/cakepad',
+          matchHrefs: ['/cakepad/deposit'],
         },
         {
           label: t('Finished'),

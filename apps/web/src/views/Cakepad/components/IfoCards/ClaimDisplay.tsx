@@ -7,6 +7,8 @@ import { useAccount } from 'wagmi'
 import { logGTMIfoConnectWalletEvent } from 'utils/customGTMEventTracking'
 import ConnectWalletButton from 'components/ConnectWalletButton'
 import { formatAmount } from '@pancakeswap/utils/formatFractions'
+import { useActiveChainId } from 'hooks/useActiveChainId'
+import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
 import { useIFOClaimCallback } from '../../hooks/ifo/useIFOClaimCallback'
 import useIfo from '../../hooks/useIfo'
 import { formatDollarAmount } from './IfoDepositForm'
@@ -14,7 +16,7 @@ import { formatDollarAmount } from './IfoDepositForm'
 export const ClaimDisplay: React.FC<{ pid: number }> = ({ pid }) => {
   const { t } = useTranslation()
   const { claim, isPending: isLoading } = useIFOClaimCallback()
-  const { info, pools, users } = useIfo()
+  const { info, pools, users, config } = useIfo()
   const userStatus = users[pid]
   const claimableAmount = formatAmount(userStatus?.claimableAmount, 6)
   const offeringCurrency = info?.offeringCurrency
@@ -47,8 +49,19 @@ export const ClaimDisplay: React.FC<{ pid: number }> = ({ pid }) => {
 
   const { isDark } = useTheme()
   const { address: account } = useAccount()
+  const { chainId: currentChainId } = useActiveChainId()
+  const { switchNetwork, canSwitch, isLoading: isSwitchingNetwork } = useSwitchNetwork()
+  const ifoChainId = config?.chainId
+  const isWrongNetwork = ifoChainId && currentChainId !== ifoChainId
+
   const handleConnectWallet = (e) => {
     logGTMIfoConnectWalletEvent(status === 'coming_soon')
+  }
+
+  const handleSwitchNetwork = async () => {
+    if (ifoChainId) {
+      await switchNetwork(ifoChainId)
+    }
   }
   return (
     <>
@@ -89,22 +102,29 @@ export const ClaimDisplay: React.FC<{ pid: number }> = ({ pid }) => {
                 </FlexGap>
               </FlexGap>
             </FlexGap>
-            <Button
-              onClick={() => {
-                if (!userClaimed) claim(pid)
-              }}
-              width={userClaimed ? '48px' : undefined}
-              variant={userClaimed ? 'success' : undefined}
-              isLoading={isLoading}
-            >
-              {userClaimed ? (
-                <CheckmarkIcon color={isDark ? '#000000' : '#FFFFFF'} />
-              ) : (
-                <>
-                  {t('Claim')} {isLoading ? <SwapLoading ml="3px" /> : null}
-                </>
-              )}
-            </Button>
+            {isWrongNetwork && !userClaimed ? (
+              <Button onClick={handleSwitchNetwork} isLoading={isSwitchingNetwork} disabled={!canSwitch}>
+                {t('Switch network to claim')}
+                {isSwitchingNetwork ? <SwapLoading ml="3px" /> : null}
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  if (!userClaimed) claim(pid)
+                }}
+                width={userClaimed ? '48px' : undefined}
+                variant={userClaimed ? 'success' : undefined}
+                isLoading={isLoading}
+              >
+                {userClaimed ? (
+                  <CheckmarkIcon color={isDark ? '#000000' : '#FFFFFF'} />
+                ) : (
+                  <>
+                    {t('Claim')} {isLoading ? <SwapLoading ml="3px" /> : null}
+                  </>
+                )}
+              </Button>
+            )}
           </FlexGap>
           <FlexGap justifyContent="space-between" mt="8px">
             <Text color="textSubtle">{t('Subscribed')}</Text>
