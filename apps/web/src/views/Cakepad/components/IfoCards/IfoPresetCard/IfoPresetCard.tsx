@@ -7,8 +7,7 @@ import { IfoPresetRibbon } from './IfoPresetRibbon'
 import { IfoPresetCardComing } from './IfoPresetCardComing'
 import { SectionBackground } from '../../SectionBackground'
 import HowToTakePart from '../../HowToTakePart'
-import IfoQuestions from '../../IfoQuestions'
-import DefaultQuestions from '../../IfoQuestions/DefaultQuestions'
+import FaqList from '../../IfoQuestions/FaqList'
 
 export const IfoPresetPage = () => {
   const { config } = useIfo()
@@ -22,7 +21,7 @@ export const IfoPresetPage = () => {
         </Container>
       </SectionBackground>
       <HowToTakePart />
-      {config?.faqs ? <IfoQuestions faqs={config?.faqs} /> : <DefaultQuestions />}
+      <FaqList ifoFaqs={config?.faqs} />
     </>
   )
 }

@@ -3,10 +3,9 @@ import { ReactNode } from 'react'
 import { Address } from 'viem'
 
 import { IFOFAQs } from '../ifov2.types'
-import IfoQuestions from './IfoQuestions'
 import HowToTakePart from './HowToTakePart'
 import { SectionBackground } from './SectionBackground'
-import DefaultQuestions from './IfoQuestions/DefaultQuestions'
+import FaqList from './IfoQuestions/FaqList'
 
 interface TypeProps {
   ifoSection: ReactNode
@@ -23,7 +22,7 @@ const IfoContainer: React.FC<React.PropsWithChildren<TypeProps>> = ({ ifoSection
         <Container px={isMobile ? '16px' : '0px'}>{ifoSection}</Container>
       </SectionBackground>
       <HowToTakePart />
-      {ifoFaqs ? <IfoQuestions faqs={ifoFaqs} /> : <DefaultQuestions />}
+      <FaqList ifoFaqs={ifoFaqs} />
     </>
   )
 }

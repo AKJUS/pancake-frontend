@@ -1,9 +1,9 @@
 import { Ifo, SUPPORTED_CHAIN_IDS, getActiveIfo, getIfoConfig, getInActiveIfos } from '@pancakeswap/ifos'
 import { useQuery } from '@tanstack/react-query'
 
-import { useActiveChainId } from 'hooks/useActiveChainId'
 import orderBy from 'lodash/orderBy'
 import { useMemo } from 'react'
+import { useActiveChainId } from 'hooks/useActiveChainId'
 
 export function useIfoConfigs() {
   const { chainId } = useActiveChainId()
@@ -47,10 +47,9 @@ export function useActiveIfoConfig() {
 }
 
 export function useInActiveIfoConfigs() {
-  const { chainId } = useActiveChainId()
   const { data } = useQuery({
-    queryKey: [chainId, 'inactive-ifo-configs'],
-    queryFn: () => getInActiveIfos(chainId),
+    queryKey: ['inactive-ifo-configs'],
+    queryFn: () => getInActiveIfos(),
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,

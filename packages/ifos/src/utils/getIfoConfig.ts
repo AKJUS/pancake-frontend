@@ -1,4 +1,5 @@
 import { ChainId, getChainName } from '@pancakeswap/chains'
+import { SUPPORTED_CHAIN_IDS } from '../constants'
 import { BaseIfoConfig, Ifo } from '../types'
 import { getDestChains } from './getDestChains'
 import { isCrossChainIfoSupportedOnly, isIfoSupported } from './isIfoSupported'
@@ -49,12 +50,18 @@ export async function getActiveIfo(chainId?: ChainId): Promise<Ifo | null> {
 }
 
 export async function getInActiveIfos(chainId?: ChainId): Promise<Ifo[]> {
-  if (!chainId || !isIfoSupported(chainId)) {
-    return []
-  }
+  const chainIds = chainId ? [chainId] : SUPPORTED_CHAIN_IDS
 
-  const configs = await getIfoConfig(chainId)
-  return configs.filter(({ isActive }) => !isActive)
+  const configs = await Promise.all(
+    chainIds.map(async (chain) => {
+      if (!isIfoSupported(chain)) {
+        return []
+      }
+      return getIfoConfig(chain)
+    }),
+  )
+
+  return configs.flat().filter(({ isActive }) => !isActive)
 }
 
 export async function getTotalIFOSold(chainId?: ChainId): Promise<number> {
