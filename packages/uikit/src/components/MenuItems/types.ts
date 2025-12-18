@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ElementType, MouseEventHandler } from "react";
 import { BoxProps } from "../Box";
-import { DropdownMenuItems } from "../DropdownMenu/types";
+import { DropdownMenuItems, DropdownMenuItemType } from "../DropdownMenu/types";
 
 export type MenuItemsType = {
   label: string;
@@ -13,6 +13,7 @@ export type MenuItemsType = {
   showOnMobile?: boolean;
   showItemsOnMobile?: boolean;
   onClick?: MouseEventHandler;
+  type?: DropdownMenuItemType;
 };
 
 export interface MenuItemsProps extends BoxProps {

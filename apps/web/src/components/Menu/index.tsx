@@ -1,5 +1,5 @@
 import { useTranslation } from '@pancakeswap/localization'
-import { Menu as UikitMenu, footerLinks, useModal } from '@pancakeswap/uikit'
+import { DropdownMenuItemType, Menu as UikitMenu, footerLinks, useModal } from '@pancakeswap/uikit'
 import { BIG_ZERO } from '@pancakeswap/utils/bigNumber'
 import { NextLinkFromReactRouter } from '@pancakeswap/widgets-internal'
 import USCitizenConfirmModal from 'components/Modal/USCitizenConfirmModal'
@@ -21,7 +21,16 @@ import { getActiveMenuItem, getActiveSubMenuChildItem, getActiveSubMenuItem } fr
 const Notifications = lazy(() => import('views/Notifications'))
 
 const LinkComponent = (linkProps) => {
-  return <NextLinkFromReactRouter to={linkProps.href} {...linkProps} prefetch={false} />
+  const { href, type, ...props } = linkProps
+  // Check if it's an external link by type property first, then fallback to URL pattern
+  const isExternalLink =
+    type === DropdownMenuItemType.EXTERNAL_LINK || href?.startsWith('http://') || href?.startsWith('https://')
+
+  if (isExternalLink) {
+    return <NextLinkFromReactRouter to={href} target="_blank" rel="noreferrer noopener" {...props} />
+  }
+
+  return <NextLinkFromReactRouter to={href} {...props} prefetch={false} />
 }
 
 const EMPTY_ARRAY = []

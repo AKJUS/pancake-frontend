@@ -31,6 +31,7 @@ export type ConfigMenuItemsType = Omit<MenuItemsType, 'items'> & {
   image?: string
   items?: ConfigMenuDropDownItemsType[]
   overrideSubNavItems?: ConfigMenuDropDownItemsType[]
+  type?: DropdownMenuItemType
 }
 
 export const addMenuItemSupported = (item, chainId: number | undefined) => {
@@ -148,21 +149,11 @@ const config: (
       ].map((item) => addMenuItemSupported(item, chainId)),
     },
     {
-      label: t('CAKE.PAD'),
+      label: t('Prob'),
       icon: RocketIcon,
-      href: '/cakepad',
-      image: '/images/ifos/ifo-bunny.png',
-      overrideSubNavItems: [
-        {
-          label: t('Latest'),
-          href: '/cakepad',
-          matchHrefs: ['/cakepad/deposit'],
-        },
-        {
-          label: t('Finished'),
-          href: '/cakepad/history',
-        },
-      ],
+      href: 'https://probable.markets',
+      type: DropdownMenuItemType.EXTERNAL_LINK,
+      hideSubNav: true,
     },
     {
       label: t('Play'),
@@ -194,6 +185,22 @@ const config: (
           label: t('Lottery'),
           href: '/lottery',
           image: '/images/decorations/lottery.png',
+        },
+        {
+          label: t('CAKE.PAD'),
+          href: '/cakepad',
+          image: '/images/ifos/ifo-bunny.png',
+          overrideSubNavItems: [
+            {
+              label: t('Latest'),
+              href: '/cakepad',
+              matchHrefs: ['/cakepad/deposit'],
+            },
+            {
+              label: t('Finished'),
+              href: '/cakepad/history',
+            },
+          ],
         },
       ].map((item) => addMenuItemSupported(item, chainId)),
     },
