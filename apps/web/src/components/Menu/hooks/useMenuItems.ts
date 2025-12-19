@@ -33,11 +33,12 @@ export const useMenuItems = ({ onClick }: UseMenuItemsParams = {}): ConfigMenuIt
       onClickFn?: (e: React.MouseEvent<HTMLButtonElement>, item: ConfigMenuDropDownItemsType) => void,
       chainIdNumber?: number,
     ): T => {
+      const updatedLabel = item.isHot ? `${item.label}  🔥` : item.label
       if (item?.items && item.items.length > 0) {
         const innerItems = item.items
           .filter((item) => item.display !== false)
           .map((currentItem) => traverseItems(currentItem, menuStatus, translationFn, onClickFn, chainIdNumber))
-        return { ...item, items: innerItems }
+        return { ...item, label: updatedLabel, items: innerItems }
       }
 
       const onClickEvent = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -49,6 +50,7 @@ export const useMenuItems = ({ onClick }: UseMenuItemsParams = {}): ConfigMenuIt
       }
 
       const itemStatus = item.href ? menuItemsStatus[item.href] : undefined
+      const baseItem = { ...item, label: updatedLabel, onClick: onClickEvent }
 
       if (itemStatus) {
         let itemMenuStatus: DropdownMenuItems['status'] | undefined
@@ -71,15 +73,15 @@ export const useMenuItems = ({ onClick }: UseMenuItemsParams = {}): ConfigMenuIt
           default:
             itemMenuStatus = { text: t('New'), color: 'success' }
         }
-        return { ...item, onClick: onClickEvent, status: itemMenuStatus }
+        return { ...baseItem, status: itemMenuStatus }
       }
 
       if (item.href === '/info/v3') {
         const href = `${item.href}${multiChainPaths[chainId || ChainId.BSC] ?? ''}`
-        return { ...item, href, onClick: onClickEvent }
+        return { ...baseItem, href }
       }
 
-      return { ...item, onClick: onClickEvent }
+      return baseItem
     }
 
     if (menuItemsStatus && Object.keys(menuItemsStatus).length) {
