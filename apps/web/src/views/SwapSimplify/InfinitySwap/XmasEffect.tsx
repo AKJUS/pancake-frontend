@@ -1,158 +1,191 @@
+import { useMatchBreakpoints } from '@pancakeswap/uikit'
 import { ASSET_CDN } from 'config/constants/endpoints'
 import { memo } from 'react'
-import { css, keyframes, styled } from 'styled-components'
+import { styled } from 'styled-components'
+import { XmasStarEffect } from './XmasStarEffect'
 
-export const SnowflakesWrapper = styled.div<{ $itemCount: number }>`
+const XMAS_MOUNTAIN_HEIGHT_TABLE = {
+  base: '560px',
+  lg: '390px',
+  xl: '420px',
+  xxl: '460px',
+} as const
+
+const XMAS_MOUNTAIN_WIDTH_TABLE = {
+  base: '2000px',
+  lg: '1500px',
+  xl: '100vw',
+  xxl: '100vw',
+} as const
+
+const XmasEffectWrapper = styled.div`
   position: absolute;
-  left: 0;
-  bottom: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
   user-select: none;
   z-index: 0;
-  ${({ $itemCount }) => generateRandomOpacityStyles($itemCount)};
 `
 
-const XmaxBg = styled.div`
+const XmasScene = styled.div`
   position: absolute;
-  bottom: 0;
-  right: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+`
+
+const XmasBackground = styled.div`
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: ${({ theme }) =>
+    `url('${ASSET_CDN}/web/swap/xmas-2025/bg_${theme.isDark ? 'dark' : 'light'}.webp')`};
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  transform: translateZ(0);
+`
+
+const XmasMountain = styled.div<{ $isDesktop: boolean; $height: string; $width: string }>`
+  position: absolute;
+  left: 50%;
+  bottom: -5%;
+  transform: translateX(-50%);
   width: 100vw;
-  height: 40.625vw;
-  background: url('${ASSET_CDN}/web/swap/xmas/xmas-bg-${({ theme }) => (theme.isDark ? 'dark' : 'light')}.png')
-    no-repeat center center fixed;
-  background-size: cover;
-`
-
-const XmaxTree = styled.div`
-  position: absolute;
-  bottom: 5%;
+  height: ${({ $height }) => $height};
+  z-index: 2;
+  background-image: ${({ theme }) =>
+    `url('${ASSET_CDN}/web/swap/xmas-2025/mt_${theme.isDark ? 'dark' : 'light'}.webp')`};
+  background-size: ${({ $height, $width }) => `${$width} ${$height}`};
+  background-position: bottom center;
+  background-repeat: no-repeat;
   ${({ theme }) => theme.mediaQueries.md} {
-    bottom: 15%;
+    bottom: -2%;
   }
+`
 
-  left: 1%;
-  width: 26vw;
-  height: 15vw;
-  background: url('${ASSET_CDN}/web/swap/new-year/new-year-${({ theme }) => (theme.isDark ? 'dark' : 'light')}.png')
-    no-repeat center center fixed;
+const XmasSideLeft = styled.div<{ $left: string; $width: string; $height: string }>`
+  position: absolute;
+  bottom: 0%;
+  left: ${({ $left }) => $left};
+  width: ${({ $width }) => $width};
+  height: ${({ $height }) => $height};
+  z-index: 3;
+  background-image: ${({ theme }) =>
+    `url('${ASSET_CDN}/web/swap/xmas-2025/${theme.isDark ? 'dark' : 'light'}_left_side.webp')`};
   background-size: cover;
+  background-repeat: no-repeat;
+  background-position: bottom left;
+  ${({ theme }) => theme.mediaQueries.md} {
+    bottom: -2%;
+  }
 `
 
-const snowflakeAnimation = keyframes`
-  0% {
-    transform: translateY(0px) translateX(0px);
+const XmasSideRight = styled.div`
+  position: absolute;
+  bottom: -6%;
+  z-index: 3;
+  display: none;
+  background-image: ${({ theme }) =>
+    `url('${ASSET_CDN}/web/swap/xmas-2025/${theme.isDark ? 'dark' : 'light'}_right_side.webp')`};
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: bottom right;
+  ${({ theme }) => theme.mediaQueries.md} {
+    display: block;
+    bottom: -2%;
+    width: min(360px, 26vw);
+    height: min(420px, 30vw);
+    right: -4vw;
   }
-  10% {
-    transform: translateY(10vh) translateX(27px); 
-  }
-  20% {
-    transform: translateY(20vh) translateX(53px); 
-  }
-  30% {
-    transform: translateY(30vh) translateX(80px); 
-  }
-  40% {
-    transform: translateY(40vh) translateX(53px); 
-  }
-  50% {
-    transform: translateY(50vh) translateX(27px); 
-  }
-  60% {
-    transform: translateY(60vh) translateX(80px); 
-  }
-  70% {
-    transform: translateY(70vh) translateX(0px); 
-  }
-  80% {
-    transform: translateY(80vh) translateX(27px); 
-  }
-  90% {
-    transform: translateY(90vh) translateX(53px); 
-  }
-  100% {
-    transform: translateY(100vh) translateX(80px); 
+  ${({ theme }) => theme.mediaQueries.lg} {
+    right: -2vw;
   }
 `
-export const Snowflake = styled.div`
-  position: fixed;
-  top: -10%;
-  z-index: 9999;
-  color: #fff;
-  font-size: 1em;
-  font-family: Arial;
-  text-shadow: ${({ theme }) => (theme.isDark ? '0 0 1px #000' : 'none')};
-  user-select: none;
-  cursor: default;
-  will-change: transform;
-  animation: ${snowflakeAnimation} 15s linear infinite;
 
-  &:nth-of-type(1) {
-    left: 1%;
-    animation-delay: 0s, 0s;
+const pickBreakpointValue = <T,>(
+  isXxl: boolean,
+  isXl: boolean,
+  isLg: boolean,
+  table: { base: T; lg: T; xl: T; xxl: T },
+) => {
+  if (isXxl) return table.xxl
+  if (isXl) return table.xl
+  if (isLg) return table.lg
+  return table.base
+}
+
+const getXmasSideLeftDimensions = ({
+  isMobile,
+  isTablet,
+  isDesktop,
+  isLg,
+}: {
+  isMobile: boolean
+  isTablet: boolean
+  isDesktop: boolean
+  isLg: boolean
+}) => {
+  if (isDesktop || isLg) {
+    return {
+      left: '-4vw',
+      width: 'min(580px, 47vw)',
+      height: 'min(540px, 43vw)',
+    }
   }
-  &:nth-of-type(2) {
-    left: 10%;
-    animation-delay: 1s, 1s;
+
+  if (isTablet) {
+    return {
+      left: '-24vw',
+      width: 'min(520px, 64vw)',
+      height: 'min(545px, 55vw)',
+    }
   }
-  &:nth-of-type(3) {
-    left: 20%;
-    animation-delay: 6s, 0.5s;
+
+  if (isMobile) {
+    return {
+      left: '-24vw',
+      width: '60vw',
+      height: '60vw',
+    }
   }
-  &:nth-of-type(4) {
-    left: 30%;
-    animation-delay: 4s, 2s;
+
+  return {
+    left: '-24vw',
+    width: '60vw',
+    height: '60vw',
   }
-  &:nth-of-type(5) {
-    left: 40%;
-    animation-delay: 2s, 2s;
-  }
-  &:nth-of-type(6) {
-    left: 50%;
-    animation-delay: 8s, 3s;
-  }
-  &:nth-of-type(7) {
-    left: 60%;
-    animation-delay: 6s, 2s;
-  }
-  &:nth-of-type(8) {
-    left: 70%;
-    animation-delay: 2.5s, 1s;
-  }
-  &:nth-of-type(9) {
-    left: 80%;
-    animation-delay: 1s, 0s;
-  }
-  &:nth-of-type(10) {
-    left: 90%;
-    animation-delay: 3s, 1.5s;
-  }
-`
-const generateRandomOpacityStyles = (count = 11) => {
-  let styles = ''
-  for (let i = 1; i <= count; i++) {
-    const randomOpacity = (Math.random() * (0.8 - 0.2) + 0.2).toFixed(2)
-    styles += `
-      :nth-child(${i}) {
-        opacity: ${randomOpacity};
-      }
-    `
-  }
-  return css`
-    ${styles}
-  `
 }
 
 export const XmasEffect: React.FC = memo(() => {
+  const { isDesktop, isLg, isXl, isXxl, isMobile, isTablet } = useMatchBreakpoints()
+
+  const mountainHeight = pickBreakpointValue(isXxl, isXl, isLg, XMAS_MOUNTAIN_HEIGHT_TABLE)
+  const mountainWidth = pickBreakpointValue(isXxl, isXl, isLg, XMAS_MOUNTAIN_WIDTH_TABLE)
+  const {
+    left: sideLeft,
+    width: sideLeftWidth,
+    height: sideLeftHeight,
+  } = getXmasSideLeftDimensions({
+    isMobile,
+    isTablet,
+    isDesktop,
+    isLg,
+  })
+
   return (
-    <SnowflakesWrapper aria-hidden="true" $itemCount={11}>
-      {Array.from({ length: 10 }).map((_, index) => (
-        // eslint-disable-next-line react/no-array-index-key
-        <Snowflake key={`SnowFlakeElements${index}`}>❄️</Snowflake>
-      ))}
-      <XmaxBg />
-      <XmaxTree />
-    </SnowflakesWrapper>
+    <XmasEffectWrapper id="swap-xmas-effect" aria-hidden="true">
+      <XmasScene>
+        <XmasBackground />
+        <XmasStarEffect />
+        <XmasMountain $isDesktop={isDesktop} $height={mountainHeight} $width={mountainWidth} />
+        <XmasSideLeft $left={sideLeft} $width={sideLeftWidth} $height={sideLeftHeight} />
+        <XmasSideRight />
+      </XmasScene>
+    </XmasEffectWrapper>
   )
 })
