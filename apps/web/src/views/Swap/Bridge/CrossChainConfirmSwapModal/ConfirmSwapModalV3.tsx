@@ -3,7 +3,7 @@ import { ChainId, Currency, CurrencyAmount, Token, TradeType } from '@pancakeswa
 import { useCallback, useMemo } from 'react'
 
 import { WrappedTokenInfo } from '@pancakeswap/token-lists'
-import { Box, BscScanIcon, Flex, InjectedModalProps, Link, Text } from '@pancakeswap/uikit'
+import { Box, BscScanIcon, Flex, InjectedModalProps, Link } from '@pancakeswap/uikit'
 import { formatAmount } from '@pancakeswap/utils/formatFractions'
 import truncateHash from '@pancakeswap/utils/truncateHash'
 import {
@@ -173,8 +173,16 @@ export const ConfirmSwapModalV3: React.FC<ConfirmSwapModalV3Props> = ({
     const isExactIn = originalOrder?.trade.tradeType === TradeType.EXACT_INPUT
     const currencyA = currencyBalances?.INPUT?.currency ?? originalOrder?.trade?.inputAmount?.currency
     const currencyB = currencyBalances?.OUTPUT?.currency ?? originalOrder?.trade?.outputAmount?.currency
-    const amountAWithSlippage = formatAmount(slippageAdjustedAmounts[Field.INPUT], DISPLAY_PRECISION) ?? ''
-    const amountBWithSlippage = formatAmount(slippageAdjustedAmounts[Field.OUTPUT], DISPLAY_PRECISION) ?? ''
+    const amountAWithSlippage =
+      formatAmount(
+        isExactIn ? originalOrder?.trade?.inputAmount : slippageAdjustedAmounts[Field.INPUT],
+        DISPLAY_PRECISION,
+      ) ?? ''
+    const amountBWithSlippage =
+      formatAmount(
+        isExactIn ? slippageAdjustedAmounts[Field.OUTPUT] : originalOrder?.trade?.outputAmount,
+        DISPLAY_PRECISION,
+      ) ?? ''
     const amountA = isExactIn ? amountAWithSlippage : `Max ${amountAWithSlippage}`
     const amountB = isExactIn ? `Min ${amountBWithSlippage}` : amountBWithSlippage
 
