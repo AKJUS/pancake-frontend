@@ -93,7 +93,7 @@ function createRoute(currentGroup: RouterPlan[], svmTrade: ExtendedSolRouterTrad
   // Process the current group into a single Route
   const pools = currentGroup.map((plan) => {
     const inAmountNumber = BigInt(plan.swapInfo.inAmount)
-    const feeAmountNumber = BigInt(plan.swapInfo.feeAmount)
+    const feeAmountNumber = BigInt(plan.swapInfo.feeAmount ?? 0)
 
     // In case inAmountNumber is 0 or NaN
     const feeAmount = inAmountNumber > 0 ? (feeAmountNumber * FEE_PRECISION) / inAmountNumber : 0n
@@ -105,7 +105,7 @@ function createRoute(currentGroup: RouterPlan[], svmTrade: ExtendedSolRouterTrad
       id: plan.swapInfo.ammKey.toString(),
       fee: trimPercentage(fee),
       feeAmount: plan.swapInfo.feeAmount,
-      feeMintAddress: plan.swapInfo.feeMint.toString(),
+      feeMintAddress: plan.swapInfo.feeMint?.toString(),
     }
 
     return pool

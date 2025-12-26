@@ -48,7 +48,7 @@ export function PrivyProvider({ children }: PropsWithChildren) {
           },
         },
         embeddedWallets: {
-          // requireUserPasswordOnCreate: false, // we will trigger it by ourself when create wallet
+          requireUserPasswordOnCreate: false, // we will trigger it by ourself when create wallet
           showWalletUIs,
           ethereum: {
             createOnLogin: 'users-without-wallets',

@@ -26,8 +26,8 @@ const SwapInfo = type({
   outputMint: string(),
   inAmount: AmountFromString,
   outAmount: AmountFromString,
-  feeAmount: AmountFromString,
-  feeMint: PublicKeyFromString,
+  feeAmount: optional(AmountFromString),
+  feeMint: optional(PublicKeyFromString),
 })
 
 const RoutePlanStep = type({

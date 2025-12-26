@@ -38,8 +38,8 @@ export interface RouterPlan {
     outAmount: string
     ammKey: PublicKey
     label: string
-    feeAmount: string
-    feeMint: PublicKey
+    feeAmount?: string
+    feeMint?: PublicKey
   }
   // 10000 = 0.01%, 15000 = 0.15%
   bps?: number
