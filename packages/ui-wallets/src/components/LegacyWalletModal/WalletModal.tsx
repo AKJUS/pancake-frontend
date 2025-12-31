@@ -138,7 +138,7 @@ function MobileModal<T>({
 }: Pick<WalletModalV2Props<T>, 'wallets' | 'topWallets' | 'docLink' | 'docText' | 'mevDocLink'> & {
   connectWallet: (wallet: WalletConfigV2<T>) => void
   previouslyUsedWallets: WalletConfigV2<T>[]
-  onOpenSocialLoginModal: () => void
+  onOpenSocialLoginModal?: () => void
 }) {
   const [selected] = useSelectedWallet()
   const [error] = useAtom(errorAtom)
@@ -182,7 +182,9 @@ function MobileModal<T>({
         </AtomBox>
       ) : null}
       <AtomBox display="flex" flexDirection="column" gap="16px" justifyContent="space-between">
-        <SocialLoginButton onClick={onOpenSocialLoginModal} assetCdn={ASSET_CDN} style={{ marginBottom: '8px' }} />
+        {onOpenSocialLoginModal ? (
+          <SocialLoginButton onClick={onOpenSocialLoginModal} assetCdn={ASSET_CDN} style={{ marginBottom: '8px' }} />
+        ) : null}
 
         <WalletSelect
           style={{ height: `calc(100vh - 200px)` }}
@@ -383,7 +385,7 @@ function DesktopModal<T>({
   connectWallet: (wallet: WalletConfigV2<T>) => void
   onWalletConnected: (wallet: WalletConfigV2<T>, connectData?: ConnectData) => void
   previouslyUsedWallets: WalletConfigV2<T>[]
-  onOpenSocialLoginModal: () => void
+  onOpenSocialLoginModal?: () => void
 }) {
   const wallets: WalletConfigV2<T>[] = useMemo(
     () =>
@@ -449,7 +451,7 @@ function DesktopModal<T>({
           {t('Connect Wallet')}
         </Heading>
 
-        <SocialLoginButton onClick={onOpenSocialLoginModal} assetCdn={ASSET_CDN} />
+        {onOpenSocialLoginModal ? <SocialLoginButton onClick={onOpenSocialLoginModal} assetCdn={ASSET_CDN} /> : null}
 
         <WalletSelect
           wallets={wallets}
@@ -587,21 +589,27 @@ export function WalletModalV2<T = unknown>(props: WalletModalV2Props<T>) {
 
   const mobileContainerStyle: React.CSSProperties = isMobile ? { height: '100%', borderRadius: 0 } : {}
 
-  const handleOpenSocialLoginModal = () => {
-    setIsSocialLoginModalOpen(true)
-    // Keep the main modal open to maintain BodyLock
-  }
+  const handleOpenSocialLoginModal = useCallback(() => {
+    if (props.onGoogleLogin || props.onXLogin || props.onTelegramLogin || props.onDiscordLogin) {
+      setIsSocialLoginModalOpen(true)
+    }
+  }, [props.onGoogleLogin, props.onXLogin, props.onTelegramLogin, props.onDiscordLogin])
 
-  const handleCloseSocialLoginModal = () => {
+  const openSocialLoginModal =
+    props.onGoogleLogin || props.onXLogin || props.onTelegramLogin || props.onDiscordLogin
+      ? handleOpenSocialLoginModal
+      : undefined
+
+  const handleCloseSocialLoginModal = useCallback(() => {
     setIsSocialLoginModalOpen(false)
     // Main modal content will automatically show again due to conditional display: none
     // This maintains the BodyLock properly
-  }
+  }, [])
 
-  const handleBackToWeb3Wallet = () => {
+  const handleBackToWeb3Wallet = useCallback(() => {
     // Close social login modal to return to wallet modal
     setIsSocialLoginModalOpen(false)
-  }
+  }, [])
 
   // Wrap social login callbacks to ensure proper modal cleanup
   const handleSocialLoginWithCleanup = (originalCallback?: () => void) => {
@@ -650,7 +658,7 @@ export function WalletModalV2<T = unknown>(props: WalletModalV2Props<T>) {
                   wallets={wallets}
                   docLink={docLink}
                   docText={docText}
-                  onOpenSocialLoginModal={handleOpenSocialLoginModal}
+                  onOpenSocialLoginModal={openSocialLoginModal}
                 />
               ) : (
                 <DesktopModal
@@ -662,7 +670,7 @@ export function WalletModalV2<T = unknown>(props: WalletModalV2Props<T>) {
                   wallets={wallets}
                   docLink={docLink}
                   docText={docText}
-                  onOpenSocialLoginModal={handleOpenSocialLoginModal}
+                  onOpenSocialLoginModal={openSocialLoginModal}
                 />
               )}
             </TabContainer>

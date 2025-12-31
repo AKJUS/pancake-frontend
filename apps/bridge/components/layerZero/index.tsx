@@ -6,6 +6,7 @@ import Script from 'next/script'
 import { useEffect, useState } from 'react'
 import { styled, useTheme } from 'styled-components'
 import { PancakeSwapTheme } from './theme'
+import { initializeAptosCompatAdapter } from './AptosCompatAdapter'
 
 declare global {
   interface Window {
@@ -29,6 +30,7 @@ const LayerZero = ({ isCake }: { isCake?: boolean }) => {
   const [show, setShow] = useState(false)
 
   useEffect(() => {
+    initializeAptosCompatAdapter()
     let currencyInterval: any = null
     let cancelled = false
 

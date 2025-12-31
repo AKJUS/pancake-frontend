@@ -147,7 +147,7 @@ export function useDerivedMintInfo(
     typedValue,
     currencies[independentField],
   )
-  const dependentAmount: CurrencyAmount<Currency> | undefined = useMemo(() => {
+  const dependentAmount = useMemo(() => {
     if (noLiquidity) {
       if (otherTypedValue && currencies[dependentField]) {
         return tryParseAmount(otherTypedValue, currencies[dependentField])
@@ -174,10 +174,11 @@ export function useDerivedMintInfo(
   }, [noLiquidity, otherTypedValue, currencies, dependentField, independentAmount, currencyA, currencyB, pair])
 
   const parsedAmounts: { [field in Field]: CurrencyAmount<Currency> | undefined } = useMemo(
-    () => ({
-      [Field.CURRENCY_A]: independentField === Field.CURRENCY_A ? independentAmount : dependentAmount,
-      [Field.CURRENCY_B]: independentField === Field.CURRENCY_A ? dependentAmount : independentAmount,
-    }),
+    () =>
+      ({
+        [Field.CURRENCY_A]: independentField === Field.CURRENCY_A ? independentAmount : dependentAmount,
+        [Field.CURRENCY_B]: independentField === Field.CURRENCY_A ? dependentAmount : independentAmount,
+      } as { [field in Field]: CurrencyAmount<Currency> | undefined }),
     [dependentAmount, independentAmount, independentField],
   )
 

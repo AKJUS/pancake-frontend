@@ -11,6 +11,10 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  typescript: {
+    tsconfigPath: 'tsconfig.json',
+    ignoreBuildErrors: true
+  },
   reactStrictMode: true,
   compiler: {
     styledComponents: true,

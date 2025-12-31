@@ -27,8 +27,8 @@ export async function sendTransaction({
 
   if (!connector) throw new ConnectorNotFoundError()
 
-  const activeNetworkName = activeChain?.network
   if (networkName && !equalsIgnoreCase(networkName, activeChain?.network)) {
+    const activeNetworkName = activeChain?.network
     throw new ChainMismatchError({
       activeChain:
         chains.find((x) => equalsIgnoreCase(x.network, activeNetworkName))?.name ?? `Chain ${activeNetworkName}`,

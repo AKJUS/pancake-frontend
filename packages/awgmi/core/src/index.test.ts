@@ -32,6 +32,7 @@ test('exports', () => {
       "COIN_STORE_TYPE_PREFIX",
       "wrapCoinStoreTypeTag",
       "PetraConnector",
+      "WalletStandardConnector",
       "Connector",
       "WalletAdapterNetwork",
       "APTOS_COIN",

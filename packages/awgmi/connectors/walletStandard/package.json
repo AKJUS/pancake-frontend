@@ -1,0 +1,4 @@
+{
+  "main": "../../dist/connectors/walletStandard.js",
+  "module": "../../dist/connectors/walletStandard.mjs"
+}

@@ -31,6 +31,7 @@
     "@pancakeswap/uikit": "workspace:*",
     "@pancakeswap/utils": "workspace:*",
     "@vanilla-extract/next-plugin": "^2.3.0",
+    "@wallet-standard/core": "1.1.1",
     "@wagmi/core": "catalog:",
     "ethers": "^5.0.0",
     "jotai": "catalog:",

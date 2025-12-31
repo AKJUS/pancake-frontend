@@ -12,6 +12,7 @@ export default defineConfig({
     'connectors/safePal': 'core/src/connectors/safePal.ts',
     'connectors/rise': 'core/src/connectors/rise.ts',
     'connectors/msafe': 'core/src/connectors/msafe.ts',
+    'connectors/walletStandard': 'core/src/connectors/walletStandard.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,

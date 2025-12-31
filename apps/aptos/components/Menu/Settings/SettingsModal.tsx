@@ -200,14 +200,7 @@ export const SettingsModal: React.FC<React.PropsWithChildren<InjectedModalProps>
   }
 
   if (showConfirmExpertModal) {
-    return (
-      <ExpertModal
-        setShowConfirmExpertModal={setShowConfirmExpertModal}
-        onDismiss={onDismiss}
-        toggleExpertMode={() => setExpertMode((s) => !s)}
-        setShowExpertModeAcknowledgement={setShowExpertModeAcknowledgement}
-      />
-    )
+    return <ExpertModal setShowConfirmExpertModal={setShowConfirmExpertModal} onDismiss={onDismiss} />
   }
 
   return (

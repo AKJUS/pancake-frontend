@@ -1,6 +1,6 @@
 /* eslint-disable consistent-return */
 /* eslint-disable default-case */
-import shallow from 'zustand/shallow'
+import { shallow } from 'zustand/shallow'
 import { Connector, ConnectorData } from '../connectors/base'
 import { getClient, Client } from '../client'
 

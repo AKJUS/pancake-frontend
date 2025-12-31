@@ -18,12 +18,7 @@ function isInputMultiSigData(data: InputGenerateTransactionPayloadData): data is
   return Boolean((data as InputMultiSigData).multisigAddress)
 }
 
-export function convertTransactionPayloadToOldFormat(
-  payload?: InputGenerateTransactionPayloadData,
-): Types.TransactionPayload | undefined {
-  if (!payload) {
-    return undefined
-  }
+function convertBasePayload(payload: InputGenerateTransactionPayloadData) {
   if (isInputMultiSigData(payload)) {
     return {
       type: 'multisig_payload',
@@ -33,15 +28,6 @@ export function convertTransactionPayloadToOldFormat(
         function: payload.function,
         type_arguments: payload.typeArguments?.map((a) => a.toString()) || [],
       },
-    }
-  }
-
-  if (isInputEntryFunctionData(payload)) {
-    return {
-      type: 'entry_function_payload',
-      arguments: payload.functionArguments,
-      function: payload.function,
-      type_arguments: payload.typeArguments?.map((a) => a.toString()) || [],
     }
   }
 
@@ -57,4 +43,36 @@ export function convertTransactionPayloadToOldFormat(
   }
 
   throw new Error('Invalid payload data to format')
+}
+
+export function convertTransactionPayloadToOldFormat(
+  payload?: InputGenerateTransactionPayloadData,
+): Types.TransactionPayload | undefined {
+  if (!payload) return undefined
+
+  if (isInputEntryFunctionData(payload)) {
+    return {
+      type: 'entry_function_payload',
+      arguments: payload.functionArguments,
+      function: payload.function,
+      type_arguments: payload.typeArguments?.map((a) => a.toString()) || [],
+    }
+  }
+
+  return convertBasePayload(payload)
+}
+
+export function convertTransactionPayloadForWalletStandard(payload?: InputGenerateTransactionPayloadData) {
+  if (!payload) return undefined
+
+  if (isInputEntryFunctionData(payload)) {
+    return {
+      type: 'entry_function_payload',
+      functionArguments: payload.functionArguments,
+      function: payload.function,
+      typeArguments: payload.typeArguments?.map((a) => a.toString()) || [],
+    }
+  }
+
+  return convertBasePayload(payload)
 }

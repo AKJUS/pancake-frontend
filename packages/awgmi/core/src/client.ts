@@ -3,9 +3,9 @@
 /* eslint-disable no-await-in-loop */
 import { Aptos } from '@aptos-labs/ts-sdk'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
-import create, { Mutate, StoreApi } from 'zustand/vanilla'
+import { Mutate, StoreApi, createStore } from 'zustand/vanilla'
 
-import { Connector, ConnectorData, PetraConnector } from './connectors'
+import { Connector, ConnectorData, WalletStandardConnector } from './connectors'
 import { ClientStorage, createStorage, noopStorage } from './storage'
 
 export type ClientConfig<TProvider extends Aptos = Aptos> = {
@@ -52,7 +52,7 @@ export class Client<TProvider extends Aptos = Aptos> {
 
   constructor({
     autoConnect = false,
-    connectors = [new PetraConnector()],
+    connectors = [new WalletStandardConnector({ options: { name: 'Petra', id: 'petra' } })],
     provider,
     storage = createStorage({
       storage: typeof window !== 'undefined' ? window.localStorage : noopStorage,
@@ -73,7 +73,7 @@ export class Client<TProvider extends Aptos = Aptos> {
     }
 
     // Create store
-    this.store = create<
+    this.store = createStore<
       State<TProvider>,
       [['zustand/subscribeWithSelector', never], ['zustand/persist', Partial<State<TProvider>>]]
     >(
