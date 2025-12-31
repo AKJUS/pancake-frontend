@@ -31,35 +31,12 @@ export const SolanaWalletStateUpdater = () => {
       return undefined
     }
 
-    const sendTestRequest = async () => {
-      try {
-        const response = await fetch('https://lite-api.jup.ag/ultra/v1/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ test: 'hello' }),
-        })
-        console.info('[TW] Test request sending')
-        const data = await response.json()
-        console.info('[TW] Test request response:', data)
-
-        if (data.success === false && data.error?.name) {
-          console.info('[TW] Error name:', data.error.name)
-        }
-      } catch (err) {
-        console.info('[TW] Test request failed', err)
-      }
-    }
-
-    sendTestRequest()
-
     const disconnectSolana = async () => {
       console.info('[TW] Disconnecting Solana wallet...')
       try {
         await disconnect()
         await solanaTW.disconnect?.()
         console.info('[TW] Solana wallet disconnected')
-
-        sendTestRequest()
       } catch (err) {
         console.warn('[TW] Solana disconnect failed', err)
       }
