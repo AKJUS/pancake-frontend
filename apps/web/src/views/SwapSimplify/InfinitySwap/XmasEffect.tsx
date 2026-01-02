@@ -2,7 +2,7 @@ import { useMatchBreakpoints } from '@pancakeswap/uikit'
 import { ASSET_CDN } from 'config/constants/endpoints'
 import { memo } from 'react'
 import { styled } from 'styled-components'
-import { XmasStarEffect } from './XmasStarEffect'
+import { FireworkEffect } from './FireworkEffect'
 
 const XMAS_MOUNTAIN_HEIGHT_TABLE = {
   base: '560px',
@@ -68,20 +68,26 @@ const XmasMountain = styled.div<{ $isDesktop: boolean; $height: string; $width: 
   }
 `
 
-const XmasSideLeft = styled.div<{ $left: string; $width: string; $height: string }>`
+const XmasSideLeft = styled.div`
   position: absolute;
-  bottom: 0%;
-  left: ${({ $left }) => $left};
-  width: ${({ $width }) => $width};
-  height: ${({ $height }) => $height};
+  bottom: -6%;
   z-index: 3;
+  display: none;
   background-image: ${({ theme }) =>
-    `url('${ASSET_CDN}/web/swap/xmas-2025/${theme.isDark ? 'dark' : 'light'}_left_side.webp')`};
-  background-size: cover;
+    `url('${ASSET_CDN}/web/swap/xmas-2025/${theme.isDark ? 'dark' : 'light'}_right_side.webp')`};
+  background-size: contain;
   background-repeat: no-repeat;
   background-position: bottom left;
+  transform: scaleX(-1);
   ${({ theme }) => theme.mediaQueries.md} {
+    display: block;
     bottom: -2%;
+    width: min(420px, 30vw);
+    height: min(480px, 34vw);
+    left: -4vw;
+  }
+  ${({ theme }) => theme.mediaQueries.lg} {
+    left: -2vw;
   }
 `
 
@@ -119,71 +125,19 @@ const pickBreakpointValue = <T,>(
   return table.base
 }
 
-const getXmasSideLeftDimensions = ({
-  isMobile,
-  isTablet,
-  isDesktop,
-  isLg,
-}: {
-  isMobile: boolean
-  isTablet: boolean
-  isDesktop: boolean
-  isLg: boolean
-}) => {
-  if (isDesktop || isLg) {
-    return {
-      left: '-4vw',
-      width: 'min(580px, 47vw)',
-      height: 'min(540px, 43vw)',
-    }
-  }
-
-  if (isTablet) {
-    return {
-      left: '-24vw',
-      width: 'min(520px, 64vw)',
-      height: 'min(545px, 55vw)',
-    }
-  }
-
-  if (isMobile) {
-    return {
-      left: '-24vw',
-      width: '60vw',
-      height: '60vw',
-    }
-  }
-
-  return {
-    left: '-24vw',
-    width: '60vw',
-    height: '60vw',
-  }
-}
-
 export const XmasEffect: React.FC = memo(() => {
-  const { isDesktop, isLg, isXl, isXxl, isMobile, isTablet } = useMatchBreakpoints()
+  const { isDesktop, isLg, isXl, isXxl } = useMatchBreakpoints()
 
   const mountainHeight = pickBreakpointValue(isXxl, isXl, isLg, XMAS_MOUNTAIN_HEIGHT_TABLE)
   const mountainWidth = pickBreakpointValue(isXxl, isXl, isLg, XMAS_MOUNTAIN_WIDTH_TABLE)
-  const {
-    left: sideLeft,
-    width: sideLeftWidth,
-    height: sideLeftHeight,
-  } = getXmasSideLeftDimensions({
-    isMobile,
-    isTablet,
-    isDesktop,
-    isLg,
-  })
 
   return (
     <XmasEffectWrapper id="swap-xmas-effect" aria-hidden="true">
       <XmasScene>
         <XmasBackground />
-        <XmasStarEffect />
+        <FireworkEffect />
         <XmasMountain $isDesktop={isDesktop} $height={mountainHeight} $width={mountainWidth} />
-        <XmasSideLeft $left={sideLeft} $width={sideLeftWidth} $height={sideLeftHeight} />
+        <XmasSideLeft />
         <XmasSideRight />
       </XmasScene>
     </XmasEffectWrapper>
