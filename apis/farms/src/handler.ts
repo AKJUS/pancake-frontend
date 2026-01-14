@@ -9,9 +9,9 @@ import { FarmKV, FarmResult } from './kv'
 import { bscClient, bscTestnetClient } from './provider'
 
 // copy from src/config, should merge them later
-// Updated for BNB Chain Maxwell upgrade reducing block time to 0.75s
-const BSC_BLOCK_TIME = 0.75
-const BLOCKS_PER_YEAR = (60 / BSC_BLOCK_TIME) * 60 * 24 * 365 // 42048000
+// Updated for BNB Chain Fermi hard fork reducing block time to 0.45s
+const BSC_BLOCK_TIME = 0.45
+const BLOCKS_PER_YEAR = (60 / BSC_BLOCK_TIME) * 60 * 24 * 365 // 70080000
 
 const FIXED_ZERO = new BN(0)
 const FIXED_100 = new BN(100)
