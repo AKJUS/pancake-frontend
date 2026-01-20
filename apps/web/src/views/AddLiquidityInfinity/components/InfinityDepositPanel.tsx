@@ -9,8 +9,8 @@ import { useMemo } from 'react'
 import { useCurrencyBalances } from 'state/wallet/hooks'
 import { useInverted, useClRangeQueryState } from 'state/infinity/shared'
 import styled from 'styled-components'
-import { isAddressEqual } from 'utils'
-import { Address, zeroAddress } from 'viem'
+import { isHookWhitelisted } from 'utils/getHookByAddress'
+import { Address } from 'viem'
 import { MevProtectToggle } from 'views/Mev/MevProtectToggle'
 import { useAddDepositAmounts } from '../hooks/useAddDepositAmounts'
 import { usePool } from '../hooks/usePool'
@@ -66,17 +66,19 @@ export const InfinityDepositPanel = ({ poolId, chainId }: InfinityDepositPanelPr
     )
   }, [currency0Balance, currency1Balance, depositCurrencyAmount0, depositCurrencyAmount1, inverted])
 
-  // Check if pool has no hook (required for Zap)
-  const hasNoHook = useMemo(() => {
-    if (!poolKey) return false
-    return !poolKey.hooks || isAddressEqual(poolKey.hooks, zeroAddress)
-  }, [poolKey])
+  // Check if hook is whitelisted or pool has no hook (required for Zap)
+  const isHookWhitelistedOrNoHook = useMemo(() => {
+    if (!poolKey || !chainId) return false
+    if (!poolKey.hooks) return true
+
+    return isHookWhitelisted(chainId, poolKey.hooks)
+  }, [poolKey, chainId])
 
   // Show Zap widget only when all conditions are met
   const showZap = useMemo(() => {
     return (
       pool?.poolType === 'CL' &&
-      hasNoHook &&
+      isHookWhitelistedOrNoHook &&
       hasInsufficientBalance &&
       lowerTick !== null &&
       upperTick !== null &&
@@ -84,7 +86,7 @@ export const InfinityDepositPanel = ({ poolId, chainId }: InfinityDepositPanelPr
       chainId &&
       ZAP_INFINITY_CL_SUPPORTED_CHAINS.includes(chainId)
     )
-  }, [pool, hasNoHook, hasInsufficientBalance, lowerTick, upperTick, poolId, chainId])
+  }, [pool, isHookWhitelistedOrNoHook, hasInsufficientBalance, lowerTick, upperTick, poolId, chainId])
 
   return (
     <StyledCard>

@@ -8,15 +8,15 @@ export interface FlexGapProps extends FlexProps {
 }
 
 const FlexGap = styled(Flex)<FlexGapProps>`
-  gap: ${({ gap }) => gap};
-  row-gap: ${({ rowGap }) => rowGap};
-  column-gap: ${({ columnGap }) => columnGap};
+  ${({ gap }) => gap && `gap: ${gap};`}
+  ${({ rowGap }) => rowGap && `row-gap: ${rowGap};`}
+  ${({ columnGap }) => columnGap && `column-gap: ${columnGap};`}
 `;
 
 export const MotionFlexGap = styled(MotionFlex)<FlexGapProps>`
-  gap: ${({ gap }) => gap};
-  row-gap: ${({ rowGap }) => rowGap};
-  column-gap: ${({ columnGap }) => columnGap};
+  ${({ gap }) => gap && `gap: ${gap};`}
+  ${({ rowGap }) => rowGap && `row-gap: ${rowGap};`}
+  ${({ columnGap }) => columnGap && `column-gap: ${columnGap};`}
 `;
 
 export default FlexGap;
