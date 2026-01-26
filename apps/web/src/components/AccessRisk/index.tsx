@@ -150,6 +150,7 @@ const AccessRiskComponent: React.FC<AccessRiskProps> = ({ token }) => {
       riskLevel={data?.riskLevel}
       hasResult={data?.hasResult}
       tokenAddress={data?.address}
+      tokenChain={data?.chainId}
       riskLevelDescription={data?.riskLevelDescription}
     />,
     { placement: 'bottom' },

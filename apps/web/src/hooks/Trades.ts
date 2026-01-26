@@ -234,10 +234,9 @@ export function useTradeExactOut(
 
 export function useIsTransactionUnsupported(currencyIn?: Currency | null, currencyOut?: Currency | null): boolean {
   const unsupportedTokens: { [address: string]: Token } = useUnsupportedTokens()
-  const { chainId } = useActiveChainId()
 
-  const tokenIn = wrappedCurrency(currencyIn, chainId)
-  const tokenOut = wrappedCurrency(currencyOut, chainId)
+  const tokenIn = wrappedCurrency(currencyIn, currencyIn?.chainId)
+  const tokenOut = wrappedCurrency(currencyOut, currencyOut?.chainId)
 
   // if unsupported list loaded & either token on list, mark as unsupported
   if (unsupportedTokens) {

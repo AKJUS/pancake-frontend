@@ -1,6 +1,5 @@
-import { Currency } from '@pancakeswap/swap-sdk-core'
 import { Box, Button } from '@pancakeswap/uikit'
-import React, { memo, useCallback, useMemo } from 'react'
+import React, { memo, useCallback } from 'react'
 
 import { useTranslation } from '@pancakeswap/localization'
 import { PriceOrder } from '@pancakeswap/price-api-sdk'
@@ -24,11 +23,11 @@ interface SwapCommitButtonPropsType {
 
 const useSwapCurrencies = () => {
   const {
-    [Field.INPUT]: { currencyId: inputCurrencyId },
-    [Field.OUTPUT]: { currencyId: outputCurrencyId },
+    [Field.INPUT]: { currencyId: inputCurrencyId, chainId: inputChainId },
+    [Field.OUTPUT]: { currencyId: outputCurrencyId, chainId: outputChainId },
   } = useSwapState()
-  const inputCurrency = useCurrency(inputCurrencyId) as Currency
-  const outputCurrency = useCurrency(outputCurrencyId) as Currency
+  const inputCurrency = useCurrency(inputCurrencyId, inputChainId)
+  const outputCurrency = useCurrency(outputCurrencyId, outputChainId)
   return { inputCurrency, outputCurrency }
 }
 

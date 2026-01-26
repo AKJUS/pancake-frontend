@@ -54,21 +54,19 @@ export const InfinitySwapForm = memo(() => {
 
   const commitHooks = useMemo(() => {
     return {
-      beforeCommit: () => {
-        pauseQuoting()
-      },
+      beforeCommit: pauseQuoting,
       afterCommit: resumeQuoting,
     }
   }, [pauseQuoting, resumeQuoting])
   const {
-    [Field.INPUT]: { currencyId: inputCurrencyId },
+    [Field.INPUT]: { currencyId: inputCurrencyId, chainId: inputChainId },
     [Field.OUTPUT]: { currencyId: outputCurrencyId, chainId: outputChainId },
     independentField,
     typedValue,
   } = useSwapState()
 
-  const inputCurrency = useCurrency(inputCurrencyId)
-  const outputCurrency = useCurrency(outputCurrencyId)
+  const inputCurrency = useCurrency(inputCurrencyId, inputChainId)
+  const outputCurrency = useCurrency(outputCurrencyId, outputChainId)
 
   const { slippageTolerance: userSlippageTolerance } = useAutoSlippageWithFallback()
 

@@ -2,12 +2,12 @@ import { ChainId } from '@pancakeswap/chains'
 import { useTranslation, Trans } from '@pancakeswap/localization'
 import { Flex, Link, Text } from '@pancakeswap/uikit'
 import { TOKEN_RISK } from 'components/AccessRisk'
-import { useActiveChainId } from 'hooks/useActiveChainId'
 
 interface AccessRiskTooltipsProps {
   riskLevel?: number
   hasResult?: boolean
   tokenAddress?: string
+  tokenChain?: ChainId
   riskLevelDescription?: string
 }
 
@@ -16,9 +16,9 @@ const AccessRiskTooltips: React.FC<AccessRiskTooltipsProps> = ({
   hasResult,
   riskLevelDescription,
   tokenAddress,
+  tokenChain,
 }) => {
   const { t } = useTranslation()
-  const { chainId } = useActiveChainId()
 
   if (riskLevel === TOKEN_RISK.UNKNOWN || !hasResult) {
     return (
@@ -52,7 +52,7 @@ const AccessRiskTooltips: React.FC<AccessRiskTooltipsProps> = ({
           i18nKey="Risk scan results are provided by a third party, <0>HashDit</0>"
           components={[<Link style={{ display: 'inline' }} ml="4px" external href="https://www.hashdit.io" />]}
         />
-        {chainId === ChainId.BSC && (
+        {tokenChain === ChainId.BSC && (
           <Flex mt="4px">
             <Trans
               i18nKey="Get more details from <0>RedAlarm</0>"

@@ -291,10 +291,9 @@ const SlippageDetails: React.FC = () => {
 export const RiskDetails: React.FC<RiskDetailsProps> = ({ token, riskLevelDescription }) => {
   const { t } = useTranslation()
   const { isDataLoading, riskLevel } = useRiskCheckData(token)
-  const { chainId } = useActiveChainId()
 
   if (!isDataLoading && riskLevel && riskLevel <= TOKEN_RISK.SIGNIFICANT && riskLevel >= TOKEN_RISK.MEDIUM) {
-    if (riskLevel && riskLevel >= TOKEN_RISK.VERY_LOW && token?.address) {
+    if (riskLevel && riskLevel >= TOKEN_RISK.VERY_LOW && token?.address && token?.chainId) {
       return (
         <FlexGap alignItems="flex-start" gap="8px">
           <FlexGap justifyContent="center" alignItems="flex-start" flexDirection="column" gap="8px">
@@ -305,7 +304,7 @@ export const RiskDetails: React.FC<RiskDetailsProps> = ({ token, riskLevelDescri
                 )}
             </Text>
             <StyledLinkExternal href="https://www.hashdit.io">{t('Result provided by HashDit')}</StyledLinkExternal>
-            {chainId === ChainId.BSC && (
+            {token.chainId === ChainId.BSC && (
               <StyledLinkExternal external href={`https://dappbay.bnbchain.org/risk-scanner/${token.address}`}>
                 {t('Get more details from RedAlarm')}
               </StyledLinkExternal>
