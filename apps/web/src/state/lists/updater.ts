@@ -1,6 +1,6 @@
 import { getVersionUpgrade, VersionUpgrade } from '@pancakeswap/token-lists'
 import { acceptListUpdate, updateListVersion, useFetchListCallback } from '@pancakeswap/token-lists/react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { EXCHANGE_PAGE_PATHS, UNIVERSAL_PAGE_PATHS } from 'config/constants/exchange'
 import { UNSUPPORTED_LIST_URLS } from 'config/constants/lists'
 import { useActiveChainId } from 'hooks/useActiveChainId'
@@ -17,6 +17,7 @@ export default function Updater(): null {
 
 export function UpdaterByChainId({ chainId }: { chainId: number }): null {
   const provider = usePublicClient({ chainId })
+  const queryClient = useQueryClient()
 
   const [listState, dispatch] = useListState()
   const router = useRouter()
@@ -40,17 +41,33 @@ export function UpdaterByChainId({ chainId }: { chainId: number }): null {
 
   const fetchList = useFetchListCallback(dispatch)
 
-  // whenever a list is not loaded and not loading, try again to load it
-  useQuery({
-    queryKey: ['first-fetch-token-list', lists],
+  const listUrls = useMemo(() => Object.keys(lists).sort(), [lists])
 
-    queryFn: () => {
-      Object.keys(lists).forEach((listUrl) => {
-        const list = lists[listUrl]
-        if (!list.current && !list.loadingRequestId && !list.error) {
-          fetchList(listUrl).catch((error) => console.debug('list added fetching error', error))
-        }
-      })
+  // whenever a list is not loaded and not loading, try again to load it
+  const { isPending: isFirstFetchPending } = useQuery({
+    queryKey: ['first-fetch-token-list', listUrls],
+
+    queryFn: async () => {
+      const results = await Promise.allSettled(
+        Object.keys(lists)
+          .filter((listUrl) => {
+            const list = lists[listUrl]
+            return !list.current && !list.loadingRequestId && !list.error
+          })
+          .map((listUrl) =>
+            fetchList(listUrl).catch((error) => {
+              console.debug('list added fetching error', error)
+              throw error
+            }),
+          ),
+      )
+
+      const hasSuccessfulFetch = results.some((result) => result.status === 'fulfilled')
+      if (hasSuccessfulFetch) {
+        // This is needed to prevent double fetch initially
+        queryClient.setQueryData(['token-list', chainId], null)
+      }
+
       return null
     },
 
@@ -63,15 +80,14 @@ export function UpdaterByChainId({ chainId }: { chainId: number }): null {
   useQuery({
     queryKey: ['token-list', chainId],
 
-    queryFn: async () => {
-      return Promise.all(
-        Object.keys(lists).map((url) =>
-          fetchList(url).catch((error) => console.debug('interval list fetching error', error)),
-        ),
+    queryFn: () => {
+      Object.keys(lists).forEach((url) =>
+        fetchList(url).catch((error) => console.debug('interval list fetching error', error)),
       )
+      return null
     },
 
-    enabled: Boolean(includeListUpdater && isReady && listState !== initialState),
+    enabled: Boolean(includeListUpdater && isReady && listState !== initialState && !isFirstFetchPending),
     refetchInterval: 1000 * 60 * 10,
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
