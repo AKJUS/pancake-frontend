@@ -5,7 +5,7 @@ import { HomepageChain, HomePageCurrency, HomePagePartner } from './types'
 export const partners: HomePagePartner[] = [
   {
     logo: `${ASSET_CDN}/web/landing/partner/x.png`,
-    link: 'https://twitter.com/pancakeswap',
+    link: 'https://x.com/pancakeswap',
     name: 'X',
   },
   {
@@ -55,9 +55,15 @@ export const homePageCurrencies: HomePageCurrency[] = [
 })
 
 export function homePageChainsInfo() {
-  const evms = [ChainId.BSC, ChainId.ETHEREUM, ChainId.BASE, ChainId.ARBITRUM_ONE, ChainId.ZKSYNC, ChainId.LINEA]
+  const evms = [ChainId.ETHEREUM, ChainId.BSC, ChainId.ZKSYNC, ChainId.ARBITRUM_ONE, ChainId.LINEA, ChainId.BASE]
 
-  const evmChains: HomepageChain[] = evms.map((chainId) => {
+  const nonEvmChains = ['aptos', 'solana']
+  const additionalEvmChains = [ChainId.OPBNB, ChainId.MONAD_MAINNET]
+
+  const allChains = [...evms, ...nonEvmChains, ...additionalEvmChains]
+
+  const chains: HomepageChain[] = allChains.map((chain) => {
+    const chainId = typeof chain === 'string' ? chain : chain
     return {
       logo: `${ASSET_CDN}/web/chains/svg/${chainId}.svg`,
       logoM: `${ASSET_CDN}/web/chains/svg/${chainId}-m.svg`,
@@ -65,17 +71,5 @@ export function homePageChainsInfo() {
     }
   })
 
-  evmChains.push(
-    {
-      logo: `${ASSET_CDN}/web/chains/svg/aptos.svg`,
-      logoM: `${ASSET_CDN}/web/chains/svg/aptos-m.svg`,
-      logoL: `${ASSET_CDN}/web/chains/svg/aptos-l.svg`,
-    },
-    {
-      logo: `${ASSET_CDN}/web/chains/svg/${ChainId.OPBNB}.svg`,
-      logoM: `${ASSET_CDN}/web/chains/svg/${ChainId.OPBNB}-m.svg`,
-      logoL: `${ASSET_CDN}/web/chains/svg/${ChainId.OPBNB}-l.svg`,
-    },
-  )
-  return evmChains
+  return chains
 }

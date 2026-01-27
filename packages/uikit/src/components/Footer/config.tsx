@@ -78,9 +78,9 @@ export const footerLinks: FooterLinkType[] = [
 
 export const socials = [
   {
-    label: "Twitter",
+    label: "X",
     icon: TwitterIcon,
-    href: "https://twitter.com/pancakeswap",
+    href: "https://x.com/pancakeswap",
   },
   {
     label: "Telegram",

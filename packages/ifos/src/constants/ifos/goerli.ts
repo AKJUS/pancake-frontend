@@ -32,7 +32,7 @@ export const ifos: BaseIfoConfig[] = [
     articleUrl: 'https://pancakeswap.finance/voting/',
     tokenOfferingPrice: 0.5782,
     version: 7,
-    twitterUrl: 'https://twitter.com/pancakeswap',
+    twitterUrl: 'https://x.com/pancakeswap',
     description: 'Spend CAKE LP, buy OF, but on vesting',
     vestingTitle: 'Use CAKE LP to buy OF',
   },

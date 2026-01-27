@@ -65,13 +65,13 @@ export const FavoriteDEXBanner: React.FC<FavoriteDEXBannerProps> = ({ chains }) 
       transition={{ type: 'spring', delay: 0.3, stiffness: 100, damping: 12, duration: 0.5 }}
     >
       <TitleText as={isMobile ? 'span' : 'h2'} isMobile={isMobile} isTablet={isTablet}>
-        {t("Everyone's")}{' '}
+        {t("Everyone's")}
       </TitleText>
       <HighlightedText as={isMobile ? 'span' : 'h2'} isMobile={isMobile} isTablet={isTablet}>
         {t('Favorite DEX')}
       </HighlightedText>
       <DescriptionText isMobile={isMobile} isTablet={isTablet}>
-        {t('Trade Crypto Instantly Across %count%+ Chains', { count: chains.length })}
+        {t('Trade Crypto Instantly Across %count% Chains', { count: chains.length })}
       </DescriptionText>
       <Flex
         alignItems="center"
@@ -87,7 +87,7 @@ export const FavoriteDEXBanner: React.FC<FavoriteDEXBannerProps> = ({ chains }) 
               logos: isMobile ? chains.map((x) => x.logoM) : chains.map((x) => x.logoL),
             }}
             borderRadius="12px"
-            gap={isMobile ? -8 : 20}
+            gap={isMobile ? -8 : 8}
             logos={chains.map((x) => x.logo)}
             maxDisplay={20}
           />

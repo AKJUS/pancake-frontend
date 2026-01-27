@@ -2568,9 +2568,9 @@ exports[`renders correctly 1`] = `
         data-theme="dark"
       >
         <a
-          aria-label="Twitter"
+          aria-label="X"
           class="c20 c13"
-          href="https://twitter.com/pancakeswap"
+          href="https://x.com/pancakeswap"
           rel="noreferrer noopener"
           target="_blank"
         >
