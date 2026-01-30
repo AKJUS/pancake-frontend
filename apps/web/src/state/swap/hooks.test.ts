@@ -17,60 +17,50 @@ describe('hooks', () => {
           ),
         ),
       ).toEqual({
-        [Field.OUTPUT]: { currencyId: '0x6B175474E89094C44Da98b954EedeAC495271d0F' },
-        [Field.INPUT]: { currencyId: 'BNB' },
+        [Field.OUTPUT]: { currencyId: '0x6B175474E89094C44Da98b954EedeAC495271d0F', chainId: undefined },
+        [Field.INPUT]: { currencyId: 'BNB', chainId: undefined },
         typedValue: '20.5',
         independentField: Field.OUTPUT,
-        pairDataById: {},
-        derivedPairDataById: {},
         recipient: null,
       })
     })
 
     test('should return Native by default', () => {
       expect(queryParametersToSwapState(parse(''))).toEqual({
-        [Field.OUTPUT]: { currencyId: undefined },
-        [Field.INPUT]: { currencyId: 'BNB' },
+        [Field.OUTPUT]: { currencyId: undefined, chainId: undefined },
+        [Field.INPUT]: { currencyId: 'BNB', chainId: undefined },
         typedValue: '',
         independentField: Field.INPUT,
-        pairDataById: {},
-        derivedPairDataById: {},
         recipient: null,
       })
     })
 
     test('does not duplicate BNB for invalid output token', () => {
       expect(queryParametersToSwapState(parse('outputCurrency=invalid'), 'BNB')).toEqual({
-        [Field.INPUT]: { currencyId: '' },
-        [Field.OUTPUT]: { currencyId: 'BNB' },
+        [Field.INPUT]: { currencyId: '', chainId: undefined },
+        [Field.OUTPUT]: { currencyId: 'BNB', chainId: undefined },
         typedValue: '',
         independentField: Field.INPUT,
-        pairDataById: {},
-        derivedPairDataById: {},
         recipient: null,
       })
     })
 
     test('output BNB only', () => {
       expect(queryParametersToSwapState(parse('outputCurrency=bnb&exactAmount=20.5'), 'BNB')).toEqual({
-        [Field.OUTPUT]: { currencyId: 'BNB' },
-        [Field.INPUT]: { currencyId: '' },
+        [Field.OUTPUT]: { currencyId: 'BNB', chainId: undefined },
+        [Field.INPUT]: { currencyId: '', chainId: undefined },
         typedValue: '20.5',
         independentField: Field.INPUT,
-        pairDataById: {},
-        derivedPairDataById: {},
         recipient: null,
       })
     })
 
     test('invalid recipient', () => {
       expect(queryParametersToSwapState(parse('outputCurrency=BNB&exactAmount=20.5&recipient=abc'), 'BNB')).toEqual({
-        [Field.OUTPUT]: { currencyId: 'BNB' },
-        [Field.INPUT]: { currencyId: '' },
+        [Field.OUTPUT]: { currencyId: 'BNB', chainId: undefined },
+        [Field.INPUT]: { currencyId: '', chainId: undefined },
         typedValue: '20.5',
         independentField: Field.INPUT,
-        pairDataById: {},
-        derivedPairDataById: {},
         recipient: null,
       })
     })
@@ -82,12 +72,10 @@ describe('hooks', () => {
           'BNB',
         ),
       ).toEqual({
-        [Field.OUTPUT]: { currencyId: 'BNB' },
-        [Field.INPUT]: { currencyId: '' },
+        [Field.OUTPUT]: { currencyId: 'BNB', chainId: undefined },
+        [Field.INPUT]: { currencyId: '', chainId: undefined },
         typedValue: '20.5',
         independentField: Field.INPUT,
-        pairDataById: {},
-        derivedPairDataById: {},
         recipient: '0x0fF2D1eFd7A57B7562b2bf27F3f37899dB27F4a5',
       })
     })
@@ -99,8 +87,6 @@ describe('hooks', () => {
         [Field.OUTPUT]: { currencyId: outputCurrency, chainId: NonEVMChainId.SOLANA },
         typedValue: '',
         independentField: Field.INPUT,
-        pairDataById: {},
-        derivedPairDataById: {},
         recipient: null,
       })
     })

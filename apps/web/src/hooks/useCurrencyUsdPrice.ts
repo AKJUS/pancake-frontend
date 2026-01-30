@@ -6,7 +6,7 @@ import { CHAIN_QUERY_NAME } from 'config/chains'
 import { SLOW_INTERVAL } from 'config/constants'
 import { atom } from 'jotai'
 import { atomFamily, unwrap } from 'jotai/utils'
-import { usdPriceBatcher } from 'utils/batcher'
+import { getCurrencyUsdPrice } from '@pancakeswap/price-api-sdk'
 
 type Config = {
   enabled?: boolean
@@ -19,7 +19,7 @@ export function useCurrencyUsdPrice(currency: UnifiedCurrency | undefined | null
       if (!currency) {
         throw new Error('No currency provided')
       }
-      return usdPriceBatcher.fetch({
+      return getCurrencyUsdPrice({
         ...(isSolWSolToken(currency) ? WSOL : currency),
         chainName: CHAIN_QUERY_NAME[currency.chainId],
       })
@@ -39,7 +39,7 @@ export const currencyUSDPriceAtom = atomFamily(
       if (isTestnetChainId(currency?.chainId)) {
         return 0
       }
-      return usdPriceBatcher.fetch(currency)
+      return getCurrencyUsdPrice(currency)
     })
   },
   (a, b) => {

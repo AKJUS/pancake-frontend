@@ -1,16 +1,6 @@
 import { createReducer } from '@reduxjs/toolkit'
 import { atomWithReducer } from 'jotai/utils'
-import {
-  Field,
-  replaceSwapState,
-  selectCurrency,
-  setRecipient,
-  switchCurrencies,
-  typeInput,
-  updateDerivedPairData,
-  updatePairData,
-} from './actions'
-import { DerivedPairDataNormalized, PairDataNormalized } from './types'
+import { Field, replaceSwapState, selectCurrency, setRecipient, switchCurrencies, typeInput } from './actions'
 
 export interface SwapState {
   readonly independentField: Field
@@ -25,8 +15,6 @@ export interface SwapState {
   }
   // the typed recipient address or ENS name, or null if swap should go to sender
   readonly recipient: string | null
-  readonly pairDataById: Record<number, Record<string, PairDataNormalized>> | null
-  readonly derivedPairDataById: Record<number, Record<string, DerivedPairDataNormalized>> | null
 }
 
 const initialState: SwapState = {
@@ -40,8 +28,6 @@ const initialState: SwapState = {
     currencyId: '',
     chainId: undefined,
   },
-  pairDataById: {},
-  derivedPairDataById: {},
   recipient: null,
 }
 
@@ -65,8 +51,6 @@ const reducer = createReducer<SwapState>(initialState, (builder) =>
           independentField: field,
           typedValue,
           recipient,
-          pairDataById: state.pairDataById,
-          derivedPairDataById: state.derivedPairDataById,
         }
       },
     )
@@ -105,20 +89,6 @@ const reducer = createReducer<SwapState>(initialState, (builder) =>
     })
     .addCase(setRecipient, (state, { payload: { recipient } }) => {
       state.recipient = recipient
-    })
-    .addCase(updatePairData, (state, { payload: { pairData, pairId, timeWindow } }) => {
-      if (!state.pairDataById) state.pairDataById = {}
-      if (!state.pairDataById?.[pairId]) {
-        state.pairDataById[pairId] = {}
-      }
-      state.pairDataById[pairId][timeWindow] = pairData
-    })
-    .addCase(updateDerivedPairData, (state, { payload: { pairData, pairId, timeWindow } }) => {
-      if (!state.derivedPairDataById) state.derivedPairDataById = {}
-      if (!state.derivedPairDataById[pairId]) {
-        state.derivedPairDataById[pairId] = {}
-      }
-      state.derivedPairDataById[pairId][timeWindow] = pairData
     }),
 )
 

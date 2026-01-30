@@ -136,6 +136,6 @@ export const useUnifiedUSDPriceAmount = (
         return multiplyPriceByAmount(stablePrice, amount)
       }
     }
-    return undefined
+    return 0
   }, [amount, stablePrice, currency, solanaPrice])
 }

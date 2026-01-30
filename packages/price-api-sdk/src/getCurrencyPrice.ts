@@ -1,10 +1,12 @@
 import { ChainId, isTestnetChainId, NonEVMChainId, UnifiedChainId } from '@pancakeswap/chains'
+import { lruBatchWindow } from '@pancakeswap/utils/cache'
 
 import { Address } from './types/common'
 
 const API_ENDPOINT = process.env.NEXT_PUBLIC_WALLET_API || 'https://wallet-api.pancakeswap.com'
 const WALLET_API = `${API_ENDPOINT}/v1/prices/list/`
 const getWalletPriceUrl = (chainName: string) => `${API_ENDPOINT}/${chainName}/v1/prices/list/`
+const isNonProduction = process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_VERCEL_ENV === 'preview'
 
 export const zeroAddress = '0x0000000000000000000000000000000000000000' as const
 
@@ -35,6 +37,10 @@ const CHAINS_FOR_NEW_WALLET_API: UnifiedChainId[] = [NonEVMChainId.SOLANA]
 const NATIVE_ADDRESSES: { [key in UnifiedChainId]?: string } = {
   [NonEVMChainId.SOLANA]: 'So11111111111111111111111111111111111111112',
 }
+
+const PRICE_CACHE_TTL_MS = 10_000
+const PRICE_FETCH_WINDOW_MS = 300
+
 export function getCurrencyKey(currencyParams?: CurrencyParams): CurrencyKey | undefined {
   if (!currencyParams) {
     return undefined
@@ -76,22 +82,19 @@ function getRequestUrl(params?: CurrencyParams | CurrencyParams[]): string | und
     return undefined
   }
   const encodedKey = encodeURIComponent(key)
-  return CHAINS_FOR_NEW_WALLET_API.includes(infoList[0].chainId) && infoList[0].chainName
-    ? `${getWalletPriceUrl(infoList[0].chainName)}${encodedKey}`
-    : `${WALLET_API}${encodedKey}`
-}
-
-export async function getCurrencyUsdPrice(currencyParams?: CurrencyParams, options?: RequestInit) {
-  if (!currencyParams || isTestnetChainId(currencyParams.chainId)) {
-    return 0
+  const baseUrl =
+    CHAINS_FOR_NEW_WALLET_API.includes(infoList[0].chainId) && infoList[0].chainName
+      ? `${getWalletPriceUrl(infoList[0].chainName)}${encodedKey}`
+      : `${WALLET_API}${encodedKey}`
+  if (!isNonProduction) {
+    return baseUrl
   }
-
-  const prices = await getCurrencyListUsdPrice([currencyParams], options)
-  const key = getCurrencyKey(currencyParams)
-  return (key && prices[key]) ?? 0
+  const url = new URL(baseUrl)
+  url.searchParams.set('preview', '1')
+  return url.toString()
 }
 
-export async function getCurrencyListUsdPrice(
+async function fetchCurrencyListUsdPrice(
   currencyListParams?: CurrencyParams[],
   options?: RequestInit,
 ): Promise<CurrencyUsdResult> {
@@ -109,6 +112,72 @@ export async function getCurrencyListUsdPrice(
     console.error('Failed to get currency list usd price:', error)
     return {}
   }
+}
+
+const resolveCurrencyPrices = async (params: CurrencyParams[]): Promise<number[]> => {
+  if (!params.length) {
+    return []
+  }
+
+  const prices = await fetchCurrencyListUsdPrice(params)
+  return params.map((param) => {
+    const key = getCurrencyKey(param)
+    if (!key) {
+      return 0
+    }
+    return prices[key] ?? 0
+  })
+}
+
+const queuedFetchPrices = lruBatchWindow<CurrencyParams, number>(resolveCurrencyPrices, {
+  key: (input: any) => {
+    const key = getCurrencyKey(input)
+    if (!key) {
+      throw new Error('Missing currency key for price cache')
+    }
+    return key
+  },
+  ttl: PRICE_CACHE_TTL_MS,
+  timeWindow: PRICE_FETCH_WINDOW_MS,
+})
+
+export async function getCurrencyUsdPrice(currencyParams?: CurrencyParams, options?: RequestInit) {
+  if (!currencyParams || isTestnetChainId(currencyParams.chainId)) {
+    return 0
+  }
+
+  if (options) {
+    const prices = await fetchCurrencyListUsdPrice([currencyParams], options)
+    const key = getCurrencyKey(currencyParams)
+    return (key && prices[key]) ?? 0
+  }
+
+  const [price] = await queuedFetchPrices([currencyParams])
+  return price ?? 0
+}
+
+export async function getCurrencyListUsdPrice(
+  currencyListParams?: CurrencyParams[],
+  options?: RequestInit,
+): Promise<CurrencyUsdResult> {
+  if (options) {
+    return fetchCurrencyListUsdPrice(currencyListParams, options)
+  }
+
+  const requestUrl = getRequestUrl(currencyListParams)
+  if (!requestUrl || !currencyListParams) {
+    throw new Error(`Invalid request for currency prices, request url: ${requestUrl}`)
+  }
+
+  const prices = await queuedFetchPrices(currencyListParams)
+  const result: CurrencyUsdResult = {}
+  currencyListParams.forEach((param, index) => {
+    const key = getCurrencyKey(param)
+    if (key) {
+      result[key] = prices[index] ?? 0
+    }
+  })
+  return result
 }
 
 export async function getTokenPrices(

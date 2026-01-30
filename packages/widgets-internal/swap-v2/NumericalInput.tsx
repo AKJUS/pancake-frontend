@@ -15,6 +15,7 @@ const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`); // match escaped "." charac
 
 export type NumericalInputProps = {
   value: string | number | undefined;
+  prefix?: string;
   fontSize?: string;
   inputRef?: React.RefObject<HTMLInputElement>;
   padding?: string;
@@ -35,6 +36,7 @@ export const NumericalInput = memo(function InnerInput({
   inputRef,
   padding,
   maxDecimals,
+  prefix,
   ...rest
 }: NumericalInputProps) {
   const enforcer = (nextUserInput: string) => {
@@ -45,10 +47,13 @@ export const NumericalInput = memo(function InnerInput({
 
   const { t } = useTranslation();
 
-  const truncatedValue = useMemo(
-    () => (typeof value === "string" ? truncateDecimals(value, maxDecimals) : value),
-    [value, maxDecimals]
-  );
+  const truncatedValue = useMemo(() => {
+    const nextValue = typeof value === "string" ? truncateDecimals(value, maxDecimals) : value;
+    if (!prefix || nextValue === "" || nextValue === undefined || nextValue === null) {
+      return nextValue;
+    }
+    return `${prefix}${nextValue}`;
+  }, [value, maxDecimals, prefix]);
 
   return (
     <StyledInput
@@ -64,7 +69,9 @@ export const NumericalInput = memo(function InnerInput({
       value={truncatedValue}
       onChange={(event) => {
         // replace commas with periods, because we exclusively uses period as the decimal separator
-        enforcer(event.target.value.replace(/,/g, "."));
+        const nextValue = event.target.value.replace(/,/g, ".");
+        const normalizedValue = prefix ? nextValue.replace(new RegExp(escapeRegExp(prefix), "g"), "") : nextValue;
+        enforcer(normalizedValue);
       }}
       // universal input options
       inputMode="decimal"

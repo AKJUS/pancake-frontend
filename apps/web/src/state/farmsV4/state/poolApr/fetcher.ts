@@ -11,7 +11,7 @@ import groupBy from 'lodash/groupBy'
 import set from 'lodash/set'
 import { chainIdToExplorerInfoChainName, explorerApiClient } from 'state/info/api/client'
 import { safeGetAddress } from 'utils/safeGetAddress'
-import { usdPriceBatcher } from 'utils/batcher'
+import { getCurrencyUsdPrice } from '@pancakeswap/price-api-sdk'
 import { getMasterChefV3Contract } from 'utils/contractHelpers'
 import { isInfinityProtocol } from 'utils/protocols'
 import { publicClient } from 'utils/wagmi'
@@ -406,7 +406,7 @@ const getV2PoolsCakeAprByChainId = async (
   })
 
   const priceCalls = validPools.map(async (pool) => {
-    return Promise.all([usdPriceBatcher.fetch(pool.token0), usdPriceBatcher.fetch(pool.token1)])
+    return Promise.all([getCurrencyUsdPrice(pool.token0), getCurrencyUsdPrice(pool.token1)])
   })
 
   const [rewardPerSecondResults, totalBoostedShareResults, totalSupplies, reserve0s, reserve1s, endTimestamps, prices] =

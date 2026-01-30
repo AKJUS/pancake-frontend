@@ -9,12 +9,13 @@ import CurrencyInputPanelSimplify from 'components/CurrencyInputPanelSimplify'
 import { CommonBasesType } from 'components/SearchModal/types'
 import { CHAIN_QUERY_NAME } from 'config/chains'
 import { useUnifiedCurrency } from 'hooks/Tokens'
+import { useUnifiedTokenUsdPrice } from 'hooks/useUnifiedTokenUsdPrice'
 import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
 import { useUnifiedCurrencyBalance } from 'hooks/useUnifiedCurrencyBalance'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
 import { useRouter } from 'next/router'
 import { ParsedUrlQuery } from 'querystring'
-import { Suspense, useCallback, useMemo } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useAtomValue } from 'jotai'
 import styled from 'styled-components'
 import { Field } from 'state/swap/actions'
@@ -155,7 +156,65 @@ export function FormMain({ inputAmount, outputAmount, tradeLoading, isUserInsuff
     [Field.OUTPUT]: { currencyId: outputCurrencyId, chainId: outputChainId },
     recipient,
   } = useSwapState()
+
   const { onCurrencySelection, onUserInput } = useSwapActionHandlers()
+  const [usdMode, setUsdMode] = useState(false)
+
+  const inputCurrency = useUnifiedCurrency(inputCurrencyId, inputChainId)
+  const outputCurrency = useUnifiedCurrency(outputCurrencyId, outputChainId)
+
+  const { data: inputUsdPrice, isLoading: inputUsdPriceLoading } = useUnifiedTokenUsdPrice(
+    inputCurrency ?? undefined,
+    Boolean(inputCurrency),
+  )
+  const { data: outputUsdPrice, isLoading: outputUsdPriceLoading } = useUnifiedTokenUsdPrice(
+    outputCurrency ?? undefined,
+    Boolean(outputCurrency),
+  )
+
+  const canUseInputUsdMode = useMemo(() => {
+    if (!inputCurrency) {
+      return false
+    }
+    if (inputUsdPriceLoading) {
+      return false
+    }
+    if (inputUsdPrice === undefined) {
+      return false
+    }
+    return inputUsdPrice > 0
+  }, [inputCurrency, inputUsdPrice, inputUsdPriceLoading])
+
+  const canUseOutputUsdMode = useMemo(() => {
+    if (!outputCurrency) {
+      return false
+    }
+    if (outputUsdPriceLoading) {
+      return false
+    }
+    if (outputUsdPrice === undefined) {
+      return false
+    }
+    return outputUsdPrice > 0
+  }, [outputCurrency, outputUsdPrice, outputUsdPriceLoading])
+
+  const canUseUsdMode = useMemo(() => {
+    if (independentField === Field.OUTPUT) {
+      return canUseOutputUsdMode
+    }
+    return canUseInputUsdMode
+  }, [canUseInputUsdMode, canUseOutputUsdMode, independentField])
+
+  useEffect(() => {
+    if (usdMode && !canUseUsdMode) {
+      setUsdMode(false)
+    }
+  }, [usdMode, canUseUsdMode])
+
+  const isInputIndependent = independentField === Field.INPUT
+  const isOutputIndependent = independentField === Field.OUTPUT
+  const inputValueMode: 'token' | 'usd' = isInputIndependent && usdMode && canUseUsdMode ? 'usd' : 'token'
+  const outputValueMode: 'token' | 'usd' = isOutputIndependent && usdMode && canUseUsdMode ? 'usd' : 'token'
 
   const fromAccount = isSolana(inputChainId) ? solanaAccount : account
   const toAccount = isSolana(outputChainId) ? solanaAccount : account
@@ -165,9 +224,6 @@ export function FormMain({ inputAmount, outputAmount, tradeLoading, isUserInsuff
 
   const isWrapping = useIsWrapping()
   const loadedUrlParams = useDefaultsFromURLSearch()
-
-  const inputCurrency = useUnifiedCurrency(inputCurrencyId, inputChainId)
-  const outputCurrency = useUnifiedCurrency(outputCurrencyId, outputChainId)
   const { inputConfig: inputRwaConfig, outputConfig: outputRwaConfig } = useSanctionRuleForTokenSelection(
     inputCurrency,
     outputCurrency,
@@ -265,6 +321,9 @@ export function FormMain({ inputAmount, outputAmount, tradeLoading, isUserInsuff
         <CurrencyInputPanelSimplify
           id="swap-currency-input"
           showUSDPrice
+          valueDisplayMode={inputValueMode}
+          onToggleValueDisplayMode={canUseUsdMode ? () => setUsdMode((prev) => !prev) : undefined}
+          usdPrice={inputUsdPrice}
           showMaxButton
           showCommonBases={inputRwaConfig.showCommonBases}
           supportCrossChain={inputRwaConfig.supportCrossChain}
@@ -312,6 +371,9 @@ export function FormMain({ inputAmount, outputAmount, tradeLoading, isUserInsuff
           disabled={isBridge}
           id="swap-currency-output"
           showUSDPrice
+          valueDisplayMode={outputValueMode}
+          onToggleValueDisplayMode={!isBridge && canUseUsdMode ? () => setUsdMode((prev) => !prev) : undefined}
+          usdPrice={outputUsdPrice}
           showCommonBases={outputRwaConfig.showCommonBases}
           supportCrossChain={outputRwaConfig.supportCrossChain}
           tokensToShow={outputRwaConfig.tokensToShow}
