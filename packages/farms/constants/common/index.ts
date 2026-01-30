@@ -60,7 +60,7 @@ export const priceHelperTokens = {
     list: [opBnbTokens.wbnb, opBnbTokens.usdt],
   },
   [ChainId.MONAD_MAINNET]: {
-    list: [monadTokens.wmon, monadTokens.usdc, monadTokens.usdt, monadTokens.busd],
+    list: [monadTokens.wmon, monadTokens.usdc, monadTokens.usdt],
   },
 } satisfies Record<number, PriceHelper>
 

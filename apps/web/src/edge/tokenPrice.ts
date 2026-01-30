@@ -2,14 +2,15 @@ import { ChainId } from '@pancakeswap/chains'
 import { chainlinkOracleCAKE } from '@pancakeswap/prediction'
 import { CurrencyParams, getCurrencyUsdPrice } from '@pancakeswap/price-api-sdk'
 import { Native } from '@pancakeswap/sdk'
-import { OnChainProvider, PoolType, SmartRouter, SmartRouterTrade } from '@pancakeswap/smart-router'
+import { OnChainProvider, PoolType, SmartRouter } from '@pancakeswap/smart-router'
 import { Currency, CurrencyAmount, getCurrencyAddress, TradeType } from '@pancakeswap/swap-sdk-core'
 import { CAKE, STABLE_COIN } from '@pancakeswap/tokens'
 import { chainlinkOracleABI } from 'config/abi/chainlinkOracle'
 import { getMulticallGasLimit } from 'quoter/hook/useMulticallGasLimit'
 import { edgeQueries } from 'quoter/utils/edgePoolQueries'
 import { getProvider } from 'quoter/utils/edgeQueries.util'
-import { computeTradePriceBreakdown, warningSeverity } from 'utils/compuateTradePriceBreakdown'
+import { warningSeverity } from 'utils/compuateTradePriceBreakdown'
+import { computeSmartTradePriceBreakdown } from 'utils/computeSmartTradePriceBreakdown'
 import { mockCurrency } from 'utils/mockCurrency'
 import { Address } from 'viem/accounts'
 import { formatUnits } from 'viem/utils'
@@ -92,6 +93,7 @@ export async function queryTokenPrice(
     const [blockNumber, gasPrice] = await Promise.all([client.getBlockNumber(), client.getGasPrice()])
 
     const gasLimit = await getMulticallGasLimit(provider, chainId)
+
     const candidatePools = await edgeQueries.fetchAllCandidatePools(
       stableCoin.address,
       getCurrencyAddress(token),
@@ -121,8 +123,7 @@ export async function queryTokenPrice(
       return undefined
     }
 
-    // @ts-ignore
-    const { priceImpactWithoutFee } = computeTradePriceBreakdown(trade as unknown as SmartRouterTrade<TradeType>)
+    const { priceImpactWithoutFee } = computeSmartTradePriceBreakdown(trade)
 
     if (!priceImpactWithoutFee || warningSeverity(priceImpactWithoutFee) > 2) {
       return undefined

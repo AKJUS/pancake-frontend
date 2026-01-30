@@ -131,14 +131,6 @@ export const BUSD = {
     'Binance USD',
     'https://www.paxos.com/busd/',
   ),
-  [ChainId.MONAD_MAINNET]: new ERC20Token(
-    ChainId.MONAD_MAINNET,
-    '0xcf27F781841484d5CF7e155b44954D7224caF1dD',
-    18,
-    'BUSD',
-    'Binance USD',
-    'https://www.paxos.com/busd/',
-  ),
   [ChainId.MONAD_TESTNET]: new ERC20Token(
     ChainId.MONAD_TESTNET,
     '0xcf27F781841484d5CF7e155b44954D7224caF1dD',

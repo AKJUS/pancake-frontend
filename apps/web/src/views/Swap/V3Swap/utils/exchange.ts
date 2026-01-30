@@ -1,31 +1,22 @@
-import { isSolana } from '@pancakeswap/chains'
-import { HOOK_CATEGORY, findHook } from '@pancakeswap/infinity-sdk'
 import { OrderType } from '@pancakeswap/price-api-sdk'
-import {
-  Currency,
-  CurrencyAmount,
-  Fraction,
-  ONE_HUNDRED_PERCENT,
-  Percent,
-  Price,
-  TradeType,
-  UnifiedCurrency,
-  UnifiedCurrencyAmount,
-  ZERO,
-} from '@pancakeswap/sdk'
-import { Route, SmartRouter, SmartRouterTrade } from '@pancakeswap/smart-router'
-import { formatPrice, parseNumberToFraction } from '@pancakeswap/utils/formatFractions'
-import { FeeAmount } from '@pancakeswap/v3-sdk'
+import { Currency, CurrencyAmount, Percent, Price, UnifiedCurrency, UnifiedCurrencyAmount } from '@pancakeswap/sdk'
+import { SmartRouter } from '@pancakeswap/smart-router'
+import { formatPrice } from '@pancakeswap/utils/formatFractions'
 import { displaySymbolWithChainName } from '@pancakeswap/widgets-internal'
-
-import { BIPS_BASE, INPUT_FRACTION_AFTER_FEE } from 'config/constants/exchange'
 import last from 'lodash/last'
+
 import { Field } from 'state/swap/actions'
-import { isAddressEqual } from 'utils'
 import { basisPointsToPercent } from 'utils/exchange'
-import { zeroAddress } from 'viem'
 import { BridgeOrderFee } from 'views/Swap/Bridge/utils'
 import { BridgeOrderWithCommands, InterfaceOrder, isBridgeOrder, isSolanaBridge } from 'views/Swap/utils'
+
+export {
+  computeSmartTradePriceBreakdown as computeTradePriceBreakdown,
+  v3FeeToPercent,
+  calculateInfiFeePercent,
+} from 'utils/computeSmartTradePriceBreakdown'
+
+export type { TradePriceBreakdown } from 'utils/swapTypes'
 
 export type SlippageAdjustedAmounts = {
   [field in Field]?: UnifiedCurrencyAmount<UnifiedCurrency> | null
@@ -94,96 +85,9 @@ export function computeSlippageAdjustedAmounts(
   }
 }
 
-export type TradeEssentialForPriceBreakdown = Pick<SmartRouterTrade<TradeType>, 'inputAmount' | 'outputAmount'> & {
-  routes: Pick<Route, 'percent' | 'pools' | 'path' | 'inputAmount'>[]
-}
-
-export interface TradePriceBreakdown {
-  priceImpactWithoutFee?: Percent | null
-  lpFeeAmount?: CurrencyAmount<Currency> | null
-}
-
 export interface SVMTradePriceBreakdown {
   priceImpactWithoutFee?: Percent | null
   lpFeeAmount?: UnifiedCurrencyAmount<UnifiedCurrency> | null
-}
-
-// computes price breakdown for the trade
-export function computeTradePriceBreakdown(trade?: TradeEssentialForPriceBreakdown | null): TradePriceBreakdown {
-  if (!trade) {
-    return {
-      priceImpactWithoutFee: undefined,
-      lpFeeAmount: null,
-    }
-  }
-
-  const { routes, outputAmount, inputAmount } = trade
-  let feePercent = new Percent(0)
-  let outputAmountWithoutPriceImpact = CurrencyAmount.fromRawAmount(trade.outputAmount.currency, 0)
-  for (const route of routes) {
-    const { inputAmount: routeInputAmount, pools, percent } = route
-    const routeFeePercent = ONE_HUNDRED_PERCENT.subtract(
-      pools.reduce<Percent>((currentFee, pool) => {
-        if (SmartRouter.isV2Pool(pool)) {
-          return currentFee.multiply(INPUT_FRACTION_AFTER_FEE)
-        }
-        if (SmartRouter.isStablePool(pool)) {
-          return currentFee.multiply(ONE_HUNDRED_PERCENT.subtract(pool.fee))
-        }
-        if (SmartRouter.isV3Pool(pool)) {
-          return currentFee.multiply(ONE_HUNDRED_PERCENT.subtract(v3FeeToPercent(pool.fee)))
-        }
-        if (SmartRouter.isInfinityClPool(pool) || SmartRouter.isInfinityBinPool(pool)) {
-          let poolFee = pool.fee
-          // override pool fee if the pool is a dynamic fee pool
-          if (pool.hooks && !isAddressEqual(pool.hooks, zeroAddress)) {
-            const hook = findHook(pool.hooks, trade.inputAmount.currency.chainId)
-            if (hook && hook.category?.includes(HOOK_CATEGORY.DynamicFees) && hook.defaultFee) {
-              poolFee = hook.defaultFee
-            }
-          }
-          const infinityFeePercent = new Percent(calculateInfiFeePercent(poolFee, pool.protocolFee).totalFee, 1e6)
-          return currentFee.multiply(ONE_HUNDRED_PERCENT.subtract(infinityFeePercent))
-        }
-        return currentFee
-      }, ONE_HUNDRED_PERCENT),
-    )
-    // Not accurate since for stable swap, the lp fee is deducted on the output side
-    feePercent = feePercent.add(
-      routeFeePercent.multiply(Percent.toPercent(parseNumberToFraction(percent / 100) || new Fraction(0))),
-    )
-
-    try {
-      const midPrice = SmartRouter.getMidPrice(route)
-      outputAmountWithoutPriceImpact = outputAmountWithoutPriceImpact.add(
-        CurrencyAmount.fromRawAmount(
-          trade.outputAmount.currency,
-          midPrice.wrapped.quote(routeInputAmount.wrapped).quotient,
-        ),
-      )
-    } catch (error) {
-      console.error('Error calculating output amount:', error)
-      outputAmountWithoutPriceImpact = CurrencyAmount.fromRawAmount(trade.outputAmount.currency, 0)
-      break
-    }
-  }
-
-  if (outputAmountWithoutPriceImpact.quotient === ZERO) {
-    return {
-      priceImpactWithoutFee: undefined,
-      lpFeeAmount: null,
-    }
-  }
-
-  const priceImpactRaw = outputAmountWithoutPriceImpact.subtract(outputAmount).divide(outputAmountWithoutPriceImpact)
-  const priceImpactPercent = new Percent(priceImpactRaw.numerator, priceImpactRaw.denominator)
-  const priceImpactWithoutFee = priceImpactPercent.subtract(feePercent)
-  const lpFeeAmount = inputAmount.multiply(feePercent)
-
-  return {
-    priceImpactWithoutFee,
-    lpFeeAmount,
-  }
 }
 
 export function formatExecutionPrice(
@@ -207,21 +111,6 @@ export function formatExecutionPrice(
         outputAmount.currency,
         isBridge,
       )} / ${displaySymbolWithChainName(inputAmount.currency, isBridge)}`
-}
-
-export function v3FeeToPercent(fee: FeeAmount): Percent {
-  return new Percent(fee, BIPS_BASE * 100n)
-}
-
-export function calculateInfiFeePercent(lpFee: number, protocolFee?: number) {
-  const protocolFee1 = (protocolFee ?? 0) & 0xfff
-  const totalFee = (protocolFee1 + ((1e6 - protocolFee1) * lpFee) / 1e6).toFixed(0)
-
-  return {
-    totalFee: Number(totalFee),
-    lpFee,
-    protocolFee: protocolFee1,
-  }
 }
 
 // Helper function to find the highest price impact from multiple breakdowns

@@ -93,20 +93,23 @@ export const getTokenUsdPricesBySubgraph: GetTokenPrices<BySubgraphEssentials> =
 export const getCommonTokenPricesBySubgraph =
   createCommonTokenPriceProvider<BySubgraphEssentials>(getTokenUsdPricesBySubgraph)
 
-type LlamaTokenPriceFetcherFactoryOptions = {
-  endpoint: string
-}
-
-const createGetTokenPriceFromLlmaWithCache = ({
-  endpoint,
-}: LlamaTokenPriceFetcherFactoryOptions): GetTokenPrices<BySubgraphEssentials> => {
-  // Add cache in case we reach the rate limit of llma api
+function withCache<T extends BySubgraphEssentials>(
+  fetchPrices: (params: { addresses: string[]; chainId: ChainId }) => Promise<TokenUsdPrice[]>,
+  options?: { requireLlamaChain?: boolean },
+): GetTokenPrices<T> {
   const cache = new Map<string, TokenUsdPrice>()
+  const { requireLlamaChain = false } = options || {}
 
   return async ({ addresses, chainId }) => {
-    if (!chainId || !getLlamaChainName(chainId)) {
+    if (!chainId) {
       return []
     }
+
+    // For Llama API, throw error if chain is not supported (to trigger fallback)
+    if (requireLlamaChain && !getLlamaChainName(chainId)) {
+      throw new Error(`Chain ${chainId} is not supported by Llama API`)
+    }
+
     const [cachedResults, addressesToFetch] = addresses.reduce<[TokenUsdPrice[], string[]]>(
       ([cachedAddrs, newAddrs], address) => {
         const cached = cache.get(address)
@@ -124,37 +127,65 @@ const createGetTokenPriceFromLlmaWithCache = ({
       return cachedResults
     }
 
-    const list = addressesToFetch
-      .map((address) => `${getLlamaChainName(chainId)}:${address.toLocaleLowerCase()}`)
-      .join(',')
+    const freshResults = await fetchPrices({ addresses: addressesToFetch, chainId })
+
+    for (const result of freshResults) {
+      cache.set(getAddress(result.address), result)
+    }
+
+    return [...cachedResults, ...freshResults]
+  }
+}
+
+type TokenPriceFetcherFactoryOptions = {
+  endpoint: string
+}
+
+const createGetTokenPriceFromLlma = ({ endpoint }: TokenPriceFetcherFactoryOptions) => {
+  return async ({ addresses, chainId }: { addresses: string[]; chainId: ChainId }): Promise<TokenUsdPrice[]> => {
+    const list = addresses.map((address) => `${getLlamaChainName(chainId)}:${address.toLocaleLowerCase()}`).join(',')
     const result: { coins?: { [key: string]: { price: string } } } = await fetch(`${endpoint}/${list}`).then((res) =>
       res.json(),
     )
 
     const { coins = {} } = result
-    return [
-      ...cachedResults,
-      ...Object.entries(coins).map(([key, value]) => {
-        const [, address] = key.split(':')
-        const tokenPrice = { address, priceUSD: value.price }
-        cache.set(getAddress(address), tokenPrice)
-        return tokenPrice
-      }),
-    ]
+    return Object.entries(coins).map(([key, value]) => {
+      const [, address] = key.split(':')
+      return { address, priceUSD: value.price }
+    })
   }
 }
 
 export const getCommonTokenPricesByLlma = createCommonTokenPriceProvider<BySubgraphEssentials>(
-  createGetTokenPriceFromLlmaWithCache({
-    endpoint: 'https://coins.llama.fi/prices/current',
-  }),
+  withCache(
+    createGetTokenPriceFromLlma({
+      endpoint: 'https://coins.llama.fi/prices/current',
+    }),
+    { requireLlamaChain: true },
+  ),
 )
+
+const createGetTokenPriceFromWalletApi = ({ endpoint }: TokenPriceFetcherFactoryOptions) => {
+  return async ({ addresses, chainId }: { addresses: string[]; chainId: ChainId }): Promise<TokenUsdPrice[]> => {
+    const list = addresses.map((address) => `${chainId}:${address.toLowerCase()}`).join(',')
+    const encodedList = encodeURIComponent(list)
+
+    const result: { [key: string]: number } = await fetch(`${endpoint}/list/${encodedList}`).then((res) => res.json())
+
+    return Object.entries(result).map(([key, price]) => {
+      const [, address] = key.split(':')
+      return { address, priceUSD: String(price) }
+    })
+  }
+}
 
 const WALLET_API_ENDPOINT = process.env.NEXT_PUBLIC_WALLET_API || 'https://wallet-api.pancakeswap.com'
 export const getCommonTokenPricesByWalletApi = createCommonTokenPriceProvider<BySubgraphEssentials>(
-  createGetTokenPriceFromLlmaWithCache({
-    endpoint: `${WALLET_API_ENDPOINT}/v1/prices`,
-  }),
+  withCache(
+    createGetTokenPriceFromWalletApi({
+      endpoint: `${WALLET_API_ENDPOINT}/v1/prices`,
+    }),
+  ),
 )
 
 export const getCommonTokenPrices = withFallback([
