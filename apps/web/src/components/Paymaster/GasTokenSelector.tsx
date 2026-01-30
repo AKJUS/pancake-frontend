@@ -241,9 +241,7 @@ export const GasTokenSelector = ({ inputCurrency, ...props }: GasTokenSelectorPr
             <Column marginLeft="12px">
               <Text bold>
                 {item.symbol} &nbsp;
-                {itemInfo && itemInfo.discount && (
-                  <Badge ref={!disabled ? innerTargetRef : null}>⛽️ {itemInfo.discount}</Badge>
-                )}
+                {itemInfo && itemInfo.discount && <Badge ref={innerTargetRef}>⛽️ {itemInfo.discount}</Badge>}
               </Text>
               <Text color="textSubtle" maxWidth="200px" ellipsis small>
                 {item.name}
@@ -267,7 +265,7 @@ export const GasTokenSelector = ({ inputCurrency, ...props }: GasTokenSelectorPr
             <ArrowForwardIcon />
           )}
         </Flex>
-        {innerTooltipVisible && innerTooltip}
+        {!disabled && innerTooltipVisible && innerTooltip}
       </FixedHeightRow>
     )
   }

@@ -78,7 +78,7 @@ const SlippageButtonView = ({
   return (
     <>
       <div style={{ textAlign: 'center' }}>
-        <div ref={!isMobile ? targetRef : undefined}>
+        <div ref={targetRef}>
           <TertiaryButton
             $color={color}
             startIcon={
@@ -96,7 +96,7 @@ const SlippageButtonView = ({
           </TertiaryButton>
         </div>
 
-        {(isRiskyLow || isRiskyHigh) && tooltipVisible && tooltip}
+        {!isMobile && (isRiskyLow || isRiskyHigh) && tooltipVisible && tooltip}
       </div>
       <ModalV2 isOpen={isOpen} onDismiss={onDismiss} closeOnOverlayClick>
         <MotionModal
@@ -133,11 +133,9 @@ export const EVMSlippageButton = ({ enableAutoSlippage_ = false }: { enableAutoS
   const { slippageTolerance: autoSlippageTolerance, isAuto } = useAutoSlippageWithFallback()
   const [userSlippageTolerance] = useUserSlippage()
 
-  const tolenrace = enableAutoSlippage_ ? autoSlippageTolerance : userSlippageTolerance
-
   return (
     <SlippageButtonView
-      tolerance={tolenrace}
+      tolerance={enableAutoSlippage_ ? autoSlippageTolerance : userSlippageTolerance}
       slippageModalContent={<EVMSlippageSetting />}
       buttonText={isAuto ? `${t('Auto')}: ` : ''}
     />

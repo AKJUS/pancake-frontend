@@ -108,7 +108,7 @@ export const PositionItem: React.FC<PropsWithChildren<PositionItemProps>> = (pro
     <Container $withLink={Boolean(linkWithChain)}>
       {!miniMode && (
         <TokenPairLogo
-          ref={showTooltip ? targetRef : undefined}
+          ref={targetRef}
           width={48}
           height={48}
           variant="inverted"
