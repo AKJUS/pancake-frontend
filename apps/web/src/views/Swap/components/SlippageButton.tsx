@@ -73,7 +73,7 @@ const SlippageButtonView = ({
       : isRiskyHigh
       ? t('Your transaction may be frontrun. Reset settings to avoid potential loss')
       : '',
-    { placement: 'top' },
+    { placement: 'top', avoidToStopPropagation: isMobile },
   )
   return (
     <>

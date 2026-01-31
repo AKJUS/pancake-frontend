@@ -1,7 +1,7 @@
 import { ChainId, Chains, NonEVMChainId, UnifiedChainId } from '@pancakeswap/chains'
 import { useTranslation } from '@pancakeswap/localization'
 import { NATIVE } from '@pancakeswap/sdk'
-import { Box, UserMenu, useTooltip } from '@pancakeswap/uikit'
+import { Box, UserMenu, useTooltip, useMatchBreakpoints } from '@pancakeswap/uikit'
 import { ASSET_CDN } from 'config/constants/endpoints'
 import { useActiveChainId } from 'hooks/useActiveChainId'
 import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
@@ -37,6 +37,7 @@ export const SHORT_SYMBOL = {
 
 export const NetworkSwitcher = () => {
   const { t } = useTranslation()
+  const { isMobile } = useMatchBreakpoints()
   const { chainId, isWrongNetwork } = useActiveChainId()
   const { isLoading, canSwitch } = useSwitchNetwork()
   const router = useRouter()
@@ -46,7 +47,7 @@ export const NetworkSwitcher = () => {
   const symbol = foundChain?.id ? SHORT_SYMBOL[foundChain.id] ?? NATIVE[foundChain.id]?.symbol : undefined
   const { targetRef, tooltip, tooltipVisible } = useTooltip(
     t('Unable to switch network. Please try it on your wallet'),
-    { placement: 'bottom' },
+    { placement: 'bottom', avoidToStopPropagation: isMobile },
   )
 
   const cannotChangeNetwork = !canSwitch
