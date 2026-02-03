@@ -19,6 +19,14 @@ export default defineConfig({
   },
   test: {
     dangerouslyIgnoreUnhandledErrors: true, // this.WebSocketClass is not a constructor
+    server: {
+      deps: {
+        inline: ['@farcaster/miniapp-sdk', '@farcaster/miniapp-wagmi-connector'],
+      },
+    },
+    deps: {
+      inline: ['@farcaster/miniapp-sdk', '@farcaster/miniapp-wagmi-connector'],
+    },
     setupFiles: ['./vitest.setup.js'],
     environment: 'happy-dom',
     globals: true,

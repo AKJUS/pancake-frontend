@@ -30,6 +30,8 @@ const Menu: React.FC<React.PropsWithChildren<NavProps>> = ({
   homeLink: homeLink_,
   subLinks,
   footerLinks,
+  showFooter = true,
+  showBottomNav = true,
   activeItem,
   activeSubItem,
   activeSubItemChildItem,
@@ -164,24 +166,28 @@ const Menu: React.FC<React.PropsWithChildren<NavProps>> = ({
           </BodyWrapper>
         </Wrapper>
       </AtomBox>
-      <Footer
-        chainId={chainId}
-        items={footerLinks}
-        isDark={isDark}
-        toggleTheme={toggleTheme}
-        langs={langs}
-        setLang={setLang}
-        currentLang={currentLang}
-        cakePriceUsd={cakePriceUsd}
-        buyCakeLabel={buyCakeLabel}
-        buyCakeLink={buyCakeLink}
-        showLangSelector={showLangSelector}
-        showCakePrice={showCakePrice}
-        mb={[`${MOBILE_MENU_HEIGHT}px`, null, "0px"]}
-      />
-      <AtomBox display={{ xs: "block", lg: "none" }}>
-        <BottomNav items={links} activeItem={activeItem} activeSubItem={activeSubItem} />
-      </AtomBox>
+      {showFooter && (
+        <Footer
+          chainId={chainId}
+          items={footerLinks}
+          isDark={isDark}
+          toggleTheme={toggleTheme}
+          langs={langs}
+          setLang={setLang}
+          currentLang={currentLang}
+          cakePriceUsd={cakePriceUsd}
+          buyCakeLabel={buyCakeLabel}
+          buyCakeLink={buyCakeLink}
+          showLangSelector={showLangSelector}
+          showCakePrice={showCakePrice}
+          mb={[`${MOBILE_MENU_HEIGHT}px`, null, "0px"]}
+        />
+      )}
+      {showBottomNav && (
+        <AtomBox display={{ xs: "block", lg: "none" }}>
+          <BottomNav items={links} activeItem={activeItem} activeSubItem={activeSubItem} />
+        </AtomBox>
+      )}
     </MenuContext.Provider>
   );
 };

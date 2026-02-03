@@ -18,6 +18,8 @@ export interface NavProps {
   homeLink?: string;
   subLinks?: Array<SubMenuItemsType>;
   footerLinks: Array<FooterLinkType>;
+  showFooter?: boolean;
+  showBottomNav?: boolean;
   activeItem?: string;
   activeSubItem?: string;
   activeSubItemChildItem?: string;

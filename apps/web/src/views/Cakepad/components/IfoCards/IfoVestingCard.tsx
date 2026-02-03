@@ -3,8 +3,9 @@ import { useTranslation } from '@pancakeswap/localization'
 import { Button, Card, CardBody, CardHeader, FlexGap, Image, Text } from '@pancakeswap/uikit'
 import useTheme from 'hooks/useTheme'
 import NextLink from 'next/link'
+import { useRouter } from 'next/router'
 import { styled } from 'styled-components'
-import { CAKEPAD_HISTORY_URL } from 'views/Cakepad/config/routes'
+import { CAKEPAD_BASE_HISTORY_URL, CAKEPAD_BASE_URL, CAKEPAD_HISTORY_URL } from 'views/Cakepad/config/routes'
 import useIfo from '../../hooks/useIfo'
 import { useIFOClaimCallback } from '../../hooks/ifo/useIFOClaimCallback'
 import { useVestingInfo } from '../../hooks/ifo/useVestingInfo'
@@ -30,6 +31,7 @@ const ProgressBar = styled.div<{ width: number; color: string; left?: number }>`
 export const IfoVestingCard: React.FC = () => {
   const { t } = useTranslation()
   const { theme, isDark } = useTheme()
+  const router = useRouter()
   const { config, info, pools, users } = useIfo()
   const name = t(config.tgeTitle.i18nText)
   const id = config?.id
@@ -63,6 +65,9 @@ export const IfoVestingCard: React.FC = () => {
 
   const claimedPercent = claimedAll ? progress : 0
   const availablePercent = claimedAll ? 0 : progress
+  const cakepadHistoryUrl = router.pathname.startsWith(CAKEPAD_BASE_URL)
+    ? CAKEPAD_BASE_HISTORY_URL
+    : CAKEPAD_HISTORY_URL
 
   const handleClaim = async () => {
     if (userStatus0?.claimableAmount?.greaterThan(0) && pools[0]) {
@@ -129,7 +134,7 @@ export const IfoVestingCard: React.FC = () => {
               >
                 {t('Claim')}
               </Button>
-              <NextLink href={CAKEPAD_HISTORY_URL} passHref legacyBehavior>
+              <NextLink href={cakepadHistoryUrl} passHref legacyBehavior>
                 <Text as="a" color="primary" mt="8px" fontWeight={600} display="block">
                   {t('View CAKE.PAD')}
                 </Text>

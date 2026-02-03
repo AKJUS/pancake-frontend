@@ -1,0 +1,145 @@
+import { useTranslation } from '@pancakeswap/localization'
+import { Box, Button, Flex, Text, useMatchBreakpoints } from '@pancakeswap/uikit'
+import { sdk } from '@farcaster/miniapp-sdk'
+import { QRCodeSVG } from 'qrcode.react'
+import React, { useEffect, useState } from 'react'
+import { styled } from 'styled-components'
+import { ASSET_CDN } from 'config/constants/endpoints'
+
+const QRCodeWrapper = styled(Box)`
+  padding: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+`
+
+const QRCodeBox = styled(Box)`
+  width: 100%;
+  height: auto;
+  background-color: white;
+  border-radius: 24px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
+  overflow: hidden;
+`
+
+const Overlay = styled(Box)`
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+`
+
+const Card = styled(Box)`
+  width: 100%;
+  max-width: 420px;
+  background: ${({ theme }) => theme.colors.backgroundAlt};
+  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
+  border-radius: 24px;
+  padding: 24px;
+  text-align: center;
+`
+
+const CHECK_DELAY_MS = 100
+const CHECK_ATTEMPTS = 3
+const MINI_APP_QR_URL = 'https://base.app/app/https:/web-git-feature-cakepad-base-routes.pancake.run/cakepad-base'
+
+const BaseMiniAppProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+  const { t } = useTranslation()
+  const { isMobile } = useMatchBreakpoints()
+  const [isInMiniApp, setIsInMiniApp] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+    let cancelled = false
+
+    const init = async () => {
+      try {
+        try {
+          sdk.actions.ready()
+        } catch (error) {
+          console.warn('[base-miniapp] ready() failed', error)
+        }
+
+        const checkIsInMiniApp = async (attemptsLeft: number): Promise<boolean> => {
+          const result = await sdk.isInMiniApp()
+          if (cancelled || result || attemptsLeft <= 1) {
+            return result
+          }
+          await new Promise((resolve) => setTimeout(resolve, CHECK_DELAY_MS))
+          return checkIsInMiniApp(attemptsLeft - 1)
+        }
+
+        const result = await checkIsInMiniApp(CHECK_ATTEMPTS)
+        if (cancelled) return
+        setIsInMiniApp(result)
+      } catch (error) {
+        if (cancelled) return
+        console.warn('[base-miniapp] isInMiniApp() failed', error)
+        setIsInMiniApp(false)
+      }
+    }
+
+    init()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  return (
+    <>
+      {isInMiniApp !== false ? children : null}
+      {isInMiniApp === false ? (
+        <Overlay>
+          <Card>
+            <Flex flexDirection="column" alignItems="center" justifyContent="center">
+              <Text fontSize="20px" bold mb="8px">
+                {t('Use Cakepad on Base App')}
+              </Text>
+              <Text color="textSubtle" textAlign="center" mb="16px">
+                {isMobile
+                  ? t('Open the Base app to use Cakepad.')
+                  : t('Scan the QR code to open this mini app on Base')}
+              </Text>
+              {isMobile ? (
+                <Button as="a" href="https://join.base.app/" width="100%">
+                  {t('Go')}
+                </Button>
+              ) : (
+                <QRCodeWrapper>
+                  <QRCodeBox>
+                    <QRCodeSVG
+                      value={MINI_APP_QR_URL}
+                      size={280}
+                      level="H"
+                      includeMargin
+                      imageSettings={{
+                        src: `${ASSET_CDN}/web/chains/8453.png`,
+                        x: undefined,
+                        y: undefined,
+                        height: 48,
+                        width: 48,
+                        excavate: true,
+                      }}
+                    />
+                  </QRCodeBox>
+                </QRCodeWrapper>
+              )}
+            </Flex>
+          </Card>
+        </Overlay>
+      ) : null}
+    </>
+  )
+}
+
+export default BaseMiniAppProvider

@@ -13,6 +13,7 @@ import { useWebNotifications } from 'hooks/useWebNotifications'
 import { useRouter } from 'next/router'
 import { Suspense, lazy, useCallback, useMemo } from 'react'
 import { styled } from 'styled-components'
+import { CAKEPAD_BASE_URL } from 'views/Cakepad/config/routes'
 import GlobalSettings from './GlobalSettings'
 import UserMenu from './UserMenu'
 import { UseMenuItemsParams, useMenuItems } from './hooks/useMenuItems'
@@ -44,6 +45,7 @@ const Menu = (props) => {
   const { pathname } = useRouter()
   const perpUrl = usePerpUrl({ chainId, isDark, languageCode: currentLanguage.code })
   const [perpConfirmed] = useUserNotUsCitizenAcknowledgement(IdType.PERPETUALS)
+  const isCakepadBaseRoute = pathname.startsWith(CAKEPAD_BASE_URL)
 
   const [onPerpConfirmModalPresent] = useModal(
     <USCitizenConfirmModal title={t('PancakeSwap Perpetuals')} id={IdType.PERPETUALS} href={perpUrl} />,
@@ -86,21 +88,25 @@ const Menu = (props) => {
 
   const filteredLinks = useMemo(() => filterItemsProps(menuItems), [menuItems])
 
+  const rightSide = isCakepadBaseRoute ? (
+    <UserMenu />
+  ) : (
+    <>
+      <GlobalSettings />
+      {enabled && (
+        <Suspense fallback={null}>
+          <Notifications />
+        </Suspense>
+      )}
+      <NetworkSwitcher />
+      <UserMenu />
+    </>
+  )
+
   return (
     <UikitMenu
       linkComponent={LinkComponent}
-      rightSide={
-        <>
-          <GlobalSettings />
-          {enabled && (
-            <Suspense fallback={null}>
-              <Notifications />
-            </Suspense>
-          )}
-          <NetworkSwitcher />
-          <UserMenu />
-        </>
-      }
+      rightSide={rightSide}
       chainId={chainId}
       banner={null}
       isDark={isDark}
@@ -116,6 +122,8 @@ const Menu = (props) => {
           : activeSubMenuItem?.items ?? activeMenuItem?.items)
       }
       footerLinks={getFooterLinks}
+      showFooter={!isCakepadBaseRoute}
+      showBottomNav={!isCakepadBaseRoute}
       activeItem={activeMenuItem?.href}
       activeSubItem={activeSubMenuItem?.href}
       activeSubItemChildItem={activeSubChildMenuItem?.href}
@@ -146,16 +154,22 @@ const SharedComponentWithOutMenuWrapper = styled.div`
 
 export const SharedComponentWithOutMenu: React.FC<React.PropsWithChildren> = ({ children }) => {
   const { enabled } = useWebNotifications()
+  const { pathname } = useRouter()
+  const isCakepadBaseRoute = pathname.startsWith(CAKEPAD_BASE_URL)
   return (
     <>
       <SharedComponentWithOutMenuWrapper>
-        <GlobalSettings />
-        {enabled && (
-          <Suspense fallback={null}>
-            <Notifications />
-          </Suspense>
+        {!isCakepadBaseRoute && (
+          <>
+            <GlobalSettings />
+            {enabled && (
+              <Suspense fallback={null}>
+                <Notifications />
+              </Suspense>
+            )}
+            <NetworkSwitcher />
+          </>
         )}
-        <NetworkSwitcher />
         <UserMenu />
       </SharedComponentWithOutMenuWrapper>
       {children}

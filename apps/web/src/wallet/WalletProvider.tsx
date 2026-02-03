@@ -11,6 +11,7 @@ import { useSyncWagmiState } from './hook/useSyncWagmiState'
 import { useWagmiConfig } from './hook/useWagmiConfig'
 import { useSyncPersistChain } from './hook/useSyncPersistChain'
 import { SolanaWalletStateUpdater } from './SolanaProvider'
+import { useBaseMiniAppAutoConnect } from './hook/useBaseMiniAppAutoConnect'
 
 interface WalletProviderProps {
   reconnectOnMount?: boolean
@@ -126,6 +127,7 @@ export const WalletProvider = (props: WalletProviderProps) => {
 }
 
 const Sync = () => {
+  useBaseMiniAppAutoConnect()
   useSyncWagmiState()
   useSyncPersistChain()
   return null

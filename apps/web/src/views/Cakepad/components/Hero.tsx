@@ -8,6 +8,7 @@ import { styled } from 'styled-components'
 import { ASSET_CDN } from 'config/constants/endpoints'
 import { getChainName } from '@pancakeswap/chains'
 import useIfo from '../hooks/useIfo'
+import { CAKEPAD_BASE_URL, CAKEPAD_URL } from '../config/routes'
 
 const StyledHero = styled(Box)`
   position: relative;
@@ -73,13 +74,14 @@ const Hero = () => {
   const router = useRouter()
   const { t } = useTranslation()
   const { isMobile } = useMatchBreakpoints()
+  const cakepadBaseUrl = router.pathname.startsWith(CAKEPAD_BASE_URL) ? CAKEPAD_BASE_URL : CAKEPAD_URL
 
   const handleClick = () => {
     const howToElem = document.getElementById('cakepad-how-to')
     if (howToElem != null) {
       howToElem.scrollIntoView()
     } else {
-      router.push('/cakepad#cakepad-how-to')
+      router.push(`${cakepadBaseUrl}#cakepad-how-to`)
     }
   }
 
