@@ -34,6 +34,7 @@ class MyDocument extends Document {
     return (
       <Html translate="no">
         <Head>
+          <meta name="base:app_id" content="698194b61672d70694e293ea" />
           {process.env.NEXT_PUBLIC_NODE_PRODUCTION && (
             <link rel="preconnect" href={process.env.NEXT_PUBLIC_NODE_PRODUCTION} />
           )}

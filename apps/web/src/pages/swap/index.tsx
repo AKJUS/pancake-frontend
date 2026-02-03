@@ -1,6 +1,5 @@
 import { Box, Skeleton, useMatchBreakpoints } from '@pancakeswap/uikit'
 import dynamic from 'next/dynamic'
-import Head from 'next/head'
 import styled from 'styled-components'
 import { NextPageWithLayout } from 'utils/page.types'
 import { CHAIN_IDS } from 'utils/wagmi'
@@ -48,9 +47,6 @@ const View = () => {
   console.info(wallets, 'wallets')
   return (
     <SwapLayout>
-      <Head>
-        <meta name="base:app_id" content="698194b61672d70694e293ea" />
-      </Head>
       <Container isMobile={isMobile}>
         <SwapSimplify />
       </Container>
