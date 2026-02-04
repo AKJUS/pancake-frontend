@@ -30,6 +30,7 @@
     "tronweb": "^6",
     "viem": "catalog:",
     "wagmi": "catalog:",
+    "zod": "catalog:",
     "@bnb-chain/canonical-bridge-sdk": "0.7.2",
     "@bnb-chain/canonical-bridge-widget": "0.10.3",
     "@pancakeswap/chains": "workspace:*"
@@ -49,14 +50,17 @@
     "@vitejs/plugin-react": "4.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "viem": "catalog:",
     "vite": "5.0.12",
     "vite-plugin-dts": "^3.5.3",
     "vite-plugin-node-polyfills": "~0.24.0",
-    "wagmi": "catalog:"
+    "wagmi": "catalog:",
+    "viem": "catalog:",
+    "zod": "catalog:"
   },
   "overrides": {
-    "@wagmi/core": "catalog:"
+    "@wagmi/core": "catalog:",
+    "viem": "catalog:",
+    "zod": "catalog:"
   },
   "exports": {
     "./package.json": "./package.json",
