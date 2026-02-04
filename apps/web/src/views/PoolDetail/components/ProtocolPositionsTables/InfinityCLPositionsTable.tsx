@@ -244,6 +244,9 @@ const transformInfinityCLPositionToTableRow = (
       removed={removed}
       currentPrice={priceRangeData.currentPrice || pool?.token0Price?.toSignificant(18)}
       showPercentages={priceRangeData.showPercentages}
+      minPriceRaw={priceRangeData.minPrice}
+      maxPriceRaw={priceRangeData.maxPrice}
+      currentPriceRaw={priceRangeData.currentPriceValue}
     />
   )
 

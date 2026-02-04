@@ -12,11 +12,13 @@ export const PositionDebugView: React.FC<
 
   const { targetRef, tooltipVisible, tooltip } = useTooltip(
     isDevelopmentOrPreview ? (
-      <pre>
+      <pre style={{ maxHeight: '500px', overflow: 'auto' }}>
         {stringify(
           json,
           (k, v) => {
             if (React.isValidElement(v)) return 'ReactElement'
+            // Handle BigInt serialization
+            if (typeof v === 'bigint') return v.toString()
             return v
           },
           2,

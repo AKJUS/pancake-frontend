@@ -11,6 +11,7 @@ import { convertRawTokenInfoIntoSPLToken } from 'config/solana-list'
 import { calculateSolanaTickLimits, getTickAtLimitStatus } from 'views/PoolDetail/utils'
 import { usePriceRange } from 'hooks/solana/usePriceRange'
 import { useLiquidityAmount } from 'hooks/solana/useLiquidityAmount'
+import { SOLANA_FEE_TIER_BASE } from 'utils/normalizeSolanaPoolInfo'
 import { PriceRange } from './PriceRange'
 import { PositionItem } from './PositionItem'
 import { SolanaV3PositionActions } from '../PositionActions/SolanaV3PositionActions'
@@ -56,8 +57,9 @@ export const SolanaV3PositionItem = memo(({ position, detailMode }: SolanaV3Posi
       protocol: Protocol.V3,
       token0: currency0,
       token1: currency1,
-      feeTier: poolInfo.feeRate,
-      feeTierBase: 10000,
+      // Convert decimal feeRate to integer for proper percentage calculation
+      feeTier: Math.round(poolInfo.feeRate * SOLANA_FEE_TIER_BASE),
+      feeTierBase: SOLANA_FEE_TIER_BASE,
       isFarming: false,
       poolId: position.poolId.toBase58(),
       liquidity: BigInt(position.liquidity.toString()),

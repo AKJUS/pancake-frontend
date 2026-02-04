@@ -21,7 +21,7 @@ import { useCallback, useEffect, useMemo } from 'react'
 import styled from 'styled-components'
 import currencyId from 'utils/currencyId'
 import { TokenFilterContainer } from 'views/AddLiquidityInfinity/components/styles'
-import { usePoolTypes } from 'views/universalFarms/constants'
+import { usePoolTypes } from 'views/universalFarms/hooks'
 import { Chain } from '@pancakeswap/chains'
 
 import { INFINITY_SUPPORTED_CHAINS } from '@pancakeswap/infinity-sdk'

@@ -329,6 +329,9 @@ export const SolanaV3PositionsTable: FC<V3PositionsTableProps> = ({ poolInfo }) 
               outOfRange={outOfRange}
               removed={(p.liquidity as BN).isZero()}
               showPercentages={showPercentages}
+              minPriceRaw={priceRangeData.minPrice}
+              maxPriceRaw={priceRangeData.maxPrice}
+              currentPriceRaw={priceRangeData.currentPriceValue}
             />
           ),
           actions: (

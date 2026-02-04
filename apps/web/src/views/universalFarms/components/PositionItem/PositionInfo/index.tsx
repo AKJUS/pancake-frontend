@@ -227,6 +227,7 @@ export const PositionInfo = memo((props: PositionInfoProps) => {
           <SolanaV3PoolPositionAprButton
             pool={pool as SolanaV3PoolInfo}
             userPosition={userPosition as SolanaV3PositionDetail}
+            textProps={{ bold: true }}
           />
         )
       }

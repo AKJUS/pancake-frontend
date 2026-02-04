@@ -18,7 +18,8 @@ export const useV2Positions = ({
 }) => {
   const { address: account } = useAccount()
   const allChainIds = useAllChainIds()
-  const { data: v2Positions, pending: v2Loading } = useAccountV2LpDetails(allChainIds, account)
+  // Fetch only from selected networks to reduce unnecessary API calls
+  const { data: v2Positions, pending: v2Loading } = useAccountV2LpDetails(selectedNetwork, account)
 
   const filteredV2Positions = useMemo(
     () =>

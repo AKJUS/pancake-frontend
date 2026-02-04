@@ -286,6 +286,7 @@ const usePositionTVLUsd = ({
 }
 
 export const useInfinityCLPositionApr = (pool: InfinityPoolInfo, position: InfinityCLPositionDetail) => {
+  const key = useMemo(() => `${pool?.chainId}:${pool?.lpAddress as Address}` as const, [pool?.chainId, pool?.lpAddress])
   const { removed, outOfRange, amount0, amount1, pool: onChainPoolInfo } = useExtraInfinityPositionInfo(position)
   const { data: token0UsdPrice } = useCurrencyUsdPrice(pool.token0)
   const { data: token1UsdPrice } = useCurrencyUsdPrice(pool.token1)
@@ -308,6 +309,9 @@ export const useInfinityCLPositionApr = (pool: InfinityPoolInfo, position: Infin
     }
   }, [onChainPoolInfo, pool])
   const cakeApr = useInfinityCLPositionCakeAPR({ pool: poolWithOnChainLiquidity, position, cakePrice, tvlUSD: TVLUsd })
+  const { merklApr: merklApr_, incentraApr: incentraApr_ } = usePoolApr(key, pool)
+  const merklApr = outOfRange || removed ? 0 : parseFloat(merklApr_ ?? 0) ?? 0
+  const incentraApr = outOfRange || removed ? 0 : parseFloat(incentraApr_ ?? 0) ?? 0
   return useInfinityPositionApr({
     pool: poolWithOnChainLiquidity,
     position,
@@ -316,10 +320,13 @@ export const useInfinityCLPositionApr = (pool: InfinityPoolInfo, position: Infin
     outOfRange,
     cakeApr,
     userTVLUsd: TVLUsd,
+    merklApr,
+    incentraApr,
   })
 }
 
 export const useInfinityBinPositionApr = (pool: InfinityPoolInfo, position: InfinityBinPositionDetail) => {
+  const key = useMemo(() => `${pool?.chainId}:${pool?.lpAddress as Address}` as const, [pool?.chainId, pool?.lpAddress])
   const [currency0, currency1] = useMemo(() => {
     if (!pool) return [undefined, undefined]
     return [pool.token0, pool.token1]
@@ -347,14 +354,22 @@ export const useInfinityBinPositionApr = (pool: InfinityPoolInfo, position: Infi
 
   const cakeApr = useInfinityBinPositionCakeAPR({ pool, position, cakePrice, tvlUSD: poolTVLUsd })
 
+  const removed = position.status === POSITION_STATUS.CLOSED
+  const outOfRange = position.status === POSITION_STATUS.INACTIVE
+  const { merklApr: merklApr_, incentraApr: incentraApr_ } = usePoolApr(key, pool)
+  const merklApr = outOfRange || removed ? 0 : parseFloat(merklApr_ ?? 0) ?? 0
+  const incentraApr = outOfRange || removed ? 0 : parseFloat(incentraApr_ ?? 0) ?? 0
+
   return useInfinityPositionApr({
     pool,
     position,
     positionLiquidity: position.activeLiquidity,
-    removed: position.status === POSITION_STATUS.CLOSED,
-    outOfRange: position.status === POSITION_STATUS.INACTIVE,
+    removed,
+    outOfRange,
     cakeApr,
     userTVLUsd: poolTVLUsd,
+    merklApr,
+    incentraApr,
   })
 }
 
@@ -375,6 +390,8 @@ export const useInfinityPositionApr = <T extends InfinityCLPositionDetail | Infi
   outOfRange,
   cakeApr,
   userTVLUsd: userTVLUsd_,
+  merklApr,
+  incentraApr,
 }: {
   pool: InfinityPoolInfo
   position: T
@@ -383,6 +400,8 @@ export const useInfinityPositionApr = <T extends InfinityCLPositionDetail | Infi
   outOfRange: boolean
   cakeApr: CakeApr[ChainIdAddressKey]
   userTVLUsd: BN
+  merklApr: number
+  incentraApr: number
 }): InfinityPositionAPR => {
   const share = useMemo(
     () => new BN(positionLiquidity.toString()).dividedBy(pool?.liquidity?.toString() ?? 1),
@@ -405,15 +424,14 @@ export const useInfinityPositionApr = <T extends InfinityCLPositionDetail | Infi
     return apr as `${number}`
   }, [userTVLUsd, outOfRange, pool.lpFee24hUsd, removed, share])
 
-  const merklApr = 0
-  const incentraApr = 0
-
   const numerator = useMemo(() => {
     if (outOfRange || removed) return BIG_ZERO
     return BN(lpApr)
       .plus(position.isStaked ? cakeApr.value : BIG_ZERO)
+      .plus(merklApr)
+      .plus(incentraApr)
       .times(userTVLUsd)
-  }, [cakeApr, lpApr, outOfRange, removed, position.isStaked, userTVLUsd])
+  }, [cakeApr, lpApr, merklApr, incentraApr, outOfRange, removed, position.isStaked, userTVLUsd])
   const denominator = userTVLUsd
 
   return {
@@ -724,7 +742,14 @@ export const useInfinityBinDerivedApr = (poolInfo: InfinityBinPoolInfo) => {
   const [liquidityShape] = useLiquidityShapeQueryState()
 
   const liquidity = useMemo(() => {
-    if (!lowerBinId || !upperBinId || !pool?.binStep) return BIG_ZERO
+    if (
+      lowerBinId === null ||
+      lowerBinId === undefined ||
+      upperBinId === null ||
+      upperBinId === undefined ||
+      !pool?.binStep
+    )
+      return BIG_ZERO
 
     const l = getActiveLiquidityFromShape({
       liquidityShape: liquidityShape as BinLiquidityShape,
@@ -740,7 +765,8 @@ export const useInfinityBinDerivedApr = (poolInfo: InfinityBinPoolInfo) => {
   }, [amountA, amountB, lowerBinId, upperBinId, pool?.binStep, pool?.activeId, liquidityShape])
 
   const inRange = useMemo(() => {
-    if (!pool || !lowerBinId || !upperBinId) return false
+    if (!pool || lowerBinId === null || lowerBinId === undefined || upperBinId === null || upperBinId === undefined)
+      return false
     return pool.activeId >= lowerBinId && pool.activeId <= upperBinId
   }, [pool, lowerBinId, upperBinId])
 

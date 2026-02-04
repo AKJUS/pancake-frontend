@@ -7,6 +7,7 @@ import { InfinityCLPositionDetail, PositionDetail } from 'state/farmsV4/state/ac
 
 import { PositionItem } from './PositionItem'
 import { PriceRange } from './PriceRange'
+import { V3_FEE_TIER_BASE } from '../../constants'
 
 type InfinityPositionItemProps = {
   data: InfinityCLPositionDetail
@@ -84,7 +85,7 @@ export const InfinityCLPositionItem = memo(
         removed={removed}
         outOfRange={outOfRange}
         fee={data.fee}
-        feeTierBase={1_000_000}
+        feeTierBase={V3_FEE_TIER_BASE}
         protocol={data.protocol}
         isStaked={data.isStaked && !outOfRange}
         tokenId={data.tokenId}

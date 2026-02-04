@@ -2,11 +2,12 @@ import { SORT_ORDER } from '@pancakeswap/uikit'
 import intersection from 'lodash/intersection'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo } from 'react'
+import { getHashKey } from 'utils/hash'
 import { POSITION_STATUS } from 'state/farmsV4/state/accountPositions/type'
 import { PoolInfo } from 'state/farmsV4/state/type'
 import { isAddress } from 'viem'
 import { IPoolsFilterPanelProps } from '../components'
-import { usePoolProtocols } from '../constants'
+import { usePoolProtocols } from './usePoolProtocols'
 import { useAllChainIds } from './useMultiChains'
 
 type filtersParams = Partial<
@@ -22,7 +23,7 @@ type filtersParams = Partial<
 export const useFilterToQueries = () => {
   const nextRouter = useRouter()
   const allChainIds = useAllChainIds()
-  const urlQuery = new URLSearchParams(window.location.search)
+  const urlQuery = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
   const {
     type: _type,
     network,
@@ -31,9 +32,17 @@ export const useFilterToQueries = () => {
     status,
     farmsOnly: queryFarmsOnly,
     search,
-    ...othersQueries
+    ...restQueries
   } = nextRouter.query
   const type = _type || urlQuery.get('type')
+
+  // Memoize othersQueries to prevent unstable reference that would cause
+  // replaceURLQueriesByFilter to be recreated on every render
+  const restQueriesHash = getHashKey(restQueries)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const othersQueries = useMemo(() => {
+    return restQueries
+  }, [restQueriesHash])
 
   const positionStatus = useMemo(
     () => (status ? Number(Array.isArray(status) ? status[0] : status) : POSITION_STATUS.ACTIVE),
@@ -92,13 +101,14 @@ export const useFilterToQueries = () => {
       if (filters.search) {
         params.search = filters.search
       }
+      const newQuery = {
+        ...othersQueries,
+        ...params,
+      }
       // Tokens might be too long, so keep them at the end to prevent other queries from being cut off by the browser.
       nextRouter.replace(
         {
-          query: {
-            ...othersQueries,
-            ...params,
-          },
+          query: newQuery,
         },
         undefined,
         {

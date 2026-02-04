@@ -7,6 +7,7 @@ import { V3PositionActions } from '../PositionActions/V3PositionActions'
 import { V3UnstakeModalContent } from '../PositionActions/V3UnstakeModalContent'
 import { PositionItem } from './PositionItem'
 import { PriceRange } from './PriceRange'
+import { V3_FEE_TIER_BASE } from '../../constants'
 
 type V3PositionItemProps = {
   data: PositionDetail
@@ -54,7 +55,7 @@ export const V3PositionItem = memo(({ data, detailMode, poolLength }: V3Position
       removed={removed}
       outOfRange={outOfRange}
       fee={data.fee}
-      feeTierBase={1_000_000}
+      feeTierBase={V3_FEE_TIER_BASE}
       protocol={data.protocol}
       isStaked={data.isStaked}
       tokenId={data.tokenId}

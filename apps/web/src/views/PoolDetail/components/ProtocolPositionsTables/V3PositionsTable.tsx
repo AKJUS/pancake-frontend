@@ -463,6 +463,9 @@ const transformV3PositionToTableRow = (
       removed={removed}
       currentPrice={priceRangeData.currentPrice || pool?.token0Price?.toFixed(18)}
       showPercentages={priceRangeData.showPercentages}
+      minPriceRaw={priceRangeData.minPrice}
+      maxPriceRaw={priceRangeData.maxPrice}
+      currentPriceRaw={priceRangeData.currentPriceValue}
     />
   )
 

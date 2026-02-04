@@ -24,7 +24,7 @@ import { Address, zeroAddress } from 'viem'
 import { usePoolFeatureAndType, usePoolTypeQuery } from 'views/AddLiquiditySelector/hooks/usePoolTypeQuery'
 import { Card, CardBody, CardHeader, ListView, useColumnConfig } from 'views/universalFarms/components'
 import { getPoolDetailPageLink } from 'utils/getPoolLink'
-import { usePoolTypes } from 'views/universalFarms/constants'
+import { usePoolTypes } from 'views/universalFarms/hooks'
 import { useOrderChainIds } from 'views/universalFarms/hooks/useMultiChains'
 import { Chain } from '@pancakeswap/chains'
 

@@ -2,30 +2,7 @@ import { useTranslation } from '@pancakeswap/localization'
 import { LinkExternal, Text } from '@pancakeswap/uikit'
 import { displayApr } from '@pancakeswap/utils/displayApr'
 import { PropsWithChildren } from 'react'
-import styled from 'styled-components'
-
-const StyledLi = styled.li`
-  flex-wrap: nowrap;
-  display: flex;
-  gap: 5px;
-  position: relative;
-  padding-left: 22px;
-  &::before {
-    content: '';
-    position: absolute;
-    transform: translateY(-50%);
-    top: 50%;
-    border-radius: 50%;
-    left: 0;
-    width: 6px;
-    height: 6px;
-    background: ${({ theme }) => theme.colors.text};
-  }
-
-  & > a {
-    cursor: pointer;
-  }
-`
+import { StyledLi } from '../shared/styled'
 
 type AprValue = {
   value: number | `${number}`

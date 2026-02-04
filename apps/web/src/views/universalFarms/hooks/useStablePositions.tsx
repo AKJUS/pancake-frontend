@@ -18,7 +18,8 @@ export const useStablePositions = ({
 }) => {
   const { address: account } = useAccount()
   const allChainIds = useAllChainIds()
-  const { data: stablePositions, pending: stableLoading } = useAccountStableLpDetails(allChainIds, account)
+  // Fetch only from selected networks to reduce unnecessary API calls
+  const { data: stablePositions, pending: stableLoading } = useAccountStableLpDetails(selectedNetwork, account)
 
   const filteredStablePositions = useMemo(
     () =>

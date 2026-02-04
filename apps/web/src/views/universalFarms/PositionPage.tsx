@@ -39,6 +39,8 @@ import {
   CardHeader as StyledCardHeader,
   useSelectedProtocols,
   PositionCard,
+  PositionsTable,
+  PositionsList,
 } from './components'
 import { useFilterToQueries } from './hooks/useFilterToQueries'
 import { useInfinityPositions } from './hooks/useInfinityPositions'
@@ -79,6 +81,10 @@ const ControlWrapper = styled.div`
     justify-content: flex-end;
     margin-top: 0;
   }
+`
+
+const StyledCard = styled(Card)`
+  min-height: 300px;
 `
 
 const CardBody = styled(StyledCardBody)`
@@ -155,10 +161,43 @@ export const PositionPage = () => {
 
   const { observerRef, isIntersecting } = useIntersectionObserver()
   const [cursorVisible, setCursorVisible] = useState(NUMBER_OF_FARMS_VISIBLE)
-  const { replaceURLQueriesByFilter, ...filters } = useFilterToQueries()
-  const { isMobile, isMd } = useMatchBreakpoints()
+  const filterQueryResult = useFilterToQueries()
+  const { isMobile, isSm, isMd, isLg } = useMatchBreakpoints()
 
-  const { selectedProtocolIndex, selectedNetwork, selectedTokens, positionStatus, farmsOnly, search } = filters
+  const {
+    selectedProtocolIndex,
+    selectedNetwork,
+    selectedTokens,
+    positionStatus,
+    farmsOnly,
+    search,
+    replaceURLQueriesByFilter,
+  } = filterQueryResult
+
+  // Memoize filters object to prevent infinite re-render loop
+  // Previously: `const { replaceURLQueriesByFilter, ...filters } = useFilterToQueries()` created a new object every render
+  const filters = useMemo(
+    () => ({
+      selectedProtocolIndex,
+      selectedNetwork,
+      selectedTokens,
+      positionStatus,
+      farmsOnly,
+      search,
+      sortOrder: filterQueryResult.sortOrder,
+      sortField: filterQueryResult.sortField,
+    }),
+    [
+      selectedProtocolIndex,
+      selectedNetwork,
+      selectedTokens,
+      positionStatus,
+      farmsOnly,
+      search,
+      filterQueryResult.sortOrder,
+      filterQueryResult.sortField,
+    ],
+  )
 
   const poolsFilter = useMemo(
     () => ({
@@ -191,15 +230,16 @@ export const PositionPage = () => {
 
   const handleFilterChange: IPoolsFilterPanelProps['onChange'] = useCallback(
     (newFilters) => {
-      replaceURLQueriesByFilter({
+      const mergedFilters = {
         ...filters,
         ...newFilters,
-      })
+      }
+      replaceURLQueriesByFilter(mergedFilters)
     },
     [filters, replaceURLQueriesByFilter],
   )
 
-  const { infinityPositions, infinityLoading, allInfinityPositions } = useInfinityPositions({
+  const { infinityPositions, infinityLoading } = useInfinityPositions({
     selectedNetwork,
     selectedTokens,
     positionStatus,
@@ -248,6 +288,14 @@ export const PositionPage = () => {
     return allPositionList.slice(0, cursorVisible)
   }, [allPositionList, cursorVisible])
 
+  const poolLengthMap = useMemo(
+    () => ({
+      ...v3PoolsLength,
+      ...v2PoolsLength,
+    }),
+    [v3PoolsLength, v2PoolsLength],
+  )
+
   const mainSection = useMemo(() => {
     if (!account && !solanaAccount) {
       return <EmptyListPlaceholder text={t('Please Connect Wallet to view positions.')} />
@@ -281,20 +329,15 @@ export const PositionPage = () => {
             </Text>
           </>
         )}
-        {visibleList.map((pos) => (
-          <PositionCard
-            key={getPositionKey(pos)}
-            data={pos}
-            poolLength={
-              pos.protocol === Protocol.V3
-                ? v3PoolsLength[pos.chainId]
-                : pos.protocol === Protocol.V2
-                ? v2PoolsLength[pos.pair.chainId]
-                : undefined
-            }
-            allInfinityPositions={allInfinityPositions}
-          />
-        ))}
+        {!isAnyLoading && visibleList.length > 0 && (
+          <>
+            {isMobile || isSm || isMd ? (
+              <PositionsList positions={visibleList} poolLengthMap={poolLengthMap} />
+            ) : (
+              <PositionsTable positions={visibleList} poolLengthMap={poolLengthMap} />
+            )}
+          </>
+        )}
       </>
     )
   }, [
@@ -303,13 +346,12 @@ export const PositionPage = () => {
     v3Loading,
     v2Loading,
     stableLoading,
+    solanaLoading,
     visibleList,
     t,
-    v3PoolsLength,
-    v2PoolsLength,
-    allInfinityPositions,
+    poolLengthMap,
     solanaAccount,
-    solanaLoading,
+    isMobile,
   ])
 
   useEffect(() => {
@@ -331,7 +373,7 @@ export const PositionPage = () => {
   }, [account])
 
   return (
-    <Card>
+    <StyledCard>
       <CardHeader p={isMobile ? '16px' : undefined}>
         <PoolsFilterPanel onChange={handleFilterChange} value={poolsFilter} includeSolana>
           {(isMobile || isMd) && <AddLiquidityButton scale="sm" height="40px" width="100%" />}
@@ -399,6 +441,6 @@ export const PositionPage = () => {
         ) : null}
         {Array.isArray(visibleList) && visibleList.length > 0 && <div ref={observerRef} />}
       </CardBody>
-    </Card>
+    </StyledCard>
   )
 }

@@ -210,6 +210,9 @@ const transformInfinityBinPositionToTableRow = (
       removed={removed}
       currentPrice={priceRangeData.currentPrice || pool?.token0Price?.toSignificant(18)}
       showPercentages={priceRangeData.showPercentages}
+      minPriceRaw={priceRangeData.minPrice}
+      maxPriceRaw={priceRangeData.maxPrice}
+      currentPriceRaw={priceRangeData.currentPriceValue}
     />
   )
 
@@ -287,13 +290,11 @@ const InfinityBinPositionRow: React.FC<{
   const aprData = useInfinityBinPositionApr(poolInfo, position)
 
   const amount0 = useMemo(
-    () =>
-      position?.reserveX && pool?.token0 ? CurrencyAmount.fromRawAmount(pool.token0, position.reserveX) : undefined,
+    () => (pool?.token0 ? CurrencyAmount.fromRawAmount(pool.token0, position?.reserveX ?? 0n) : undefined),
     [position?.reserveX, pool?.token0],
   )
   const amount1 = useMemo(
-    () =>
-      position?.reserveY && pool?.token1 ? CurrencyAmount.fromRawAmount(pool.token1, position.reserveY) : undefined,
+    () => (pool?.token1 ? CurrencyAmount.fromRawAmount(pool.token1, position?.reserveY ?? 0n) : undefined),
     [position?.reserveY, pool?.token1],
   )
 

@@ -344,6 +344,9 @@ const PriceRangeCard: React.FC<{
               rangePosition={priceRangeData.rangePosition}
               showPercentages={priceRangeData.showPercentages}
               maxWidth={position.status === POSITION_STATUS.INACTIVE ? '80%' : '100%'}
+              minPriceRaw={priceRangeData.minPrice}
+              maxPriceRaw={priceRangeData.maxPrice}
+              currentPriceRaw={priceRangeData.currentPriceValue}
             />
           </Flex>
           <RowBetween>

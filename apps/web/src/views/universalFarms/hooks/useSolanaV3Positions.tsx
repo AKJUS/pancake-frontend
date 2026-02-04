@@ -127,7 +127,7 @@ export const useSolanaV3PositionItems = ({
 
   // Sort positions by status
   const sortedSolanaPositions = useMemo(
-    () => filteredSolanaPositions?.sort((a, b) => a.status - b.status) || [],
+    () => (filteredSolanaPositions ? [...filteredSolanaPositions].sort((a, b) => a.status - b.status) : []),
     [filteredSolanaPositions],
   )
 

@@ -6,6 +6,14 @@ import { PublicKey } from '@solana/web3.js'
 import type { SolanaV3PoolInfo } from 'state/farmsV4/state/type'
 import { SolanaV3Pool } from 'state/pools/solana'
 
+/**
+ * Solana fee tier base for percentage calculations.
+ * Solana feeRate is stored as a decimal (e.g., 0.0025 for 0.25%),
+ * and needs to be multiplied by this base to convert to integer representation.
+ * Example: 0.0025 * SOLANA_FEE_TIER_BASE = 2500, then (2500 / SOLANA_FEE_TIER_BASE) * 100 = 0.25%
+ */
+export const SOLANA_FEE_TIER_BASE = 1_000_000
+
 export const normalizeSolanaPoolInfo = (
   solanaPoolInfo?: Omit<ApiV3PoolInfoConcentratedItem, 'type'> & {
     type: string
@@ -38,8 +46,8 @@ export const normalizeSolanaPoolInfo = (
     fee24hUsd: String(solanaPoolInfo.day.volumeFee) as `${number}`,
     lpFee24hUsd: String(solanaPoolInfo.day.volumeFee) as `${number}`,
     lpApr: String(solanaPoolInfo.day.apr) as `${number}`,
-    feeTier: Math.round(solanaPoolInfo.feeRate * 1e6), // Convert to basis points
-    feeTierBase: 1e6, // Base for percentage calculations
+    feeTier: Math.round(solanaPoolInfo.feeRate * SOLANA_FEE_TIER_BASE),
+    feeTierBase: SOLANA_FEE_TIER_BASE,
     isFarming: false,
     isDynamicFee: false,
     rawPool: solanaPoolInfo as SolanaV3Pool,

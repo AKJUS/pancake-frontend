@@ -73,8 +73,8 @@ export const useAccountV2LpDetails = (chainIds: number[], account?: Address | nu
   return useMemo(
     () => ({
       data: data ?? [],
-      pending: isLoading || isFetching,
+      pending: isLoading,
     }),
-    [data, isLoading, isFetching],
+    [data, isLoading],
   )
 }

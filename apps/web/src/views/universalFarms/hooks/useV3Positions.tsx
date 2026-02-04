@@ -32,7 +32,8 @@ export const useV3Positions = ({
 }) => {
   const { address: account } = useAccount()
   const allChainIds = useAllEvmChainIds()
-  const { data: v3Positions, pending: v3Loading } = useAccountV3Positions(allChainIds, account)
+  // Fetch only from selected networks to reduce unnecessary API calls
+  const { data: v3Positions, pending: v3Loading } = useAccountV3Positions(selectedNetwork, account)
   const v3PoolKeys = useMemo(
     () =>
       v3Positions.map(

@@ -2,9 +2,9 @@ import { Flex, FlexGap, Text } from '@pancakeswap/uikit'
 import { formatNumber } from '@pancakeswap/utils/formatNumber'
 import styled from 'styled-components'
 
-const PriceRangeContainer = styled.div<{ $maxWidth?: string }>`
+const PriceRangeContainer = styled.div`
   position: relative;
-  width: ${({ $maxWidth }) => $maxWidth ?? '180px'};
+  width: 100%;
   height: 20px;
   display: flex;
   align-items: center;
@@ -90,7 +90,7 @@ const RangeMarker = styled.div<{ position: number; disabled?: boolean }>`
   z-index: 2;
 `
 
-const PercentageText = styled(Text)<{ isNegative?: boolean }>`
+const PercentageText = styled(Text)`
   color: ${({ theme }) => theme.colors.textSubtle};
   font-size: 12px;
   font-weight: 400;
@@ -144,6 +144,14 @@ const PriceContainer = styled.div<{ leftPosition: number; rightPosition: number;
   }
 `
 
+const BarWrapper = styled.div<{ $maxWidth?: string }>`
+  width: 100%;
+  max-width: ${({ $maxWidth }) => $maxWidth};
+  margin-bottom: 4px;
+  margin-left: auto;
+  margin-right: auto;
+`
+
 interface PriceRangeDisplayProps {
   minPrice: string
   maxPrice: string
@@ -155,6 +163,10 @@ interface PriceRangeDisplayProps {
   removed?: boolean
   showPercentages?: boolean
   maxWidth?: string
+  // Raw numeric values for validation (avoid parsing formatted strings)
+  minPriceRaw?: number
+  maxPriceRaw?: number
+  currentPriceRaw?: number
 }
 
 export const PriceRangeDisplay: React.FC<PriceRangeDisplayProps> = ({
@@ -168,41 +180,83 @@ export const PriceRangeDisplay: React.FC<PriceRangeDisplayProps> = ({
   removed = false,
   showPercentages = true,
   maxWidth = '190px',
+  minPriceRaw,
+  maxPriceRaw,
+  currentPriceRaw,
 }) => {
-  // Convert prices to numbers for comparison
-  const currentPriceNum = currentPrice ? parseFloat(currentPrice) : null
-  const minPriceNum = parseFloat(minPrice)
-  const maxPriceNum = parseFloat(maxPrice)
+  // Use raw values if provided, otherwise mark as invalid
+  const currentPriceNum = currentPriceRaw ?? null
+  let minPriceNum = minPriceRaw ?? NaN
+  let maxPriceNum = maxPriceRaw ?? NaN
 
-  // Validate price range
-  if (minPriceNum >= maxPriceNum) {
-    console.warn('Invalid price range: minPrice should be less than maxPrice')
+  // CRITICAL FIX: If prices are inverted, swap them before display
+  // This is a final safeguard in case prices are still inverted after upstream fixes
+  let displayMinPriceStr = minPrice
+  let displayMaxPriceStr = maxPrice
+  if (!Number.isNaN(minPriceNum) && !Number.isNaN(maxPriceNum) && minPriceNum > maxPriceNum) {
+    const temp = minPriceNum
+    minPriceNum = maxPriceNum
+    maxPriceNum = temp
+    // Also swap the string values for display
+    displayMinPriceStr = maxPrice
+    displayMaxPriceStr = minPrice
   }
 
-  // Check if current price is out of range
-  const isOverflowLeft = currentPriceNum !== null && currentPriceNum < minPriceNum
-  const isOverflowRight = currentPriceNum !== null && currentPriceNum > maxPriceNum
+  // Check if current price is out of range - skip if prices are invalid
+  const isOverflowLeft =
+    currentPriceNum !== null &&
+    !Number.isNaN(minPriceNum) &&
+    !Number.isNaN(maxPriceNum) &&
+    currentPriceNum < minPriceNum
+  const isOverflowRight =
+    currentPriceNum !== null &&
+    !Number.isNaN(minPriceNum) &&
+    !Number.isNaN(maxPriceNum) &&
+    currentPriceNum > maxPriceNum
   const hasOverflow = outOfRange && (isOverflowLeft || isOverflowRight)
 
   // Calculate display values and positions
-  const displayMinPrice =
-    minPrice !== '0'
-      ? formatNumber(
-          minPrice,
-          Number(minPrice) < 1 ? { maximumDecimalTrailingZeroes: 4 } : { maxDecimalDisplayDigits: 4 },
-        )
-      : '0'
-  const displayMaxPrice =
-    maxPrice !== '∞'
-      ? formatNumber(
-          maxPrice,
-          Number(maxPrice) < 1 ? { maximumDecimalTrailingZeroes: 4 } : { maxDecimalDisplayDigits: 4 },
-        )
-      : '∞'
+  // Prices are now smartly formatted upstream in priceRange.ts functions
+  // Only need to handle edge cases and validate the input
+  let displayMinPrice = displayMinPriceStr
+  let displayMaxPrice = displayMaxPriceStr
+
+  // Handle special values based on raw numeric values and formatted strings
+  if (displayMinPriceStr === '0') {
+    displayMinPrice = '0'
+  } else if (
+    displayMinPriceStr === '-' ||
+    displayMinPriceStr === 'NaN' ||
+    displayMinPriceStr.includes('NaN') ||
+    Number.isNaN(minPriceNum)
+  ) {
+    displayMinPrice = '-'
+  }
+
+  if (displayMaxPriceStr === '∞' || displayMaxPriceStr === 'Infinity') {
+    displayMaxPrice = '∞'
+  } else if (
+    displayMaxPriceStr === '-' ||
+    displayMaxPriceStr === 'NaN' ||
+    displayMaxPriceStr.includes('NaN') ||
+    Number.isNaN(maxPriceNum)
+  ) {
+    displayMaxPrice = '-'
+  }
 
   let currentPriceLinePosition = rangePosition
   let percentageLeftPosition = 0
   let percentageRightPosition = 100
+
+  // Check if we have valid prices for position calculations
+  // If any price is invalid (-, NaN, etc.), keep default edge positions (0 and 100)
+  const hasValidPrices =
+    displayMinPrice !== '-' &&
+    displayMaxPrice !== '-' &&
+    !Number.isNaN(minPriceNum) &&
+    !Number.isNaN(maxPriceNum) &&
+    Number.isFinite(minPriceNum) &&
+    Number.isFinite(maxPriceNum)
 
   // Accommodate longer numbers
   const EXTRA_DISTANCE = Math.min(
@@ -216,7 +270,8 @@ export const PriceRangeDisplay: React.FC<PriceRangeDisplayProps> = ({
   // Minimum width for the main range (colored segment) in percentage
   const MIN_RANGE_WIDTH = 35 + EXTRA_DISTANCE
 
-  if (hasOverflow && currentPriceNum !== null) {
+  // Only calculate custom positions if we have valid prices and overflow condition
+  if (hasOverflow && hasValidPrices && currentPriceNum !== null) {
     if (isOverflowLeft) {
       const totalRange = maxPriceNum - currentPriceNum
       const graySegmentWidth = ((minPriceNum - currentPriceNum) / totalRange) * 100
@@ -354,10 +409,12 @@ export const PriceRangeDisplay: React.FC<PriceRangeDisplayProps> = ({
     if (!hasOverflow) {
       // Original behavior - percentages at the edges
       return (
-        <FlexGap alignItems="center" justifyContent="space-between" width="100%" maxWidth={maxWidth} mb="4px">
-          <PercentageText>{minPercentage}</PercentageText>
-          <PercentageText>{maxPercentage}</PercentageText>
-        </FlexGap>
+        <BarWrapper $maxWidth={maxWidth}>
+          <FlexGap alignItems="center" justifyContent="space-between" width="100%">
+            <PercentageText>{minPercentage}</PercentageText>
+            <PercentageText>{maxPercentage}</PercentageText>
+          </FlexGap>
+        </BarWrapper>
       )
     }
 
@@ -382,19 +439,21 @@ export const PriceRangeDisplay: React.FC<PriceRangeDisplayProps> = ({
     if (!hasOverflow) {
       // Original behavior - prices at the edges with dash
       return (
-        <FlexGap alignItems="center" gap="8px" mb="2px" width="100%" maxWidth={maxWidth}>
-          <Flex alignItems="center" justifyContent="space-between" width="100%">
-            <Text fontSize="16px" bold>
-              {displayMinPrice}
-            </Text>
-            <Text fontSize="16px" bold>
-              -
-            </Text>
-            <Text fontSize="16px" bold>
-              {displayMaxPrice}
-            </Text>
-          </Flex>
-        </FlexGap>
+        <BarWrapper $maxWidth={maxWidth} style={{ marginBottom: '2px' }}>
+          <FlexGap alignItems="center" gap="8px" width="100%">
+            <Flex alignItems="center" justifyContent="space-between" width="100%">
+              <Text fontSize="16px" bold>
+                {displayMinPrice}
+              </Text>
+              <Text fontSize="16px" bold>
+                -
+              </Text>
+              <Text fontSize="16px" bold>
+                {displayMaxPrice}
+              </Text>
+            </Flex>
+          </FlexGap>
+        </BarWrapper>
       )
     }
 
@@ -426,9 +485,9 @@ export const PriceRangeDisplay: React.FC<PriceRangeDisplayProps> = ({
 
       {/* Price range bar */}
       {showPercentages && (
-        <Flex width="100%" maxWidth={maxWidth} justifyContent="center" mb="4px" ml="auto" mr="auto">
-          <PriceRangeContainer $maxWidth={maxWidth}>{renderBar()}</PriceRangeContainer>
-        </Flex>
+        <BarWrapper $maxWidth={maxWidth}>
+          <PriceRangeContainer>{renderBar()}</PriceRangeContainer>
+        </BarWrapper>
       )}
 
       {/* Percentage display below the range bar */}

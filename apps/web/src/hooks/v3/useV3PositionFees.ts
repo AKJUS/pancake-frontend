@@ -2,9 +2,10 @@ import { Currency, CurrencyAmount } from '@pancakeswap/sdk'
 import { Pool } from '@pancakeswap/v3-sdk'
 import { useV3NFTPositionManagerContract } from 'hooks/useContract'
 import { useEffect, useMemo, useState } from 'react'
+import { useReadContract } from '@pancakeswap/wagmi'
 import { useCurrentBlock } from 'state/block/hooks'
-import { useSingleCallResult } from 'state/multicall/hooks'
 import { unwrappedToken } from 'utils/wrappedCurrency'
+import { Address } from 'viem'
 
 const MAX_UINT128 = 2n ** 128n - 1n
 
@@ -15,36 +16,66 @@ export function useV3PositionFees(
   asWNATIVE = false,
   enable = true,
 ): [CurrencyAmount<Currency>, CurrencyAmount<Currency>] | [undefined, undefined] {
-  const positionManager = useV3NFTPositionManagerContract({ chainId: pool?.chainId ?? pool?.token0.chainId })
-  const owner = useSingleCallResult({
-    contract: tokenId ? positionManager : null,
+  const chainId = pool?.chainId ?? pool?.token0.chainId
+  const positionManager = useV3NFTPositionManagerContract({ chainId })
+
+  // Use wagmi's useReadContract for cross-chain support - this is the key fix!
+  const args = useMemo(() => (tokenId ? [tokenId] : undefined), [tokenId])
+  const { data: owner } = useReadContract({
+    abi: positionManager?.abi,
+    address: positionManager?.address,
     functionName: 'ownerOf',
-    args: useMemo(() => [tokenId!] as const, [tokenId]),
-  }).result
+    args,
+    chainId,
+    query: {
+      enabled: enable && !!positionManager && tokenId !== undefined,
+    },
+  })
 
   const latestBlockNumber = useCurrentBlock()
 
   // we can't use multicall for this because we need to simulate the call from a specific address
   // latestBlockNumber is included to ensure data stays up-to-date every block
   const [amounts, setAmounts] = useState<[bigint, bigint] | undefined>()
+
+  // Reset amounts when tokenId changes to avoid showing stale fee data from previous position
   useEffect(() => {
+    setAmounts(undefined)
+  }, [tokenId])
+
+  useEffect(() => {
+    let isMounted = true
+
     if (enable && positionManager && typeof tokenId !== 'undefined' && owner) {
+      const ownerAddress = owner as Address
       positionManager.simulate
         .collect(
           [
             {
               tokenId,
-              recipient: owner, // some tokens might fail if transferred to address(0)
+              recipient: ownerAddress, // some tokens might fail if transferred to address(0)
               amount0Max: MAX_UINT128,
               amount1Max: MAX_UINT128,
             },
           ],
-          { account: owner, value: 0n }, // need to simulate the call as the owner
+          { account: ownerAddress, value: 0n }, // need to simulate the call as the owner
         )
         .then((results) => {
-          const [amount0, amount1] = results.result
-          setAmounts([amount0, amount1])
+          if (isMounted) {
+            const [amount0, amount1] = results.result
+            setAmounts([amount0, amount1])
+          }
         })
+        .catch((error) => {
+          if (isMounted) {
+            console.error('[useV3PositionFees] Error simulating collect:', error)
+            // Don't set amounts on error, keep previous value or undefined
+          }
+        })
+    }
+
+    return () => {
+      isMounted = false
     }
   }, [enable, positionManager, owner, latestBlockNumber, tokenId])
 

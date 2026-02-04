@@ -13,6 +13,8 @@ export type PriceRangeProps = {
   tickUpper: number
   baseIn: boolean
   poolInfo?: SolanaV3Pool
+  /** Optional: poolId and pair symbols (e.g. "ETH/CAKE") for [RangeDebug] logs */
+  debugMeta?: { poolId?: string; pairSymbols?: string }
 }
 
 export interface PriceRangeData {
@@ -23,17 +25,30 @@ export interface PriceRangeData {
   rangePosition: number
   showPercentages: boolean
   currentPrice?: string
+  // Raw numeric values for validation (avoid parsing formatted strings)
+  minPrice?: number
+  maxPrice?: number
+  currentPriceValue?: number
 }
 
 /**
  * Safely converts tick to price using Solana SDK with maximum precision
  * Used in Solana price range calculations
  */
-const getTickPrice = (tick: number, poolInfo: SolanaV3Pool, baseIn: boolean): number => {
+const getTickPrice = (
+  tick: number,
+  poolInfo: SolanaV3Pool,
+  baseIn: boolean,
+  debugMeta?: { poolId?: string; pairSymbols?: string },
+): number => {
   try {
     // Use TickUtils constants for bounds checking
-    if (tick >= MAX_TICK) return Infinity
-    if (tick <= MIN_TICK) return 0
+    if (tick >= MAX_TICK) {
+      return Infinity
+    }
+    if (tick <= MIN_TICK) {
+      return 0
+    }
 
     // Use the Solana SDK's getTickPrice function for accurate calculation
     const tickPrice = TickUtils.getTickPrice({
@@ -42,11 +57,13 @@ const getTickPrice = (tick: number, poolInfo: SolanaV3Pool, baseIn: boolean): nu
       baseIn,
     })
 
-    return parseFloat(tickPrice.price.toFixed(18))
+    const priceValue = parseFloat(tickPrice.price.toFixed(18))
+    return priceValue
   } catch (error) {
     console.error('Error calculating tick price:', error)
     const basePrice = 1.0001 ** tick
-    return baseIn ? basePrice : 1 / basePrice
+    const fallbackPrice = baseIn ? basePrice : 1 / basePrice
+    return fallbackPrice
   }
 }
 
@@ -120,13 +137,20 @@ export const usePriceRange = ({ tickLower, tickUpper, baseIn, poolInfo }: PriceR
  * Hook for calculating detailed price range data for Solana V3 positions
  * Based on calculateTickBasedPriceRange from priceRange.ts
  */
-export const usePriceRangeData = ({ tickLower, tickUpper, baseIn, poolInfo }: PriceRangeProps): PriceRangeData => {
+export const usePriceRangeData = ({
+  tickLower,
+  tickUpper,
+  baseIn,
+  poolInfo,
+  debugMeta,
+}: PriceRangeProps): PriceRangeData => {
   const currency0 = useMemo(() => convertRawTokenInfoIntoSPLToken(poolInfo?.mintA as TokenInfo), [poolInfo?.mintA])
   const currency1 = useMemo(() => convertRawTokenInfoIntoSPLToken(poolInfo?.mintB as TokenInfo), [poolInfo?.mintB])
 
   const tickAtLimit = useMemo(() => {
     const tickLimits = calculateSolanaTickLimits(poolInfo?.config.tickSpacing)
-    return getTickAtLimitStatus(tickLower, tickUpper, tickLimits)
+    const limitStatus = getTickAtLimitStatus(tickLower, tickUpper, tickLimits)
+    return limitStatus
   }, [poolInfo?.config.tickSpacing, tickLower, tickUpper])
 
   return useMemo(() => {
@@ -165,8 +189,39 @@ export const usePriceRangeData = ({ tickLower, tickUpper, baseIn, poolInfo }: Pr
     const maxPrice = getTickPrice(actualTickUpper, poolInfo, baseIn)
 
     // Format prices with special handling for tick limits
-    minPriceFormatted = actualIsTickAtLimit[Bound.LOWER] ? '0' : minPrice.toString() || '-'
-    maxPriceFormatted = actualIsTickAtLimit[Bound.UPPER] ? '∞' : maxPrice.toString() || '-'
+    if (actualIsTickAtLimit[Bound.LOWER]) {
+      minPriceFormatted = '0'
+    } else {
+      const minPriceStr = minPrice.toString()
+      minPriceFormatted = minPriceStr || '-'
+    }
+
+    if (actualIsTickAtLimit[Bound.UPPER]) {
+      maxPriceFormatted = '∞'
+    } else {
+      const maxPriceStr = maxPrice.toString()
+      maxPriceFormatted = maxPriceStr || '-'
+    }
+
+    // Always calculate current price if poolInfo.price exists (regardless of tick limits)
+    if (poolInfo.price) {
+      try {
+        // Use the current price from pool, applying baseIn logic like in usePriceRange
+        let currentPrice = parseFloat(poolInfo.price.toString())
+
+        if (!baseIn) {
+          // When baseIn is false, we need to invert the price
+          currentPrice = 1 / currentPrice
+        }
+
+        if (currentPrice > 0 && Number.isFinite(currentPrice)) {
+          currentPriceString = currentPrice.toFixed(18)
+        }
+      } catch (error) {
+        // If price calculation fails, continue silently
+        console.warn('Current price calculation error:', error)
+      }
+    }
 
     // Handle full range positions
     if (actualIsTickAtLimit[Bound.LOWER] && actualIsTickAtLimit[Bound.UPPER]) {
@@ -176,15 +231,10 @@ export const usePriceRangeData = ({ tickLower, tickUpper, baseIn, poolInfo }: Pr
       maxPercentage = '100%'
       minPriceFormatted = '0'
       maxPriceFormatted = '∞'
-    } else if (poolInfo.price && actualTickLower > MIN_TICK && actualTickUpper < MAX_TICK) {
-      // Calculate percentages only if prices are not at limits and pool exists
+    } else if (currentPriceString && actualTickLower > MIN_TICK && actualTickUpper < MAX_TICK) {
+      // Calculate percentages only if prices are not at limits and we have a valid current price
       try {
-        // Use the current price from pool, applying baseIn logic like in usePriceRange
-        let currentPrice = parseFloat(poolInfo.price.toString())
-        if (!baseIn) {
-          // When baseIn is false, we need to invert the price
-          currentPrice = 1 / currentPrice
-        }
+        const currentPrice = parseFloat(currentPriceString)
 
         if (
           currentPrice > 0 &&
@@ -207,16 +257,15 @@ export const usePriceRangeData = ({ tickLower, tickUpper, baseIn, poolInfo }: Pr
             maxPercentage = formatPercentage(maxPercent)
             rangePosition = Math.max(0, Math.min(100, ((currentPrice - minPrice) / (maxPrice - minPrice)) * 100))
             showPercentages = true
-            currentPriceString = currentPrice.toFixed(18)
           }
         }
       } catch (error) {
         // If any calculation fails, just show the price range without percentages
-        console.warn('Price calculation error:', error)
+        console.warn('Price percentage calculation error:', error)
       }
     }
 
-    return {
+    const result = {
       minPriceFormatted,
       maxPriceFormatted,
       minPercentage,
@@ -224,6 +273,15 @@ export const usePriceRangeData = ({ tickLower, tickUpper, baseIn, poolInfo }: Pr
       rangePosition,
       showPercentages,
       currentPrice: currentPriceString,
+      // Raw numeric values for validation
+      minPrice: Number.isFinite(minPrice) ? minPrice : undefined,
+      maxPrice: Number.isFinite(maxPrice) ? maxPrice : undefined,
+      currentPriceValue:
+        currentPriceString && Number.isFinite(parseFloat(currentPriceString))
+          ? parseFloat(currentPriceString)
+          : undefined,
     }
+
+    return result
   }, [tickLower, tickUpper, baseIn, poolInfo, currency0, currency1, tickAtLimit])
 }

@@ -46,6 +46,7 @@ type PoolPositionAprButtonProps<TPosition, TPoolInfo = PoolInfo> = {
 export const V2PoolPositionAprButton: React.FC<PoolPositionAprButtonProps<StableLPDetail | V2LPDetail>> = ({
   pool,
   userPosition,
+  textProps,
 }) => {
   const { lpApr, cakeApr, merklApr, numerator, denominator } = useV2PositionApr(pool, userPosition)
   const { updateTotalApr } = useMyPositions()
@@ -55,12 +56,13 @@ export const V2PoolPositionAprButton: React.FC<PoolPositionAprButtonProps<Stable
       updateTotalApr(`${pool.chainId}:${pool.lpAddress}:${userPosition.isStaked}`, numerator, denominator)
   }, [denominator, numerator, pool.chainId, pool.lpAddress, updateTotalApr, userPosition.isStaked])
 
-  return <PoolAprButton pool={pool} lpApr={lpApr} cakeApr={cakeApr} merklApr={merklApr} />
+  return <PoolAprButton pool={pool} lpApr={lpApr} cakeApr={cakeApr} merklApr={merklApr} textProps={textProps} />
 }
 
 export const V3PoolPositionAprButton: React.FC<PoolPositionAprButtonProps<PositionDetail>> = ({
   pool,
   userPosition,
+  textProps,
 }) => {
   const { lpApr, cakeApr, merklApr, incentraApr, numerator, denominator } = useV3PositionApr(pool, userPosition)
   const { updateTotalApr } = useMyPositions()
@@ -78,6 +80,7 @@ export const V3PoolPositionAprButton: React.FC<PoolPositionAprButtonProps<Positi
       merklApr={merklApr}
       incentraApr={incentraApr}
       userPosition={userPosition}
+      textProps={textProps}
     />
   )
 }
@@ -105,16 +108,16 @@ export const SolanaV3PoolPositionAprButton: React.FC<
 
 export const InfinityCLPoolPositionAprButton: React.FC<
   PoolPositionAprButtonProps<InfinityCLPositionDetail, InfinityPoolInfo>
-> = ({ pool, userPosition }) => {
+> = ({ pool, userPosition, textProps }) => {
   const apr = useInfinityCLPositionApr(pool, userPosition)
-  return <InfinityPoolPositionAprButton apr={apr} pool={pool} userPosition={userPosition} />
+  return <InfinityPoolPositionAprButton apr={apr} pool={pool} userPosition={userPosition} textProps={textProps} />
 }
 
 export const InfinityBinPoolPositionAprButton: React.FC<
   PoolPositionAprButtonProps<InfinityBinPositionDetail, InfinityPoolInfo>
-> = ({ pool, userPosition }) => {
+> = ({ pool, userPosition, textProps }) => {
   const apr = useInfinityBinPositionApr(pool, userPosition)
-  return <InfinityPoolPositionAprButton apr={apr} pool={pool} userPosition={userPosition} />
+  return <InfinityPoolPositionAprButton apr={apr} pool={pool} userPosition={userPosition} textProps={textProps} />
 }
 
 type InfinityPoolPositionAprButtonProps<
@@ -124,12 +127,14 @@ type InfinityPoolPositionAprButtonProps<
   pool: TPoolInfo
   userPosition: TPosition
   apr: InfinityPositionAPR
+  textProps?: TextProps
 }
 
 export const InfinityPoolPositionAprButton = <T extends InfinityCLPositionDetail | InfinityBinPositionDetail>({
   pool,
   userPosition,
   apr,
+  textProps,
 }: InfinityPoolPositionAprButtonProps<T>) => {
   const { lpApr, cakeApr, merklApr, incentraApr, numerator, denominator } = apr
   const { updateTotalApr } = useMyPositions()
@@ -165,6 +170,7 @@ export const InfinityPoolPositionAprButton = <T extends InfinityCLPositionDetail
         userPosition={userPosition}
         onAPRTextClick={APRBreakdownModalState.onOpen}
         showApyButton={false}
+        textProps={textProps}
       />
       {APRBreakdownModalState.isOpen ? (
         <APRBreakdownModal

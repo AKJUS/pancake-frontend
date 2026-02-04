@@ -7,7 +7,7 @@ import { ToastDescriptionWithTx } from 'components/Toast'
 import { useCakePrice } from 'hooks/useCakePrice'
 import useCatchTxError from 'hooks/useCatchTxError'
 import { useTokenAllowanceByChainId } from 'hooks/useTokenAllowance'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState, memo } from 'react'
 import { usePoolApr } from 'state/farmsV4/hooks'
 import { getBCakeWrapperAddress } from 'state/farmsV4/state/accountPositions/fetcher'
 import { useAccountV2PendingCakeReward } from 'state/farmsV4/state/accountPositions/hooks/useAccountV2PendingCakeReward'
@@ -47,7 +47,7 @@ const StyledAutoRow = styled(AutoRow)`
     flex: 1;
   }
 `
-export const V2PositionActions: React.FC<V2PositionActionsProps> = ({ isStaked, ...props }) => {
+export const V2PositionActions: React.FC<V2PositionActionsProps> = memo(({ isStaked, ...props }) => {
   return (
     <StopPropagation>
       <StyledAutoRow gap="sm">
@@ -62,7 +62,7 @@ export const V2PositionActions: React.FC<V2PositionActionsProps> = ({ isStaked, 
       </StyledAutoRow>
     </StopPropagation>
   )
-}
+})
 
 const useDepositModal = (props: V2PositionActionsProps) => {
   const { chainId, data, pid, lpAddress, tvlUsd, poolInfo } = props

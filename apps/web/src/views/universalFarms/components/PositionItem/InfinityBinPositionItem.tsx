@@ -9,6 +9,7 @@ import { CurrencyAmount } from '@pancakeswap/swap-sdk-core'
 import { maxUint24 } from 'viem'
 import { PositionItem } from './PositionItem'
 import { PriceRange } from './PriceRange'
+import { V3_FEE_TIER_BASE } from '../../constants'
 
 type InfinityPositionItemProps = {
   data: InfinityBinPositionDetail
@@ -101,7 +102,7 @@ export const InfinityBinPositionItem = memo(
         outOfRange={data.status === POSITION_STATUS.INACTIVE}
         removed={data.status === POSITION_STATUS.CLOSED}
         fee={pool?.feeTier ?? 0}
-        feeTierBase={1_000_000}
+        feeTierBase={V3_FEE_TIER_BASE}
         protocol={data.protocol}
         isStaked={data.isStaked}
         detailMode={detailMode}

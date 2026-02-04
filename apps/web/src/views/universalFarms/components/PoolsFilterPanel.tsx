@@ -9,7 +9,7 @@ import isUndefined from 'lodash/isUndefined'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { UpdaterByChainId } from 'state/lists/updater'
 import styled from 'styled-components'
-import { usePoolProtocols } from '../constants'
+import { usePoolProtocols } from '../hooks'
 import { MAINNET_CHAINS, useAllChainsOpts } from '../hooks/useMultiChains'
 
 const PoolsFilterContainer = styled(Flex)<{ $childrenCount: number }>`
@@ -114,9 +114,10 @@ export const PoolsFilterPanel: React.FC<React.PropsWithChildren<IPoolsFilterPane
   )
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value
     focusRef.current = true
-    setSearchText(e.target.value)
-    debouncedOnChange.current(e.target.value)
+    setSearchText(newValue)
+    debouncedOnChange.current(newValue)
   }, [])
 
   useEffect(() => {
@@ -124,15 +125,20 @@ export const PoolsFilterPanel: React.FC<React.PropsWithChildren<IPoolsFilterPane
     setSearchText(value.search ?? '')
   }, [value.search, searchText])
 
+  // Update onChangeRef when onChange changes - but DON'T cancel debounce!
+  // The old pattern was canceling debounce whenever onChange changed, which caused
+  // search to never execute if the callback was recreated frequently.
+  useEffect(() => {
+    onChangeRef.current = onChange
+  }, [onChange])
+
+  // Only cancel debounce on unmount
   useEffect(() => {
     const debounced = debouncedOnChange.current
-    debounced.cancel()
-    onChangeRef.current = onChange
-
     return () => {
       debounced.cancel()
     }
-  }, [onChange])
+  }, [])
 
   const protocols = usePoolProtocols()
   const childrenCount = useMemo(() => 2 + React.Children.count(children), [children])

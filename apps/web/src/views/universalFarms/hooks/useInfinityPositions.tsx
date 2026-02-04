@@ -28,7 +28,7 @@ export const useInfinityPositions = ({
   positionStatus,
   farmsOnly,
 }: InfinityPositionsParams) => {
-  const { data: allPositions, isLoading } = useInfinityPositionsData()
+  const { data: allPositions, isLoading } = useInfinityPositionsData(selectedNetwork)
   const { protocols, isSelectAllProtocols, isSelectAllFeatures, features } = usePoolFeatureAndType()
   const infinityTypes = useMemo(
     () => (isSelectAllProtocols || !protocols.length ? ALL_PROTOCOLS : protocols),
@@ -98,14 +98,13 @@ export const useInfinityPositions = ({
   }
 }
 
-export const useInfinityPositionsData = () => {
+export const useInfinityPositionsData = (selectedNetwork?: number[]) => {
   const { address: account } = useAccount()
   const allChainIds = useAllEvmChainIds()
-  const { data: infinityCLPositions, pending: infinityCLLoading } = useAccountInfinityCLPositions(allChainIds, account)
-  const { data: infinityBinPositions, pending: infinityBinLoading } = useAccountInfinityBinPositions(
-    account,
-    allChainIds,
-  )
+  // Use selectedNetwork if provided to reduce unnecessary API calls, otherwise fallback to all chains
+  const chainIds = selectedNetwork && selectedNetwork.length > 0 ? selectedNetwork : allChainIds
+  const { data: infinityCLPositions, pending: infinityCLLoading } = useAccountInfinityCLPositions(chainIds, account)
+  const { data: infinityBinPositions, pending: infinityBinLoading } = useAccountInfinityBinPositions(account, chainIds)
 
   const positions = useMemo(
     () =>

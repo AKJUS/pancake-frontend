@@ -3,7 +3,7 @@ import { TreeSelectChangeEvent } from '@pancakeswap/uikit'
 import { SELECTED_ALL, SELECTED_NONE, fromSelectedNodes, toSelectedNodes } from '@pancakeswap/widgets-internal'
 import { useDynamicRouteParam } from 'hooks/useDynamicRouteParam'
 import { useCallback, useMemo } from 'react'
-import { POOL_TYPE_FEATURE, usePoolTypes } from 'views/universalFarms/constants'
+import { POOL_TYPE_FEATURE, usePoolTypes } from 'views/universalFarms/hooks'
 
 export const usePoolTypeQuery = () => {
   const poolTypesTree = usePoolTypes()
