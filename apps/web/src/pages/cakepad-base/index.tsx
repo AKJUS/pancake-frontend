@@ -9,18 +9,26 @@ import { IfoV2Provider } from 'views/Cakepad/contexts/IfoV2Provider'
 import { ChainId } from '@pancakeswap/chains'
 import { useCheckAndSwitchChain } from 'hooks/useCheckAndSwitchChain'
 import BaseMiniAppProvider from 'components/BaseMiniAppProvider'
+import NoIfoState from 'views/Cakepad/components/NoIfoState'
 
 const View = () => {
-  useIfoConfigs()
+  const { data: ifoConfigs, isLoading } = useIfoConfigs()
   useCheckAndSwitchChain(ChainId.BASE)
+
+  const baseIfoConfigs = ifoConfigs?.filter((ifo) => ifo.chainId === ChainId.BASE)
+  const showEmptyState = !isLoading && (!baseIfoConfigs || baseIfoConfigs.length === 0)
 
   return (
     <BaseMiniAppProvider>
       <PageMeta />
-      <IfoV2Provider>
-        <Hero />
-        <IFO />
-      </IfoV2Provider>
+      <Hero chainId={ChainId.BASE} />
+      {showEmptyState ? (
+        <NoIfoState />
+      ) : (
+        <IfoV2Provider>
+          <IFO />
+        </IfoV2Provider>
+      )}
     </BaseMiniAppProvider>
   )
 }

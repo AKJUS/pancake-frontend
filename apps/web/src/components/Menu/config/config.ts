@@ -188,17 +188,29 @@ const config: (
           },
           {
             label: t('CAKE.PAD'),
-            href: '/cakepad',
+            href:
+              typeof window !== 'undefined' && window.location.pathname.startsWith('/cakepad-base')
+                ? '/cakepad-base'
+                : '/cakepad',
             image: '/images/ifos/ifo-bunny.png',
             overrideSubNavItems: [
               {
                 label: t('Latest'),
-                href: '/cakepad',
-                matchHrefs: ['/cakepad/deposit'],
+                href:
+                  typeof window !== 'undefined' && window.location.pathname.startsWith('/cakepad-base')
+                    ? '/cakepad-base'
+                    : '/cakepad',
+                matchHrefs:
+                  typeof window !== 'undefined' && window.location.pathname.startsWith('/cakepad-base')
+                    ? ['/cakepad-base/deposit']
+                    : ['/cakepad/deposit'],
               },
               {
                 label: t('Finished'),
-                href: '/cakepad/history',
+                href:
+                  typeof window !== 'undefined' && window.location.pathname.startsWith('/cakepad-base')
+                    ? '/cakepad-base/history'
+                    : '/cakepad/history',
               },
             ],
           },

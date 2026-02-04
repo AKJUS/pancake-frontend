@@ -2,12 +2,12 @@ import { useTranslation } from '@pancakeswap/localization'
 import { ChainId } from '@pancakeswap/sdk'
 import { Box, Button, Container, Flex, Heading, Text, useMatchBreakpoints } from '@pancakeswap/uikit'
 import { useRouter } from 'next/router'
-import { useMemo } from 'react'
+import { useContext, useMemo } from 'react'
 import { styled } from 'styled-components'
 
 import { ASSET_CDN } from 'config/constants/endpoints'
 import { getChainName } from '@pancakeswap/chains'
-import useIfo from '../hooks/useIfo'
+import { IfoV2Context } from '../contexts/IfoV2Context'
 import { CAKEPAD_BASE_URL, CAKEPAD_URL } from '../config/routes'
 
 const StyledHero = styled(Box)`
@@ -70,11 +70,17 @@ const StyledSubTitle = styled(Text)`
   }
 `
 
-const Hero = () => {
+interface HeroProps {
+  chainId?: ChainId
+}
+
+const Hero: React.FC<HeroProps> = ({ chainId }) => {
   const router = useRouter()
   const { t } = useTranslation()
   const { isMobile } = useMatchBreakpoints()
+  const ifoContext = useContext(IfoV2Context)
   const cakepadBaseUrl = router.pathname.startsWith(CAKEPAD_BASE_URL) ? CAKEPAD_BASE_URL : CAKEPAD_URL
+  const resolvedChainId = chainId ?? ifoContext?.chainId
 
   const handleClick = () => {
     const howToElem = document.getElementById('cakepad-how-to')
@@ -88,7 +94,7 @@ const Hero = () => {
   return (
     <Box mb="8px">
       <StyledHero py={['14px', '14px', '40px']} minHeight={['212px', '212px', '197px']}>
-        <HeaderBunny />
+        <HeaderBunny chainId={resolvedChainId} />
         <Container position="relative" zIndex="2">
           <Flex
             justifyContent="space-between"
@@ -141,13 +147,12 @@ function getHeadBunny(isMobile: boolean, chainId?: ChainId) {
   return `${ASSET_CDN}/web/ifos/v2/bunny.png`
 }
 
-function HeaderBunny() {
-  const { chainId: ifoChainId } = useIfo()
+function HeaderBunny({ chainId }: { chainId?: ChainId }) {
   const { isDesktop, isMobile } = useMatchBreakpoints()
 
   const bunnyImageUrl = useMemo(() => {
-    return getHeadBunny(isMobile, ifoChainId)
-  }, [ifoChainId, isMobile])
+    return getHeadBunny(isMobile, chainId)
+  }, [chainId, isMobile])
 
   return (
     <BunnyContainer>
