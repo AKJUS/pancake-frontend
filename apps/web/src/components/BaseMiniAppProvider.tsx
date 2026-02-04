@@ -2,7 +2,7 @@ import { useTranslation } from '@pancakeswap/localization'
 import { Box, Button, Flex, Text, useMatchBreakpoints } from '@pancakeswap/uikit'
 import { sdk } from '@farcaster/miniapp-sdk'
 import { QRCodeSVG } from 'qrcode.react'
-import React, { useEffect, useState } from 'react'
+import React, { createContext, useEffect, useMemo, useState } from 'react'
 import { styled } from 'styled-components'
 import { ASSET_CDN } from 'config/constants/endpoints'
 
@@ -50,14 +50,22 @@ const Card = styled(Box)`
 
 const CHECK_DELAY_MS = 100
 const CHECK_ATTEMPTS = 3
-const MINI_APP_QR_URL = 'https://base.app/app/https:/web-git-feature-cakepad-base-routes.pancake.run/cakepad-base'
+const MINI_APP_QR_URL = 'https://base.app/app/https:/pancakeswap.finance/cakepad-base'
+
+export const BaseMiniAppContext = createContext<{ isInMiniApp: boolean | null } | null>(null)
 
 const BaseMiniAppProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const { t } = useTranslation()
   const { isMobile } = useMatchBreakpoints()
-  const [isInMiniApp, setIsInMiniApp] = useState<boolean | null>(null)
+  const isDev = process.env.NODE_ENV !== 'production'
+  const [isInMiniApp, setIsInMiniApp] = useState<boolean | null>(isDev ? true : null)
+  const contextValue = useMemo(() => ({ isInMiniApp }), [isInMiniApp])
 
   useEffect(() => {
+    if (isDev) {
+      setIsInMiniApp(true)
+      return undefined
+    }
     if (typeof window === 'undefined') return undefined
     let cancelled = false
 
@@ -93,10 +101,18 @@ const BaseMiniAppProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [isDev])
+
+  if (isDev) {
+    return <BaseMiniAppContext.Provider value={contextValue}>{children}</BaseMiniAppContext.Provider>
+  }
+
+  if (isInMiniApp === null) {
+    return <BaseMiniAppContext.Provider value={contextValue}>{null}</BaseMiniAppContext.Provider>
+  }
 
   return (
-    <>
+    <BaseMiniAppContext.Provider value={contextValue}>
       {isInMiniApp !== false ? children : null}
       {isInMiniApp === false ? (
         <Overlay>
@@ -138,7 +154,7 @@ const BaseMiniAppProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
           </Card>
         </Overlay>
       ) : null}
-    </>
+    </BaseMiniAppContext.Provider>
   )
 }
 

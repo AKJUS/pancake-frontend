@@ -31,7 +31,7 @@ const PastIfoCard = ({ ifo }: { ifo: Ifo }) => {
   )
 }
 
-const PastIfo = ({ isV2 }: { isV2?: boolean }) => {
+const PastIfo = ({ isV2, hideInactiveIfo }: { isV2?: boolean; hideInactiveIfo?: boolean }) => {
   const inactiveIfo = useInActiveIfoConfigs()
 
   return (
@@ -42,11 +42,11 @@ const PastIfo = ({ isV2 }: { isV2?: boolean }) => {
       style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
     >
       {isV2 && <HistoryIfos />}
-      {inactiveIfo
-        ?.filter((ifo) => !isTestnetChainId(ifo.chainId))
-        .map((ifo) => (
-          <PastIfoCard key={ifo.id} ifo={ifo} />
-        ))}
+      {!isV2 &&
+        !hideInactiveIfo &&
+        inactiveIfo
+          ?.filter((ifo) => !isTestnetChainId(ifo.chainId))
+          .map((ifo) => <PastIfoCard key={ifo.id} ifo={ifo} />)}
     </Container>
   )
 }
