@@ -160,6 +160,7 @@
     "next-typesafe-url": "^4.1.1",
     "nuqs": "^1.17.4",
     "openapi-fetch": "^0.13.5",
+    "ox": "^0.12.0",
     "p-queue": "8.1.0",
     "permissionless": "^0.2.47",
     "polished": "^4.2.2",

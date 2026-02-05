@@ -15,6 +15,7 @@ import { ClassicOrder } from '@pancakeswap/price-api-sdk'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
 import { safeGetAddress } from 'utils'
 import { Address, Hex } from 'viem'
+import { appendDataSuffix, buildBuilderCodeDataSuffix } from 'utils/erc8021'
 
 export interface SwapCall {
   address: Address
@@ -63,10 +64,24 @@ export function useSwapCallArguments(
     const methodParameters = PancakeSwapUniversalRouter.swapERC20CallParameters(trade, options)
     const swapRouterAddress = getUniversalRouterAddress(chainId)
     if (!swapRouterAddress) return []
+    let calldata = methodParameters.calldata as `0x${string}`
+
+    if (chainId === EvmChainId.BASE) {
+      const builderCode = 'bc_gt9cv5ck'
+      if (builderCode) {
+        try {
+          const suffix = buildBuilderCodeDataSuffix(builderCode)
+          calldata = appendDataSuffix(calldata, suffix)
+        } catch (error) {
+          console.warn('[BuilderCode] Invalid builder code, skipping suffix:', error)
+        }
+      }
+    }
+
     return [
       {
         address: swapRouterAddress,
-        calldata: methodParameters.calldata as `0x${string}`,
+        calldata,
         value: methodParameters.value as `0x${string}`,
       },
     ]
