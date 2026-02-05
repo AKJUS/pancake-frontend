@@ -1,5 +1,4 @@
 import { ChainId, NonEVMChainId, UnifiedChainId } from '@pancakeswap/chains'
-import { FarmV4SupportedChainId } from '@pancakeswap/farms'
 import { INFINITY_SUPPORTED_CHAINS } from '@pancakeswap/infinity-sdk'
 import { OnChainProvider } from '@pancakeswap/smart-router'
 import { NextResponse } from 'next/server'
