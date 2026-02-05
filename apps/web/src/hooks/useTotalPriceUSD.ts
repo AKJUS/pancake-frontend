@@ -15,10 +15,10 @@ export const useTotalPriceUSD = ({
   amount1?: CurrencyAmount<ERC20Token | Currency>
 }) => {
   const { data: currency0PriceFromApi } = useCurrencyUsdPrice(currency0, {
-    enabled: !!currency0,
+    enabled: amount0 && amount0.greaterThan(0),
   })
   const { data: currency1PriceFromApi } = useCurrencyUsdPrice(currency1, {
-    enabled: !!currency1,
+    enabled: amount1 && amount1.greaterThan(0),
   })
   return useMemo(() => {
     return (
