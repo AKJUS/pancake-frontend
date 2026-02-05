@@ -12,6 +12,8 @@ import {
   InfinityBinPoolDerivedAprButton,
   InfinityCLPoolDerivedAprButton,
 } from 'views/universalFarms/components/PoolAprButtonV3/PoolPositionAprButtonV3'
+import { usePoolById } from 'hooks/infinity/usePool'
+import { usePoolCurrentPrice } from 'hooks/infinity/usePoolCurrentPrice'
 
 export const InfinityPoolInfoHeader = () => {
   const { chainId, poolId } = useInfinityPoolIdRouteParams()
@@ -19,6 +21,10 @@ export const InfinityPoolInfoHeader = () => {
   const poolInfo = usePoolInfo({ poolAddress: poolId, chainId })
   const hookData = useHookByPoolId(chainId, poolId)
   const { currency0, currency1 } = useCurrencyByPoolId({ chainId, poolId })
+
+  // Fetch on-chain pool data for live price
+  const [, onChainPool] = usePoolById(poolId, chainId)
+  const onChainPrice = usePoolCurrentPrice(onChainPool)
 
   const [inverted, setInverted] = useInverted()
 
@@ -31,10 +37,32 @@ export const InfinityPoolInfoHeader = () => {
     [currency1],
   )
 
+  // Use on-chain prices as primary, API prices as fallback
+  // Wrapped in try-catch because toFixed/invert can throw on invalid prices
+  const poolInfoWithOnChainPrice = useMemo(() => {
+    if (!poolInfo) return null
+
+    let onChainToken0Price: string | undefined
+    let onChainToken1Price: string | undefined
+
+    try {
+      onChainToken0Price = onChainPrice?.invert().toFixed(18)
+      onChainToken1Price = onChainPrice?.toFixed(18)
+    } catch (error) {
+      console.error('Error formatting on-chain price:', error)
+    }
+
+    return {
+      ...poolInfo,
+      token0Price: (onChainToken0Price ?? poolInfo.token0Price) as `${number}`,
+      token1Price: (onChainToken1Price ?? poolInfo.token1Price) as `${number}`,
+    }
+  }, [poolInfo, onChainPrice])
+
   return (
     <PoolInfoHeader
       poolId={poolId}
-      poolInfo={poolInfo}
+      poolInfo={poolInfoWithOnChainPrice}
       currency0={currency0}
       currency1={currency1}
       symbol0={symbol0}

@@ -287,14 +287,14 @@ export const PoolInfoHeader = ({
                   {price ? (
                     <Text fontSize={isMobile ? 20 : 24} bold width="max-content">
                       {formatNumber((isInverted ? new Decimal(1).div(price) : price).toNumber(), {
-                        maximumSignificantDigits: 6,
+                        maximumSignificantDigits: 8,
                         maxDecimalDisplayDigits: 6,
                       })}
                     </Text>
                   ) : poolInfo && poolInfo.token0Price && poolInfo.token1Price ? (
                     <Text fontSize={isMobile ? 20 : 24} bold width="max-content">
                       {formatNumber(Number(isInverted ? poolInfo.token0Price : poolInfo.token1Price), {
-                        maximumSignificantDigits: 6,
+                        maximumSignificantDigits: 8,
                         maxDecimalDisplayDigits: 6,
                       })}
                     </Text>

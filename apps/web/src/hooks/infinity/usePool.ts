@@ -43,35 +43,40 @@ export const usePoolById = <
       return [PoolState.NOT_EXISTS, null]
     }
 
-    if (data.poolType === 'CL') {
-      const { poolType, parameters, fee, sqrtPriceX96, liquidity, tick, protocolFee, lpFee, hooks } = data
-      const dynamicHook = hooks ? findHook(hooks, chainId) : undefined
-      const pool = getClPoolWithCache({
-        chainId,
-        poolId,
-        tokenA: currencyA as Token,
-        tokenB: currencyB as Token,
-        lpFee: dynamicHook?.defaultFee ?? lpFee,
-        fee,
-        sqrtRatioX96: sqrtPriceX96,
-        liquidity,
-        tick,
-        protocolFee,
-        poolType,
-        tickSpacing: parameters.tickSpacing,
-      })
-      return [PoolState.EXISTS, pool as TPool]
-    }
+    try {
+      if (data.poolType === 'CL') {
+        const { poolType, parameters, fee, sqrtPriceX96, liquidity, tick, protocolFee, lpFee, hooks } = data
+        const dynamicHook = hooks ? findHook(hooks, chainId) : undefined
+        const pool = getClPoolWithCache({
+          chainId,
+          poolId,
+          tokenA: currencyA as Token,
+          tokenB: currencyB as Token,
+          lpFee: dynamicHook?.defaultFee ?? lpFee,
+          fee,
+          sqrtRatioX96: sqrtPriceX96,
+          liquidity,
+          tick,
+          protocolFee,
+          poolType,
+          tickSpacing: parameters.tickSpacing,
+        })
+        return [PoolState.EXISTS, pool as TPool]
+      }
 
-    if (data.poolType === 'Bin') {
-      const pool = getBinPoolWithCache({
-        chainId,
-        poolId,
-        currencyA,
-        currencyB,
-        rawPoolInfo: data,
-      })
-      return [PoolState.EXISTS, pool as TPool]
+      if (data.poolType === 'Bin') {
+        const pool = getBinPoolWithCache({
+          chainId,
+          poolId,
+          currencyA,
+          currencyB,
+          rawPoolInfo: data,
+        })
+        return [PoolState.EXISTS, pool as TPool]
+      }
+    } catch (error) {
+      console.error('Error constructing Infinity pool:', error)
+      return [PoolState.INVALID, null]
     }
 
     return [PoolState.NOT_EXISTS, null]

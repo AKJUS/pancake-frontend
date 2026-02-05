@@ -18,6 +18,8 @@ import useV3DerivedInfo from 'hooks/v3/useV3DerivedInfo'
 import { PoolInfoHeader } from 'components/PoolInfoHeader'
 import { useActiveChainId } from 'hooks/useActiveChainId'
 import { usePoolInfo } from 'state/farmsV4/state/extendPools/hooks'
+import { useV2Pair } from 'hooks/usePairs'
+import { useStablePair } from 'views/AddLiquidity/AddStableLiquidity/hooks/useStableLPDerivedMintInfo'
 
 import { useCurrencyParams } from '../hooks/useCurrencyParams'
 import { SELECTOR_TYPE } from '../types'
@@ -122,29 +124,73 @@ export function AddEVMLiquidityV3Layout({ children }: { children: React.ReactNod
   const currencyA = pool?.token0 ?? baseCurrency ?? undefined
   const currencyB = pool?.token1 ?? quoteCurrency ?? undefined
 
-  // Fallback for fetching pool price in new V3 pools with no trades.
-  // With no trades, BE doesn't index the pool so we do not get token0Price and token1Price in the pool object.
-  const isTokenPriceAvailable = useMemo(
-    () => Number(pool?.token0Price) && Number(pool?.token1Price),
-    [pool?.token0Price, pool?.token1Price],
-  )
-  const { price: v3Price } = useV3DerivedInfo(
-    !isTokenPriceAvailable ? currencyA : undefined,
-    !isTokenPriceAvailable ? currencyB : undefined,
+  // Fetch on-chain prices for V3 (primary source)
+  const { price: v3OnChainPrice } = useV3DerivedInfo(
+    selectType === SELECTOR_TYPE.V3 ? currencyA : undefined,
+    selectType === SELECTOR_TYPE.V3 ? currencyB : undefined,
     feeAmount,
     baseCurrency ?? undefined,
   )
 
+  // Fetch on-chain prices for V2 (primary source)
+  const [, v2Pair] = useV2Pair(
+    selectType === SELECTOR_TYPE.V2 ? currencyA : undefined,
+    selectType === SELECTOR_TYPE.V2 ? currencyB : undefined,
+  )
+
+  // Fetch on-chain prices for Stable (primary source)
+  const { pair: stablePair } = useStablePair(
+    selectType === SELECTOR_TYPE.STABLE ? currencyA : undefined,
+    selectType === SELECTOR_TYPE.STABLE ? currencyB : undefined,
+  )
+
+  // Compute on-chain price based on protocol type
+  // Wrapped in try-catch because priceOf can throw if token doesn't match pair
+  const onChainPrice = useMemo(() => {
+    try {
+      if (selectType === SELECTOR_TYPE.V3 && v3OnChainPrice) {
+        return v3OnChainPrice
+      }
+      if (selectType === SELECTOR_TYPE.V2 && v2Pair && baseCurrency) {
+        return v2Pair.priceOf(baseCurrency.wrapped)
+      }
+      if (selectType === SELECTOR_TYPE.STABLE && stablePair && baseCurrency) {
+        return stablePair.priceOf(baseCurrency)
+      }
+    } catch (error) {
+      console.error('Error computing on-chain price:', error)
+    }
+    return undefined
+  }, [selectType, v3OnChainPrice, v2Pair, stablePair, baseCurrency])
+
+  // Use on-chain prices as primary, API prices as fallback
+  // Wrapped in try-catch because toFixed/invert can throw on invalid prices
   const poolInfo: PoolInfo | null = useMemo(() => {
     if (!pool) return null
+
+    let onChainToken0Price: string | undefined
+    let onChainToken1Price: string | undefined
+
+    try {
+      // V2 and Stable need manual inversion handling based on baseCurrency
+      if (selectType === SELECTOR_TYPE.V2 || selectType === SELECTOR_TYPE.STABLE) {
+        onChainToken0Price = inverted ? onChainPrice?.toFixed(18) : onChainPrice?.invert().toFixed(18)
+        onChainToken1Price = inverted ? onChainPrice?.invert().toFixed(18) : onChainPrice?.toFixed(18)
+      } else {
+        // V3 already handles inversion correctly in useV3DerivedInfo
+        onChainToken0Price = onChainPrice?.invert().toFixed(18)
+        onChainToken1Price = onChainPrice?.toFixed(18)
+      }
+    } catch (error) {
+      console.error('Error formatting on-chain price:', error)
+    }
+
     return {
       ...pool,
-      ...(!isTokenPriceAvailable && {
-        token0Price: v3Price?.invert().toSignificant(6) as `${number}`,
-        token1Price: v3Price?.toSignificant(6) as `${number}`,
-      }),
+      token0Price: (onChainToken0Price ?? pool.token0Price) as `${number}`,
+      token1Price: (onChainToken1Price ?? pool.token1Price) as `${number}`,
     }
-  }, [pool, isTokenPriceAvailable, v3Price])
+  }, [pool, onChainPrice, inverted, selectType])
 
   return (
     <Container mx="auto" my="24px" maxWidth="1200px">
