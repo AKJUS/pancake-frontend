@@ -79,7 +79,8 @@ const Hero: React.FC<HeroProps> = ({ chainId }) => {
   const { t } = useTranslation()
   const { isMobile } = useMatchBreakpoints()
   const ifoContext = useContext(IfoV2Context)
-  const cakepadBaseUrl = router.pathname.startsWith(CAKEPAD_BASE_URL) ? CAKEPAD_BASE_URL : CAKEPAD_URL
+  const isCakepadBase = router.pathname.startsWith(CAKEPAD_BASE_URL)
+  const cakepadBaseUrl = isCakepadBase ? CAKEPAD_BASE_URL : CAKEPAD_URL
   const resolvedChainId = chainId ?? ifoContext?.chainId
 
   const handleClick = () => {
@@ -116,15 +117,16 @@ const Hero: React.FC<HeroProps> = ({ chainId }) => {
                   : t('Get exclusive early access to new tokens with CAKE')}
               </StyledSubTitle>
             </Box>
-            {isMobile ? (
-              <StyledButton onClick={handleClick} mt="0.375rem">
-                {t('How does it work?')}
-              </StyledButton>
-            ) : (
-              <DesktopButton onClick={handleClick} variant="subtle">
-                {t('How does it work?')}
-              </DesktopButton>
-            )}
+            {!isCakepadBase &&
+              (isMobile ? (
+                <StyledButton onClick={handleClick} mt="0.375rem">
+                  {t('How does it work?')}
+                </StyledButton>
+              ) : (
+                <DesktopButton onClick={handleClick} variant="subtle">
+                  {t('How does it work?')}
+                </DesktopButton>
+              ))}
           </Flex>
         </Container>
       </StyledHero>
