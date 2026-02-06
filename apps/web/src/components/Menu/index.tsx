@@ -1,5 +1,12 @@
 import { useTranslation } from '@pancakeswap/localization'
-import { DropdownMenuItemType, Menu as UikitMenu, footerLinks, useModal } from '@pancakeswap/uikit'
+import {
+  DropdownMenuItemType,
+  LogoIcon,
+  LogoWithTextIcon,
+  Menu as UikitMenu,
+  footerLinks,
+  useModal,
+} from '@pancakeswap/uikit'
 import { BIG_ZERO } from '@pancakeswap/utils/bigNumber'
 import { NextLinkFromReactRouter } from '@pancakeswap/widgets-internal'
 import USCitizenConfirmModal from 'components/Modal/USCitizenConfirmModal'
@@ -103,6 +110,8 @@ const Menu = (props) => {
     </>
   )
 
+  const logoComponent = isCakepadBaseRoute ? <StaticLogo /> : undefined
+
   return (
     <UikitMenu
       linkComponent={LinkComponent}
@@ -129,6 +138,7 @@ const Menu = (props) => {
       activeSubItemChildItem={activeSubChildMenuItem?.href}
       buyCakeLabel={t('Buy CAKE')}
       buyCakeLink="/swap?outputCurrency=0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82&chainId=56"
+      logoComponent={logoComponent}
       {...props}
     />
   )
@@ -151,6 +161,34 @@ export default Menu
 const SharedComponentWithOutMenuWrapper = styled.div`
   display: none;
 `
+
+const StaticLogoWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  cursor: default;
+
+  .mobile-icon {
+    width: 32px;
+    ${({ theme }) => theme.mediaQueries.xl} {
+      display: none;
+    }
+  }
+
+  .desktop-icon {
+    width: 160px;
+    display: none;
+    ${({ theme }) => theme.mediaQueries.xl} {
+      display: block;
+    }
+  }
+`
+
+const StaticLogo: React.FC = () => (
+  <StaticLogoWrapper aria-label="Pancake logo">
+    <LogoIcon className="mobile-icon" />
+    <LogoWithTextIcon className="desktop-icon" />
+  </StaticLogoWrapper>
+)
 
 export const SharedComponentWithOutMenu: React.FC<React.PropsWithChildren> = ({ children }) => {
   const { enabled } = useWebNotifications()

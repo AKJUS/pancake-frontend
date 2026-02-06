@@ -1,8 +1,9 @@
 import { useTranslation } from '@pancakeswap/localization'
-import { Box, Button, Flex, Text, useMatchBreakpoints } from '@pancakeswap/uikit'
+import { Box, Button, Flex, Text, getPortalRoot, useMatchBreakpoints } from '@pancakeswap/uikit'
 import { sdk } from '@farcaster/miniapp-sdk'
 import { QRCodeSVG } from 'qrcode.react'
 import React, { createContext, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { styled } from 'styled-components'
 import { ASSET_CDN } from 'config/constants/endpoints'
 
@@ -60,6 +61,7 @@ const BaseMiniAppProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   const isDev = process.env.NODE_ENV !== 'production'
   const [isInMiniApp, setIsInMiniApp] = useState<boolean | null>(isDev ? true : null)
   const contextValue = useMemo(() => ({ isInMiniApp }), [isInMiniApp])
+  const portal = useMemo(() => (typeof window === 'undefined' ? null : getPortalRoot()), [])
 
   useEffect(() => {
     if (isDev) {
@@ -115,44 +117,88 @@ const BaseMiniAppProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     <BaseMiniAppContext.Provider value={contextValue}>
       {isInMiniApp !== false ? children : null}
       {isInMiniApp === false ? (
-        <Overlay>
-          <Card>
-            <Flex flexDirection="column" alignItems="center" justifyContent="center">
-              <Text fontSize="20px" bold mb="8px">
-                {t('Use Cakepad on Base App')}
-              </Text>
-              <Text color="textSubtle" textAlign="center" mb="16px">
-                {isMobile
-                  ? t('Open the Base app to use Cakepad.')
-                  : t('Scan the QR code to open this mini app on Base')}
-              </Text>
-              {isMobile ? (
-                <Button as="a" href="https://join.base.app/" width="100%">
-                  {t('Go')}
-                </Button>
-              ) : (
-                <QRCodeWrapper>
-                  <QRCodeBox>
-                    <QRCodeSVG
-                      value={MINI_APP_QR_URL}
-                      size={280}
-                      level="H"
-                      includeMargin
-                      imageSettings={{
-                        src: `${ASSET_CDN}/web/chains/8453.png`,
-                        x: undefined,
-                        y: undefined,
-                        height: 48,
-                        width: 48,
-                        excavate: true,
-                      }}
-                    />
-                  </QRCodeBox>
-                </QRCodeWrapper>
-              )}
-            </Flex>
-          </Card>
-        </Overlay>
+        portal ? (
+          createPortal(
+            <Overlay>
+              <Card>
+                <Flex flexDirection="column" alignItems="center" justifyContent="center">
+                  <Text fontSize="20px" bold mb="8px">
+                    {t('Use Cakepad on Base App')}
+                  </Text>
+                  <Text color="textSubtle" textAlign="center" mb="16px">
+                    {isMobile
+                      ? t('Open the Base app to use Cakepad.')
+                      : t('Scan the QR code to open this mini app on Base')}
+                  </Text>
+                  {isMobile ? (
+                    <Button as="a" href="https://join.base.app/" width="100%">
+                      {t('Go')}
+                    </Button>
+                  ) : (
+                    <QRCodeWrapper>
+                      <QRCodeBox>
+                        <QRCodeSVG
+                          value={MINI_APP_QR_URL}
+                          size={280}
+                          level="H"
+                          includeMargin
+                          imageSettings={{
+                            src: `${ASSET_CDN}/web/chains/8453.png`,
+                            x: undefined,
+                            y: undefined,
+                            height: 48,
+                            width: 48,
+                            excavate: true,
+                          }}
+                        />
+                      </QRCodeBox>
+                    </QRCodeWrapper>
+                  )}
+                </Flex>
+              </Card>
+            </Overlay>,
+            portal,
+          )
+        ) : (
+          <Overlay>
+            <Card>
+              <Flex flexDirection="column" alignItems="center" justifyContent="center">
+                <Text fontSize="20px" bold mb="8px">
+                  {t('Use Cakepad on Base App')}
+                </Text>
+                <Text color="textSubtle" textAlign="center" mb="16px">
+                  {isMobile
+                    ? t('Open the Base app to use Cakepad.')
+                    : t('Scan the QR code to open this mini app on Base')}
+                </Text>
+                {isMobile ? (
+                  <Button as="a" href="https://join.base.app/" width="100%">
+                    {t('Go')}
+                  </Button>
+                ) : (
+                  <QRCodeWrapper>
+                    <QRCodeBox>
+                      <QRCodeSVG
+                        value={MINI_APP_QR_URL}
+                        size={280}
+                        level="H"
+                        includeMargin
+                        imageSettings={{
+                          src: `${ASSET_CDN}/web/chains/8453.png`,
+                          x: undefined,
+                          y: undefined,
+                          height: 48,
+                          width: 48,
+                          excavate: true,
+                        }}
+                      />
+                    </QRCodeBox>
+                  </QRCodeWrapper>
+                )}
+              </Flex>
+            </Card>
+          </Overlay>
+        )
       ) : null}
     </BaseMiniAppContext.Provider>
   )
