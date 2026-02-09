@@ -136,6 +136,9 @@ const Hero: React.FC<HeroProps> = ({ chainId }) => {
 
 function getHeadBunny(isMobile: boolean, chainId?: ChainId) {
   if (chainId) {
+    if (chainId === ChainId.BASE) {
+      return `${ASSET_CDN}/web/ifos/v2/bunny/base/bunny-base-blue.webp`
+    }
     const chainName = getChainName(chainId)
     if (isMobile) {
       return `${ASSET_CDN}/web/ifos/v2/bunny/${chainName}/bunny-mobile.png`
