@@ -675,7 +675,7 @@ function usePositionData({ position, poolLength }: { position: UnifiedPositionDe
     return {
       pid: 0,
       nftMint: solanaPos.nftMint,
-      lpAddress: ZERO_ADDRESS, // Use poolId for URL instead
+      lpAddress: undefined as unknown as typeof ZERO_ADDRESS, // Use poolId for URL instead
       protocol: Protocol.V3,
       token0: currency0,
       token1: currency1,
