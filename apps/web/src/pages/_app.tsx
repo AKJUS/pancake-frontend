@@ -26,7 +26,6 @@ import { DesktopCard } from 'components/AdPanel/DesktopCard'
 import { MobileCard } from 'components/AdPanel/MobileCard'
 import { layoutDesktopAdIgnoredPages, layoutMobileAdIgnoredPages } from 'components/AdPanel/config'
 import { shouldRenderOnPages } from 'components/AdPanel/renderConditions'
-import { Cb1Membership } from 'components/Cb1/Cb1Membership'
 import { ZKSyncAirdropModalWithAutoPopup } from 'components/ClaimZksyncAirdropModal'
 import { useEmbeddedSmartAccountConnectorV2 } from 'wallet/Privy/hooks/usePrivySmartAccountConnector'
 import { useDataDogRUM } from 'hooks/useDataDogRUM'
@@ -199,7 +198,6 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
       <ZKSyncAirdropModalWithAutoPopup />
       <SimpleStakingSunsetModal />
       <VercelToolbar />
-      <Cb1Membership />
       <WalletModalManager isOpen={isOpen} onDismiss={handleDismiss} />
     </Suspense>
   )
