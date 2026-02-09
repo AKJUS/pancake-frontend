@@ -2,6 +2,7 @@ import { useTheme } from '@pancakeswap/hooks'
 import { memo, useEffect, useMemo, useState } from 'react'
 import { styled } from 'styled-components'
 import { FireworkEffect } from './FireworkEffect'
+import { RedpackEffect } from './RedpackEffect'
 import { XmasStarEffect } from './XmasStarEffect'
 
 const FESTIVAL_THEME_CONFIG_URL =
@@ -97,6 +98,7 @@ const FestivalForeground = styled.div<{ $imageUrl?: string; $position: 'left' | 
 
 const EFFECT_COMPONENTS: Record<string, React.FC> = {
   fireworks: FireworkEffect,
+  redpack: RedpackEffect,
   stars: XmasStarEffect,
   shootingstars: XmasStarEffect,
 }
