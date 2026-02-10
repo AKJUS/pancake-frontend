@@ -24,7 +24,7 @@ import { PriceRangeDisplay } from 'views/PoolDetail/components/ProtocolPositions
 import { UnifiedPositionDetail, SolanaV3PositionDetail } from 'state/farmsV4/state/accountPositions/type'
 import { InfinityPoolInfo, type UnifiedPoolInfo } from 'state/farmsV4/state/type'
 import { isInfinityProtocol } from 'utils/protocols'
-import { isSolana } from '@pancakeswap/chains'
+import { isSolana, NonEVMChainId } from '@pancakeswap/chains'
 import styled from 'styled-components'
 import { Currency, ERC20Token } from '@pancakeswap/sdk'
 import { CurrencyAmount, UnifiedCurrency, UnifiedCurrencyAmount } from '@pancakeswap/swap-sdk-core'
@@ -233,8 +233,11 @@ export const PositionRowDisplay: React.FC<PositionRowDisplayProps> = memo(
     // For Solana positions, check pool.isFarming; for others, check position.isStaked
     const isFarming = useMemo(() => {
       if (position.protocol === Protocol.V2 || position.protocol === Protocol.STABLE) return false
-      return Boolean(pool?.isFarming || ('isStaked' in position ? position.isStaked : false))
-    }, [position.protocol, pool?.isFarming, position])
+      if (chainId === NonEVMChainId.SOLANA) {
+        return Boolean(pool?.isFarming)
+      }
+      return Boolean('isStaked' in position ? position.isStaked : false)
+    }, [position.protocol, pool?.isFarming, position, chainId])
 
     // Inverted state for price display - lifted from ExpandedRowContent to share with price range
     const [inverted, setInverted] = useState(false)
