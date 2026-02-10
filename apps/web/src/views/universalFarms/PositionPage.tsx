@@ -22,7 +22,7 @@ import { V3_MIGRATION_SUPPORTED_CHAINS } from 'config/constants/supportChains'
 import { useAtom } from 'jotai'
 import intersection from 'lodash/intersection'
 import NextLink from 'next/link'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { POSITION_STATUS, UnifiedPositionDetail } from 'state/farmsV4/state/accountPositions/type'
 import styled from 'styled-components'
 import { useAccount } from 'wagmi'
@@ -162,7 +162,7 @@ export const PositionPage = () => {
   const { observerRef, isIntersecting } = useIntersectionObserver()
   const [cursorVisible, setCursorVisible] = useState(NUMBER_OF_FARMS_VISIBLE)
   const filterQueryResult = useFilterToQueries()
-  const { isMobile, isSm, isMd, isLg } = useMatchBreakpoints()
+  const { isMobile, isMd } = useMatchBreakpoints()
 
   const {
     selectedProtocolIndex,
@@ -296,13 +296,17 @@ export const PositionPage = () => {
     [v3PoolsLength, v2PoolsLength],
   )
 
+  const isAllLoading = useMemo(
+    () => Boolean(infinityLoading && v3Loading && solanaLoading && v2Loading && stableLoading),
+    [infinityLoading, v3Loading, solanaLoading, v2Loading, stableLoading],
+  )
+
   const mainSection = useMemo(() => {
     if (!account && !solanaAccount) {
       return <EmptyListPlaceholder text={t('Please Connect Wallet to view positions.')} />
     }
 
     const isAnyLoading = infinityLoading || v3Loading || solanaLoading || v2Loading || stableLoading
-    const isAllLoading = infinityLoading && v3Loading && solanaLoading && v2Loading && stableLoading
 
     if (isAllLoading) {
       return (
@@ -329,9 +333,9 @@ export const PositionPage = () => {
             </Text>
           </>
         )}
-        {!isAnyLoading && visibleList.length > 0 && (
+        {!isAllLoading && visibleList.length > 0 && (
           <>
-            {isMobile || isSm || isMd ? (
+            {isMobile || isMd ? (
               <PositionsList positions={visibleList} poolLengthMap={poolLengthMap} />
             ) : (
               <PositionsTable positions={visibleList} poolLengthMap={poolLengthMap} />
@@ -352,10 +356,11 @@ export const PositionPage = () => {
     poolLengthMap,
     solanaAccount,
     isMobile,
+    isAllLoading,
   ])
 
   useEffect(() => {
-    if (isIntersecting) {
+    if (isIntersecting && !isAllLoading) {
       setCursorVisible((numberCurrentlyVisible) => {
         if (Array.isArray(allPositionList) && numberCurrentlyVisible <= allPositionList.length) {
           return Math.min(numberCurrentlyVisible + NUMBER_OF_FARMS_VISIBLE, allPositionList.length)
@@ -363,7 +368,9 @@ export const PositionPage = () => {
         return numberCurrentlyVisible
       })
     }
-  }, [isIntersecting, mainSection, allPositionList.length])
+    // Intentionally only depends on isIntersecting to avoid increasing visible farm count when already intersecting
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isIntersecting])
 
   const [, setPositionEarningAmount] = useAtom(positionEarningAmountAtom)
   useEffect(() => {

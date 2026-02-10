@@ -190,7 +190,7 @@ function hasEarningsBreakdownContent(
 export const PositionRowDisplay: React.FC<PositionRowDisplayProps> = memo(
   ({ position, data, expanded, onToggleExpand, hideEarningsColumn = false }) => {
     const { t } = useTranslation()
-    const { isMd, isMobile } = useMatchBreakpoints()
+    const { isMobile } = useMatchBreakpoints()
 
     const {
       currency0,

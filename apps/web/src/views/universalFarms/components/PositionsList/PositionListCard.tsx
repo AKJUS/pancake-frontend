@@ -203,10 +203,10 @@ export const PositionListCard: React.FC<PositionListCardProps> = ({ position, po
 
   // Combine Solana price range with EVM price range
   // Extract raw numeric values from formatted strings for inversion support (matching SolanaV3PositionRow)
-  const solanaDebugMeta =
-    hasValidSolanaData && solanaPoolId && currency0 && currency1
-      ? { poolId: solanaPoolId, pairSymbols: `${currency0.symbol}/${currency1.symbol}` }
-      : undefined
+  // const solanaDebugMeta =
+  //   hasValidSolanaData && solanaPoolId && currency0 && currency1
+  //     ? { poolId: solanaPoolId, pairSymbols: `${currency0.symbol}/${currency1.symbol}` }
+  //     : undefined
   const priceRangeDisplay = useMemo(() => {
     // Use Solana price range if available, otherwise use EVM price range
     if (hasValidSolanaData && solanaPriceRangeData) {
@@ -289,7 +289,7 @@ export const PositionListCard: React.FC<PositionListCardProps> = ({ position, po
       return result
     }
     return evmPriceRangeDisplay
-  }, [hasValidSolanaData, solanaPriceRangeData, evmPriceRangeDisplay, solanaDebugMeta])
+  }, [hasValidSolanaData, solanaPriceRangeData, evmPriceRangeDisplay])
 
   // Get pool detail URL for Details button (same as Full Page button in ExpandedRowContent)
   const { data: poolDetailUrl } = useQuery({
@@ -828,9 +828,11 @@ function usePositionData({ position, poolLength }: { position: UnifiedPositionDe
 
   // V3 earnings
   const isEVMV3 = position.protocol === Protocol.V3 && !isSolanaPosition
+  const tokenIds = useMemo(() => (isEVMV3 && 'tokenId' in position ? [position.tokenId] : []), [isEVMV3, position])
   const v3Earnings = useV3CakeEarning(
-    isEVMV3 && 'tokenId' in position ? [(position as PositionDetail).tokenId] : [],
-    chainId, // Always pass chainId, hook will handle empty tokenIds array
+    tokenIds,
+    chainId,
+    // Always pass chainId, hook will handle empty tokenIds array
   )
 
   // V3 LP fees

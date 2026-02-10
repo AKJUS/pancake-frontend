@@ -279,8 +279,10 @@ export const useStakedPositionsByUser = (stakedTokenIds: bigint[], _chainId?: nu
     return callData
   }, [account, masterchefV3?.abi, stakedTokenIds, chainId])
 
+  const serializedKey = useMemo(() => JSON.stringify(harvestCalls), [harvestCalls])
+
   const { data } = useQuery<bigint[]>({
-    queryKey: ['mcv3-harvest', ...harvestCalls],
+    queryKey: ['mcv3-harvest', serializedKey],
 
     queryFn: () => {
       if (!masterchefV3 || !harvestCalls.length) return []
