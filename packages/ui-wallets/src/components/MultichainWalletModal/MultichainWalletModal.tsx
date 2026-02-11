@@ -27,6 +27,29 @@ import { modalWrapperClass } from './modal.css'
 import { useWalletFilterEffect, useWalletFilterValue } from '../../state/hooks'
 import { useSolanaLogin } from './hooks/useSolanaLogin'
 
+const getWalletConnectErrorMeta = (error: unknown): { errorType: string; errorMessage?: string } => {
+  const err = error as { code?: number | string; message?: string }
+
+  if (error instanceof WalletConnectorNotFoundError) {
+    return { errorType: 'NO_PROVIDER', errorMessage: err?.message }
+  }
+
+  if (error instanceof WalletSwitchChainError) {
+    return { errorType: 'SWITCH_CHAIN_FAILED', errorMessage: err?.message }
+  }
+
+  if (
+    err?.code === 4001 ||
+    err?.code === 'ACTION_REJECTED' ||
+    err?.message?.toLowerCase().includes('user rejected') ||
+    err?.message?.toLowerCase().includes('rejected')
+  ) {
+    return { errorType: 'USER_REJECTED', errorMessage: err?.message }
+  }
+
+  return { errorType: 'UNKNOWN', errorMessage: err?.message }
+}
+
 export const MultichainWalletModal: React.FC<MultichainWalletModalProps> = (props) => {
   const {
     evmAddress,
@@ -38,6 +61,7 @@ export const MultichainWalletModal: React.FC<MultichainWalletModalProps> = (prop
     createEvmQrCode,
     onWalletConnectStartCallBack,
     onWalletConnectCallBack,
+    onWalletConnectFailCallBack,
     onGoogleLogin,
     onXLogin,
     onTelegramLogin,
@@ -142,6 +166,9 @@ export const MultichainWalletModal: React.FC<MultichainWalletModalProps> = (prop
               }
             })
             .catch((err) => {
+              const { errorType, errorMessage } = getWalletConnectErrorMeta(err)
+              onWalletConnectFailCallBack?.(chainId, wallet.title, network, errorType, errorMessage)
+
               if (err instanceof WalletConnectorNotFoundError) {
                 setEvmError(t('no provider found'))
               } else if (err instanceof WalletSwitchChainError) {
@@ -167,6 +194,9 @@ export const MultichainWalletModal: React.FC<MultichainWalletModalProps> = (prop
               }
             })
             .catch((err) => {
+              const { errorType, errorMessage } = getWalletConnectErrorMeta(err)
+              onWalletConnectFailCallBack?.(NonEVMChainId.SOLANA, wallet.title, network, errorType, errorMessage)
+
               if (err instanceof WalletConnectorNotFoundError) {
                 setSolanaError(t('no provider found'))
               } else {
@@ -188,6 +218,8 @@ export const MultichainWalletModal: React.FC<MultichainWalletModalProps> = (prop
       t,
       solanaLogin,
       handleDismiss,
+      onWalletConnectFailCallBack,
+      chainId,
     ],
   )
 

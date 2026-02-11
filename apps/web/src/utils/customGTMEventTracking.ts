@@ -56,6 +56,7 @@ export enum GTMEvent {
   ConnectWalletSelect = 'connectWalletSelect',
   DisconnectWallet = 'disconnectWallet',
   WalletConnected = 'walletConnected',
+  WalletConnectFailed = 'walletConnectFailed',
   WalletConnect = 'walletConnect', // deprecated
 
   // Gift
@@ -138,6 +139,7 @@ export enum GTMAction {
   ClickOnWalletBtn = 'click on the connect wallet button',
   ClickOnWalletOption = 'click on wallet option',
   WalletConnectSucc = 'wallet connected successfully',
+  WalletConnectFailed = 'wallet connection failed',
   ClickOnDisconnectedBtn = 'click on the disconnected wallet button',
 
   // Gift
@@ -373,6 +375,27 @@ export const logGTMWalletConnectedEvent = (
     label: walletTitle,
     desc: address,
     info,
+  })
+}
+
+export const logGTMWalletConnectFailedEvent = (
+  chainId: number | undefined,
+  walletTitle: string | undefined,
+  network: string,
+  errorType: string,
+  errorMessage?: string,
+) => {
+  const info = chainId && getChainFullName(chainId)
+  console.info('---WalletConnectFailed---', info, walletTitle, network, errorType, errorMessage)
+  window?.dataLayer?.push({
+    event: GTMEvent.WalletConnectFailed,
+    action: GTMAction.WalletConnectFailed,
+    category: GTMCategory.WalletConnect,
+    label: walletTitle,
+    info,
+    network,
+    error_type: errorType,
+    error_message: errorMessage,
   })
 }
 export const logGTMDisconnectWalletEvent = (

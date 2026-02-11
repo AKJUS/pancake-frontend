@@ -1,7 +1,7 @@
 import { ModalV2Props } from '@pancakeswap/uikit'
 import { ChainId } from '@pancakeswap/chains'
 import { EvmConnectorNames } from '../../config/connectorNames'
-import { ConnectData, WalletConfigV3 } from '../../types'
+import { ConnectData, WalletAdaptedNetwork, WalletConfigV3 } from '../../types'
 
 export interface MultichainWalletModalProps extends ModalV2Props {
   evmAddress: string | undefined
@@ -14,6 +14,13 @@ export interface MultichainWalletModalProps extends ModalV2Props {
   // solanaLogin?: (walletName: WalletName) => Promise<string | undefined>
   onWalletConnectStartCallBack?: (chainId?: number, walletTitle?: string) => void
   onWalletConnectCallBack?: (chainId?: number, walletTitle?: string, address?: string) => void
+  onWalletConnectFailCallBack?: (
+    chainId?: number,
+    walletTitle?: string,
+    network?: WalletAdaptedNetwork,
+    errorType?: string,
+    errorMessage?: string,
+  ) => void
   fullSize?: boolean
   docText: string
   docLink: string

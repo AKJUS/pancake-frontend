@@ -1,5 +1,5 @@
 import { useTranslation } from '@pancakeswap/localization'
-import { MultichainWalletModal } from '@pancakeswap/ui-wallets'
+import { MultichainWalletModal, WalletAdaptedNetwork } from '@pancakeswap/ui-wallets'
 import { createQrCode, getDocLink } from 'config/wallet'
 import { useActiveChainId } from 'hooks/useActiveChainId'
 import useAuth from 'hooks/useAuth'
@@ -7,7 +7,11 @@ import useAuth from 'hooks/useAuth'
 import { ChainId } from '@pancakeswap/chains'
 import { useFirebaseAuth } from 'wallet/Privy/firebase'
 import { useCallback, useMemo } from 'react'
-import { logGTMConnectWalletSelectEvent, logGTMWalletConnectedEvent } from 'utils/customGTMEventTracking'
+import {
+  logGTMConnectWalletSelectEvent,
+  logGTMWalletConnectFailedEvent,
+  logGTMWalletConnectedEvent,
+} from 'utils/customGTMEventTracking'
 import { useConnect } from 'wagmi'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
 import { useWalletFilterEffect } from '@pancakeswap/ui-wallets/src/state/hooks'
@@ -33,6 +37,24 @@ const WalletModalManager: React.FC<{ isOpen: boolean; onDismiss?: () => void }> 
   const handleWalletConnectStart = useCallback(
     (connectedChainId: number | undefined, name?: string) => {
       logGTMConnectWalletSelectEvent(connectedChainId ?? chainId, name)
+    },
+    [chainId],
+  )
+  const handleWalletConnectFail = useCallback(
+    (
+      connectedChainId: number | undefined,
+      name?: string,
+      network?: WalletAdaptedNetwork,
+      errorType?: string,
+      errorMessage?: string,
+    ) => {
+      logGTMWalletConnectFailedEvent(
+        connectedChainId ?? chainId,
+        name,
+        network ?? WalletAdaptedNetwork.EVM,
+        errorType ?? 'UNKNOWN',
+        errorMessage,
+      )
     },
     [chainId],
   )
@@ -63,6 +85,7 @@ const WalletModalManager: React.FC<{ isOpen: boolean; onDismiss?: () => void }> 
       onDismiss={onDismiss}
       onWalletConnectStartCallBack={handleWalletConnectStart}
       onWalletConnectCallBack={handleWalletConnect}
+      onWalletConnectFailCallBack={handleWalletConnectFail}
       onGoogleLogin={handleGoogleLogin}
       onXLogin={handleXLogin}
       onTelegramLogin={handleTelegramLogin}
