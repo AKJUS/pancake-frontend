@@ -53,6 +53,7 @@ export enum GTMEvent {
 
   // wallet
   ConnectWallet = 'connectWallet',
+  ConnectWalletSelect = 'connectWalletSelect',
   DisconnectWallet = 'disconnectWallet',
   WalletConnected = 'walletConnected',
   WalletConnect = 'walletConnect', // deprecated
@@ -135,6 +136,7 @@ export enum GTMAction {
   // Wallet
   ClickWalletConnectButton = 'Click Wallet Connect and Connected', // deprecated
   ClickOnWalletBtn = 'click on the connect wallet button',
+  ClickOnWalletOption = 'click on wallet option',
   WalletConnectSucc = 'wallet connected successfully',
   ClickOnDisconnectedBtn = 'click on the disconnected wallet button',
 
@@ -343,6 +345,17 @@ export const logGTMConnectWalletEvent = (chainId: number | undefined) => {
     event: GTMEvent.ConnectWallet,
     action: GTMAction.ClickOnWalletBtn,
     category: GTMCategory.WalletConnect,
+    info,
+  })
+}
+export const logGTMConnectWalletSelectEvent = (chainId: number | undefined, walletTitle: string | undefined) => {
+  const info = chainId && getChainFullName(chainId)
+  console.info('---ConnectWalletSelect---', info, walletTitle)
+  window?.dataLayer?.push({
+    event: GTMEvent.ConnectWalletSelect,
+    action: GTMAction.ClickOnWalletOption,
+    category: GTMCategory.WalletConnect,
+    label: walletTitle,
     info,
   })
 }

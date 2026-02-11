@@ -7,7 +7,7 @@ import useAuth from 'hooks/useAuth'
 import { ChainId } from '@pancakeswap/chains'
 import { useFirebaseAuth } from 'wallet/Privy/firebase'
 import { useCallback, useMemo } from 'react'
-import { logGTMWalletConnectedEvent } from 'utils/customGTMEventTracking'
+import { logGTMConnectWalletSelectEvent, logGTMWalletConnectedEvent } from 'utils/customGTMEventTracking'
 import { useConnect } from 'wagmi'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
 import { useWalletFilterEffect } from '@pancakeswap/ui-wallets/src/state/hooks'
@@ -27,6 +27,12 @@ const WalletModalManager: React.FC<{ isOpen: boolean; onDismiss?: () => void }> 
   const handleWalletConnect = useCallback(
     (connectedChainId: number | undefined, name?: string, address?: string) => {
       logGTMWalletConnectedEvent(connectedChainId ?? chainId, name, address)
+    },
+    [chainId],
+  )
+  const handleWalletConnectStart = useCallback(
+    (connectedChainId: number | undefined, name?: string) => {
+      logGTMConnectWalletSelectEvent(connectedChainId ?? chainId, name)
     },
     [chainId],
   )
@@ -50,6 +56,7 @@ const WalletModalManager: React.FC<{ isOpen: boolean; onDismiss?: () => void }> 
       evmLogin={login}
       createEvmQrCode={createEvmQrCode}
       onDismiss={onDismiss}
+      onWalletConnectStartCallBack={handleWalletConnectStart}
       onWalletConnectCallBack={handleWalletConnect}
       onGoogleLogin={loginWithGoogle}
       onXLogin={loginWithX}
