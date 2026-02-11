@@ -39,6 +39,12 @@ const WalletModalManager: React.FC<{ isOpen: boolean; onDismiss?: () => void }> 
 
   const { loginWithGoogle, loginWithX, loginWithDiscord, loginWithTelegram } = useFirebaseAuth()
 
+  // Wrap social login handlers to pass chainId for GTM tracking
+  const handleGoogleLogin = useCallback(() => loginWithGoogle(chainId), [loginWithGoogle, chainId])
+  const handleXLogin = useCallback(() => loginWithX(chainId), [loginWithX, chainId])
+  const handleTelegramLogin = useCallback(() => loginWithTelegram(chainId), [loginWithTelegram, chainId])
+  const handleDiscordLogin = useCallback(() => loginWithDiscord(chainId), [loginWithDiscord, chainId])
+
   const createEvmQrCode = useCallback(() => {
     return createQrCode(chainId || ChainId.BSC, connectAsync)
   }, [chainId, connectAsync])
@@ -58,10 +64,10 @@ const WalletModalManager: React.FC<{ isOpen: boolean; onDismiss?: () => void }> 
       onDismiss={onDismiss}
       onWalletConnectStartCallBack={handleWalletConnectStart}
       onWalletConnectCallBack={handleWalletConnect}
-      onGoogleLogin={loginWithGoogle}
-      onXLogin={loginWithX}
-      onTelegramLogin={loginWithTelegram}
-      onDiscordLogin={loginWithDiscord}
+      onGoogleLogin={handleGoogleLogin}
+      onXLogin={handleXLogin}
+      onTelegramLogin={handleTelegramLogin}
+      onDiscordLogin={handleDiscordLogin}
     />
   )
 }

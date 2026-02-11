@@ -11,6 +11,7 @@ import {
 } from 'firebase/auth'
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { nanoid } from 'nanoid'
+import { logGTMConnectWalletSelectEvent } from 'utils/customGTMEventTracking'
 import { usePrivySocialLoginAtom, useSocialLoginProviderAtom } from './atom'
 import { loginWithTelegramViaScript } from './telegramLogin'
 
@@ -21,10 +22,10 @@ interface AuthContextType {
   token: string | undefined
   getToken: () => Promise<string | undefined>
   isLoading: boolean
-  loginWithGoogle: () => Promise<void>
-  loginWithX: () => Promise<void>
-  loginWithDiscord: () => Promise<void>
-  loginWithTelegram: () => Promise<void>
+  loginWithGoogle: (chainId?: number) => Promise<void>
+  loginWithX: (chainId?: number) => Promise<void>
+  loginWithDiscord: (chainId?: number) => Promise<void>
+  loginWithTelegram: (chainId?: number) => Promise<void>
   signOutAndClearUserStates: () => void
 }
 
@@ -83,49 +84,59 @@ export function FirebaseAuthProvider({ children }: AuthProviderProps) {
     }
   }
 
-  const loginWithGoogle = useCallback(async () => {
-    try {
-      setPrivySocialLogin(true)
-      setSocialProvider('google')
-      setLoading(true)
-      const loginRes = await signInWithGoogle()
-      const idToken = await loginRes.user.getIdToken(true)
-      setToken(idToken)
-    } catch (err: any) {
-      // Handle cancelled login silently
-      if (err?.message === 'LOGIN_CANCELLED') {
-        console.info('Google login was cancelled by user')
-        setPrivySocialLogin(false)
-        setSocialProvider(null)
-        return
+  const loginWithGoogle = useCallback(
+    async (chainId?: number) => {
+      try {
+        setPrivySocialLogin(true)
+        setSocialProvider('google')
+        setLoading(true)
+        // Track wallet selection
+        logGTMConnectWalletSelectEvent(chainId, 'io.privy.smart_wallet - Google')
+        const loginRes = await signInWithGoogle()
+        const idToken = await loginRes.user.getIdToken(true)
+        setToken(idToken)
+      } catch (err: any) {
+        // Handle cancelled login silently
+        if (err?.message === 'LOGIN_CANCELLED') {
+          console.info('Google login was cancelled by user')
+          setPrivySocialLogin(false)
+          setSocialProvider(null)
+          return
+        }
+        console.error('Google login error:', err)
+      } finally {
+        setLoading(false)
       }
-      console.error('Google login error:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [setPrivySocialLogin, setSocialProvider])
+    },
+    [setPrivySocialLogin, setSocialProvider],
+  )
 
-  const loginWithX = useCallback(async () => {
-    try {
-      setPrivySocialLogin(true)
-      setSocialProvider('x')
-      setLoading(true)
-      const loginRes = await signInWithX()
-      const idToken = await loginRes.user.getIdToken(true)
-      setToken(idToken)
-    } catch (err: any) {
-      // Handle cancelled login silently
-      if (err?.message === 'LOGIN_CANCELLED') {
-        console.info('X login was cancelled by user')
-        setPrivySocialLogin(false)
-        setSocialProvider(null)
-        return
+  const loginWithX = useCallback(
+    async (chainId?: number) => {
+      try {
+        setPrivySocialLogin(true)
+        setSocialProvider('x')
+        setLoading(true)
+        // Track wallet selection
+        logGTMConnectWalletSelectEvent(chainId, 'io.privy.smart_wallet - X')
+        const loginRes = await signInWithX()
+        const idToken = await loginRes.user.getIdToken(true)
+        setToken(idToken)
+      } catch (err: any) {
+        // Handle cancelled login silently
+        if (err?.message === 'LOGIN_CANCELLED') {
+          console.info('X login was cancelled by user')
+          setPrivySocialLogin(false)
+          setSocialProvider(null)
+          return
+        }
+        console.error('X login error:', err)
+      } finally {
+        setLoading(false)
       }
-      console.error('X login error:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [setPrivySocialLogin, setSocialProvider])
+    },
+    [setPrivySocialLogin, setSocialProvider],
+  )
 
   // Helper function to sign in with custom token
   const loginWithCustomToken = useCallback(
@@ -145,48 +156,58 @@ export function FirebaseAuthProvider({ children }: AuthProviderProps) {
     [setPrivySocialLogin],
   )
 
-  const loginWithDiscord = useCallback(async () => {
-    try {
-      setPrivySocialLogin(true)
-      setSocialProvider('discord')
-      setLoading(true)
+  const loginWithDiscord = useCallback(
+    async (chainId?: number) => {
+      try {
+        setPrivySocialLogin(true)
+        setSocialProvider('discord')
+        setLoading(true)
+        // Track wallet selection
+        logGTMConnectWalletSelectEvent(chainId, 'io.privy.smart_wallet - Discord')
 
-      // Open Discord OAuth page
-      const redirectUri = `${window.location.origin}/api/auth/discord-callback`
-      const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID
-      const state = nanoid(21)
-      localStorage.setItem('discordAuthState', state)
-      const popup = window.open(
-        `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-          redirectUri,
-        )}&response_type=code&scope=identify&state=${state}`,
-        '_blank',
-        'width=500,height=600',
-      )
+        // Open Discord OAuth page
+        const redirectUri = `${window.location.origin}/api/auth/discord-callback`
+        const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID
+        const state = nanoid(21)
+        localStorage.setItem('discordAuthState', state)
+        const popup = window.open(
+          `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+            redirectUri,
+          )}&response_type=code&scope=identify&state=${state}`,
+          '_blank',
+          'width=500,height=600',
+        )
 
-      setDiscordPopup(popup)
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
-  }, [setPrivySocialLogin, setSocialProvider])
+        setDiscordPopup(popup)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [setPrivySocialLogin, setSocialProvider],
+  )
 
-  const loginWithTelegram = useCallback(async () => {
-    try {
-      setPrivySocialLogin(true)
-      setSocialProvider('telegram')
-      setLoading(true)
+  const loginWithTelegram = useCallback(
+    async (chainId?: number) => {
+      try {
+        setPrivySocialLogin(true)
+        setSocialProvider('telegram')
+        setLoading(true)
+        // Track wallet selection
+        logGTMConnectWalletSelectEvent(chainId, 'io.privy.smart_wallet - Telegram')
 
-      loginWithTelegramViaScript((token) => {
-        loginWithCustomToken(token)
-      })
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
-  }, [loginWithCustomToken, setPrivySocialLogin, setSocialProvider])
+        loginWithTelegramViaScript((token) => {
+          loginWithCustomToken(token)
+        })
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [loginWithCustomToken, setPrivySocialLogin, setSocialProvider],
+  )
 
   const getToken = useCallback(async () => {
     if (token) {
