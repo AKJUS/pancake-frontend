@@ -1,0 +1,25 @@
+{
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
+  },
+  "miniapp": {
+    "version": "1",
+    "name": "Cakepad (CAKE.PAD)",
+    "homeUrl": "https://pancakeswap.finance/cakepad-base",
+    "iconUrl": "https://pancakeswap.finance/logo.png",
+    "splashImageUrl": "https://pancakeswap.finance/logo.png",
+    "splashBackgroundColor": "#0f1220",
+    "subtitle": "Token launches on Base",
+    "description": "Join CAKE.PAD launches on Base and discover new tokens from selected projects.",
+    "primaryCategory": "finance",
+    "tags": ["cakepad", "defi", "launchpad", "base"],
+    "tagline": "Discover token launches",
+    "heroImageUrl": "https://assets.pancakeswap.finance/web/og/ifo.jpg",
+    "screenshotUrls": ["https://assets.pancakeswap.finance/web/cakepad/upcoming.png"],
+    "ogTitle": "CAKE.PAD on Base",
+    "ogDescription": "Discover and join CAKE.PAD token launches on Base.",
+    "ogImageUrl": "https://assets.pancakeswap.finance/web/og/ifo.jpg"
+  }
+}

@@ -94,8 +94,23 @@ function MPGlobalHooks() {
 const LoadVConsole = dynamic(() => import('components/vConsole'), { ssr: false })
 
 function MyApp(props: AppProps<{ initialReduxState: any; dehydratedState: any }>) {
-  const { pageProps, Component } = props
+  const { pageProps, Component, router } = props
   const store = useStore(pageProps.initialReduxState)
+  const isCakepadBasePath = router.pathname.startsWith('/cakepad-base')
+  const cakepadBaseMiniAppEmbed = JSON.stringify({
+    version: '1',
+    imageUrl: 'https://assets.pancakeswap.finance/web/og/ifo.jpg',
+    button: {
+      title: 'Open Cakepad',
+      action: {
+        type: 'launch_frame',
+        name: 'Cakepad (CAKE.PAD)',
+        url: 'https://pancakeswap.finance/cakepad-base',
+        splashImageUrl: 'https://pancakeswap.finance/logo.png',
+        splashBackgroundColor: '#0f1220',
+      },
+    },
+  })
 
   return (
     <>
@@ -109,6 +124,8 @@ function MyApp(props: AppProps<{ initialReduxState: any; dehydratedState: any }>
           content="Cheaper and faster than Uniswap? Discover PancakeSwap, the leading DEX on BNB Smart Chain (BSC) with the best farms in DeFi and a lottery for CAKE."
         />
         <meta name="theme-color" content="#1FC7D4" />
+        {isCakepadBasePath && <meta name="fc:miniapp" content={cakepadBaseMiniAppEmbed} />}
+        {isCakepadBasePath && <meta name="fc:frame" content={cakepadBaseMiniAppEmbed} />}
       </Head>
       <DefaultSeo {...SEO} />
       {/* <LoadVConsole /> */}
