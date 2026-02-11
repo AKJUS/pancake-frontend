@@ -39,11 +39,10 @@ const WalletModalManager: React.FC<{ isOpen: boolean; onDismiss?: () => void }> 
 
   const { loginWithGoogle, loginWithX, loginWithDiscord, loginWithTelegram } = useFirebaseAuth()
 
-  // Wrap social login handlers to pass chainId for GTM tracking
-  const handleGoogleLogin = useCallback(() => loginWithGoogle(chainId), [loginWithGoogle, chainId])
-  const handleXLogin = useCallback(() => loginWithX(chainId), [loginWithX, chainId])
-  const handleTelegramLogin = useCallback(() => loginWithTelegram(chainId), [loginWithTelegram, chainId])
-  const handleDiscordLogin = useCallback(() => loginWithDiscord(chainId), [loginWithDiscord, chainId])
+  const handleGoogleLogin = useCallback(() => loginWithGoogle(), [loginWithGoogle])
+  const handleXLogin = useCallback(() => loginWithX(), [loginWithX])
+  const handleTelegramLogin = useCallback(() => loginWithTelegram(), [loginWithTelegram])
+  const handleDiscordLogin = useCallback(() => loginWithDiscord(), [loginWithDiscord])
 
   const createEvmQrCode = useCallback(() => {
     return createQrCode(chainId || ChainId.BSC, connectAsync)

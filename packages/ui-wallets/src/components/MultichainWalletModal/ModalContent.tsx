@@ -17,7 +17,7 @@ import { StyledMobileContainer } from './styled'
 
 export type ModalContentProps = Pick<
   MultichainWalletModalProps,
-  'wallets' | 'topWallets' | 'docLink' | 'solanaAddress' | 'evmAddress'
+  'wallets' | 'topWallets' | 'docLink' | 'solanaAddress' | 'evmAddress' | 'onWalletConnectStartCallBack'
 > & {
   chainId?: ChainId
   onDismiss: () => void
@@ -50,6 +50,7 @@ export const ModalContent: React.FC<ModalContentProps> = ({
   displaySocialLogin,
   previewStatus,
   setPreviewStatus,
+  onWalletConnectStartCallBack,
   onGoogleLogin,
   onXLogin,
   onTelegramLogin,
@@ -100,6 +101,13 @@ export const ModalContent: React.FC<ModalContentProps> = ({
 
   const [uninstalledWallet, setUninstalledWallet] = useState<WalletConfigV3 | null>(null)
 
+  const trackWalletSelection = useCallback(
+    (walletTitle?: string) => {
+      onWalletConnectStartCallBack?.(chainId, walletTitle)
+    },
+    [chainId, onWalletConnectStartCallBack],
+  )
+
   const isWalletInstalledAndPreview = useCallback(
     (wallet: WalletConfigV3, network?: WalletAdaptedNetwork) => {
       if (!('installed' in wallet)) return true
@@ -134,6 +142,7 @@ export const ModalContent: React.FC<ModalContentProps> = ({
 
   const onMultiChainWalletSelected = useCallback(
     (wallet: WalletConfigV3) => {
+      trackWalletSelection(wallet.title)
       if (
         !isWalletInstalledAndPreview(wallet) &&
         !wallet.solanaCanInitWithoutInstall &&
@@ -144,7 +153,7 @@ export const ModalContent: React.FC<ModalContentProps> = ({
       setSelectedMultiChainWallet(wallet)
       setPreviewStatus(PreviewStatus.ChainSelect)
     },
-    [isWalletInstalledAndPreview, setPreviewStatus],
+    [isWalletInstalledAndPreview, setPreviewStatus, trackWalletSelection],
   )
 
   const onEvmWalletSelected = useCallback(
@@ -164,7 +173,10 @@ export const ModalContent: React.FC<ModalContentProps> = ({
   )
 
   const onWalletSelected = useCallback(
-    (w: WalletConfigV3, network: WalletAdaptedNetwork) => {
+    (w: WalletConfigV3, network: WalletAdaptedNetwork, shouldTrack = true) => {
+      if (shouldTrack) {
+        trackWalletSelection(w.title)
+      }
       if (!isWalletInstalledAndPreview(w, network) && !w.solanaCanInitWithoutInstall && !w.evmCanInitWithoutInstall)
         return
 
@@ -176,8 +188,33 @@ export const ModalContent: React.FC<ModalContentProps> = ({
         onSolanaWalletSelected(w)
       }
     },
-    [isWalletInstalledAndPreview, setPreviewStatus, onEvmWalletSelected, onSolanaWalletSelected],
+    [isWalletInstalledAndPreview, setPreviewStatus, onEvmWalletSelected, onSolanaWalletSelected, trackWalletSelection],
   )
+
+  const handleDisplaySocialLogin = useCallback(() => {
+    trackWalletSelection('Social Login')
+    displaySocialLogin()
+  }, [displaySocialLogin, trackWalletSelection])
+
+  const handleGoogleLogin = useCallback(() => {
+    trackWalletSelection('io.privy.smart_wallet - Google')
+    onGoogleLogin?.()
+  }, [onGoogleLogin, trackWalletSelection])
+
+  const handleXLogin = useCallback(() => {
+    trackWalletSelection('io.privy.smart_wallet - X')
+    onXLogin?.()
+  }, [onXLogin, trackWalletSelection])
+
+  const handleTelegramLogin = useCallback(() => {
+    trackWalletSelection('io.privy.smart_wallet - Telegram')
+    onTelegramLogin?.()
+  }, [onTelegramLogin, trackWalletSelection])
+
+  const handleDiscordLogin = useCallback(() => {
+    trackWalletSelection('io.privy.smart_wallet - Discord')
+    onDiscordLogin?.()
+  }, [onDiscordLogin, trackWalletSelection])
 
   const walletsSection = (
     <>
@@ -202,7 +239,7 @@ export const ModalContent: React.FC<ModalContentProps> = ({
         </RowBetween>
       )}
 
-      <SocialLoginButton onClick={displaySocialLogin} assetCdn={ASSET_CDN} />
+      <SocialLoginButton onClick={handleDisplaySocialLogin} assetCdn={ASSET_CDN} />
 
       <WalletSelect
         wallets={wallets}
@@ -243,10 +280,10 @@ export const ModalContent: React.FC<ModalContentProps> = ({
         <SocialLogin
           chainId={chainId}
           onDismiss={() => setPreviewStatus(PreviewStatus.Intro)}
-          onGoogleLogin={onGoogleLogin}
-          onXLogin={onXLogin}
-          onTelegramLogin={onTelegramLogin}
-          onDiscordLogin={onDiscordLogin}
+          onGoogleLogin={handleGoogleLogin}
+          onXLogin={handleXLogin}
+          onTelegramLogin={handleTelegramLogin}
+          onDiscordLogin={handleDiscordLogin}
         />
       )}
       {previewStatus === PreviewStatus.ChainSelect && selectedMultiChainWallet && (
@@ -254,8 +291,8 @@ export const ModalContent: React.FC<ModalContentProps> = ({
           evmAddress={evmAddress}
           solanaAddress={solanaAddress}
           wallet={selectedMultiChainWallet}
-          onConnectEVM={() => onWalletSelected(selectedMultiChainWallet, WalletAdaptedNetwork.EVM)}
-          onConnectSolana={() => onWalletSelected(selectedMultiChainWallet, WalletAdaptedNetwork.Solana)}
+          onConnectEVM={() => onWalletSelected(selectedMultiChainWallet, WalletAdaptedNetwork.EVM, false)}
+          onConnectSolana={() => onWalletSelected(selectedMultiChainWallet, WalletAdaptedNetwork.Solana, false)}
         />
       )}
     </>

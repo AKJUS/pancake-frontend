@@ -115,8 +115,6 @@ export const MultichainWalletModal: React.FC<MultichainWalletModalProps> = (prop
 
   const connectWallet = useCallback(
     (wallet: WalletConfigV3, network: WalletAdaptedNetwork) => {
-      onWalletConnectStartCallBack?.(chainId, wallet.title)
-
       if (network === WalletAdaptedNetwork.Solana) {
         setSolanaSelectedWallet(wallet as WalletConfigV3<SolanaConnectorNames>)
         setSolanaError('')
@@ -190,8 +188,6 @@ export const MultichainWalletModal: React.FC<MultichainWalletModalProps> = (prop
       t,
       solanaLogin,
       handleDismiss,
-      onWalletConnectStartCallBack,
-      chainId,
     ],
   )
 
@@ -278,6 +274,7 @@ export const MultichainWalletModal: React.FC<MultichainWalletModalProps> = (prop
               previewStatus={previewStatus}
               setPreviewStatus={setPreviewStatus}
               docLink={docLink}
+              onWalletConnectStartCallBack={onWalletConnectStartCallBack}
               onGoogleLogin={handleSocialLoginWithCleanup(onGoogleLogin)}
               onXLogin={handleSocialLoginWithCleanup(onXLogin)}
               onTelegramLogin={handleSocialLoginWithCleanup(onTelegramLogin)}
