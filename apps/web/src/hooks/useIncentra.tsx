@@ -23,6 +23,30 @@ export type IncentraCampaign = {
   status: string
 }
 
+const isHexPoolId = (value?: string) => /^0x[0-9a-fA-F]+$/.test(value ?? '')
+
+const normalizePoolId = (value?: string) => (value ? value.toLowerCase() : '')
+
+/**
+ * Incentra pool ids can be either:
+ * - EVM address (0x + 40 hex), or
+ * - Infinity pool id bytes32 (0x + 64 hex).
+ */
+const isPoolIdEqual = (a?: string, b?: string) => {
+  if (!a || !b) return false
+
+  // Preserve checksum-safe address compare for address-based pools.
+  if (isAddressEqual(a, b)) return true
+
+  // Fallback for bytes32/hex identifiers that are not valid EVM addresses.
+  if (isHexPoolId(a) && isHexPoolId(b)) {
+    return normalizePoolId(a) === normalizePoolId(b)
+  }
+
+  // Last fallback for non-hex identifiers.
+  return a === b
+}
+
 export function useIncentraInfo(poolAddress?: string): {
   isPending: boolean
   hasIncentra: boolean
@@ -70,7 +94,7 @@ export function useIncentraInfo(poolAddress?: string): {
       }
     }
 
-    const campaign = data.find((c) => isAddressEqual(c.pools.poolId, poolAddress))
+    const campaign = data.find((c) => isPoolIdEqual(c.pools.poolId, poolAddress))
 
     return {
       isPending,
