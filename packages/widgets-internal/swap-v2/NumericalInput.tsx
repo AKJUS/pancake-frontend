@@ -2,7 +2,7 @@ import { useTranslation } from "@pancakeswap/localization";
 import { SwapCSS } from "@pancakeswap/uikit";
 import { escapeRegExp } from "@pancakeswap/utils/escapeRegExp";
 import clsx from "clsx";
-import { memo, useMemo } from "react";
+import { ChangeEvent, memo, useCallback, useMemo } from "react";
 import { styled } from "styled-components";
 import { truncateDecimals } from "../utils/numbers";
 
@@ -24,6 +24,28 @@ export type NumericalInputProps = {
 } & SwapCSS.InputVariants &
   Omit<React.HTMLProps<HTMLInputElement>, "ref" | "onChange" | "as">;
 
+const enforcer = (nextUserInput: string, onUserInput: (input: string) => void, maxDecimals?: number) => {
+  if (nextUserInput === "" || inputRegex.test(escapeRegExp(nextUserInput))) {
+    onUserInput(truncateDecimals(nextUserInput, maxDecimals));
+  }
+};
+
+export function normalizeInputValue(value: string, prefix?: string): string {
+  let nextValue = value.replace(/,/g, ".");
+
+  // replace commas with periods, because we exclusively uses period as the decimal separator
+  const periods = nextValue.split(".");
+  if (periods.length > 1) {
+    const beforeDecimal = periods.slice(0, -1).join("");
+    const afterDecimal = periods[periods.length - 1];
+    nextValue = `${beforeDecimal}.${afterDecimal}`;
+  }
+
+  const normalizedValue = prefix ? nextValue.replace(new RegExp(escapeRegExp(prefix), "g"), "") : nextValue;
+
+  return normalizedValue;
+}
+
 export const NumericalInput = memo(function InnerInput({
   value,
   onUserInput,
@@ -39,12 +61,6 @@ export const NumericalInput = memo(function InnerInput({
   prefix,
   ...rest
 }: NumericalInputProps) {
-  const enforcer = (nextUserInput: string) => {
-    if (nextUserInput === "" || inputRegex.test(escapeRegExp(nextUserInput))) {
-      onUserInput(truncateDecimals(nextUserInput, maxDecimals));
-    }
-  };
-
   const { t } = useTranslation();
 
   const truncatedValue = useMemo(() => {
@@ -54,6 +70,14 @@ export const NumericalInput = memo(function InnerInput({
     }
     return `${prefix}${nextValue}`;
   }, [value, maxDecimals, prefix]);
+
+  const handleOnChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const normalizedValue = normalizeInputValue(event.target.value, prefix);
+      enforcer(normalizedValue, onUserInput, maxDecimals);
+    },
+    [onUserInput, maxDecimals, prefix]
+  );
 
   return (
     <StyledInput
@@ -67,12 +91,7 @@ export const NumericalInput = memo(function InnerInput({
       )}
       {...rest}
       value={truncatedValue}
-      onChange={(event) => {
-        // replace commas with periods, because we exclusively uses period as the decimal separator
-        const nextValue = event.target.value.replace(/,/g, ".");
-        const normalizedValue = prefix ? nextValue.replace(new RegExp(escapeRegExp(prefix), "g"), "") : nextValue;
-        enforcer(normalizedValue);
-      }}
+      onChange={handleOnChange}
       // universal input options
       inputMode="decimal"
       title={t("Token Amount")}

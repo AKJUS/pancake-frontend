@@ -701,7 +701,7 @@ const CurrencyInputPanelSimplify = memo(function CurrencyInputPanel({
                       {`~${formatTokenAmount(Number(tokenAmountFromUsd))}`}
                     </Text>
                     {currency?.symbol ? (
-                      <Text ml="4px" fontSize="14px" color="textSubtle">
+                      <Text ml="4px" fontSize="14px" color="textSubtle" style={{ whiteSpace: 'nowrap' }}>
                         {currency.symbol}
                       </Text>
                     ) : null}

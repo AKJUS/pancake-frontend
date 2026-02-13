@@ -8,6 +8,10 @@
     ".": "./index.ts",
     "./roi": "./roi/index.ts"
   },
+  "scripts": {
+    "test": "vitest --run",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+  },
   "dependencies": {
     "@pancakeswap/chains": "workspace:*",
     "@pancakeswap/farms": "workspace:*",
@@ -50,6 +54,8 @@
     "polished": "^4.2.2",
     "react": "^18.2.0",
     "styled-components": "6.0.7",
-    "@types/d3": "^7.4.0"
+    "@types/d3": "^7.4.0",
+    "vite-tsconfig-paths": "^4.0.3",
+    "@vanilla-extract/vite-plugin": "^4.0.2"
   }
 }
