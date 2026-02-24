@@ -1,6 +1,6 @@
 import { Protocol } from '@pancakeswap/farms'
 import { getPoolId } from '@pancakeswap/infinity-sdk'
-import { Box, ChevronRightIcon, Flex, FlexGap, Text, FeeTier, Button, OpenNewIcon } from '@pancakeswap/uikit'
+import { Box, Flex, FlexGap, Text, FeeTier, Button, useMatchBreakpoints } from '@pancakeswap/uikit'
 import { FiatNumberDisplay, NextLinkFromReactRouter } from '@pancakeswap/widgets-internal'
 import { TokenPairLogo } from 'components/TokenImage'
 import { unwrappedToken } from '@pancakeswap/tokens'
@@ -145,6 +145,7 @@ const ActionsRow = styled(Flex)`
 
 export const PositionListCard: React.FC<PositionListCardProps> = ({ position, poolLength }) => {
   const { t } = useTranslation()
+  const { isMobile, isMd } = useMatchBreakpoints()
   const chainId = getPositionChainId(position)
   const isSolanaPosition = isSolana(chainId)
 
@@ -157,14 +158,15 @@ export const PositionListCard: React.FC<PositionListCardProps> = ({ position, po
   const [solanaPriceRangeData, setSolanaPriceRangeData] = useState<PriceRangeData | null>(null)
 
   // Check if we have valid Solana data
-  const hasValidSolanaData =
+  const hasValidSolanaData = Boolean(
     isSolanaPosition &&
-    position.protocol === Protocol.V3 &&
-    solanaPoolInfo &&
-    solanaPoolInfo.mintA &&
-    solanaPoolInfo.mintB &&
-    'tickLower' in position &&
-    'tickUpper' in position
+      position.protocol === Protocol.V3 &&
+      solanaPoolInfo &&
+      solanaPoolInfo.mintA &&
+      solanaPoolInfo.mintB &&
+      'tickLower' in position &&
+      'tickUpper' in position,
+  )
 
   const {
     currency0,
@@ -174,7 +176,6 @@ export const PositionListCard: React.FC<PositionListCardProps> = ({ position, po
     pool,
     totalPriceUSD,
     aprButton,
-    link,
     hookData,
     feeTier,
     feeTierBase,
@@ -454,8 +455,11 @@ export const PositionListCard: React.FC<PositionListCardProps> = ({ position, po
                 width="100%"
                 as={NextLinkFromReactRouter}
                 to={poolDetailUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+                {...(!isMobile &&
+                  !isMd && {
+                    target: '_blank',
+                    rel: 'noopener noreferrer',
+                  })}
               >
                 {t('Details')}
               </Button>
