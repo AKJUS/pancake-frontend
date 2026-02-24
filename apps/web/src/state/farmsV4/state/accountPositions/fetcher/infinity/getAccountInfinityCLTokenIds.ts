@@ -1,7 +1,8 @@
 import { BinPositionManagerAbi, CLPositionManagerAbi } from '@pancakeswap/infinity-sdk'
 import { getInfinityPositionManagerAddress } from 'utils/addressHelpers'
 import { publicClient } from 'utils/viem'
-import { Address, isAddressEqual } from 'viem'
+import { Address } from 'viem'
+import { isAddressEqual } from 'utils'
 
 /**
  * Get all token ids of a given account

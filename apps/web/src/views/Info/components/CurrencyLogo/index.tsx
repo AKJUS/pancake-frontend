@@ -5,9 +5,9 @@ import { chainName as CHAIN_PATH } from '@pancakeswap/widgets-internal'
 import { useMemo } from 'react'
 import { multiChainId, MultiChainNameExtend } from 'state/info/constant'
 import { styled } from 'styled-components'
-import { safeGetAddress } from 'utils'
-import { Address, isAddressEqual } from 'viem'
-import getTokenLogoURL from '../../../../utils/getTokenLogoURL'
+import { safeGetAddress, isAddressEqual } from 'utils'
+import { Address } from 'viem'
+import getTokenLogoURL from 'utils/getTokenLogoURL'
 
 const StyledLogo = styled(TokenLogo)<{ size: string }>`
   width: ${({ size }) => size};
