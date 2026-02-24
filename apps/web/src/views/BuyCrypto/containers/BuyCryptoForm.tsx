@@ -33,6 +33,9 @@ import { v4 } from 'uuid'
 import { OnRampUnit, type OnRampProviderQuote } from 'views/BuyCrypto/types'
 import OnBoardingView from 'views/Notifications/containers/OnBoardingView'
 import { useBuyCryptoFormState } from 'state/buyCrypto/reducer'
+import { useAccount } from 'wagmi'
+import { requireLogout } from 'wallet/hook/useSwitchNetworkV2'
+import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
 import { BuyCryptoSelector } from '../components/OnRampCurrencySelect'
 import { OnRampFlipButton } from '../components/OnRampFlipButton/OnRampFlipButton'
 import { PopOverScreenContainer } from '../components/PopOverScreen/PopOverScreen'
@@ -74,6 +77,8 @@ type InputEvent = ChangeEvent<HTMLInputElement>
 
 export function BuyCryptoForm({ providerAvailabilities }: { providerAvailabilities: ProviderAvailabilities }) {
   const { typedValue, independentField } = useBuyCryptoFormState()
+  const { address: evmAddress, connector: wagmiConnector } = useAccount()
+  const { canSwitch, switchNetwork } = useSwitchNetwork()
 
   const { t } = useTranslation()
   const isBtc = useIsBtc()
@@ -128,6 +133,19 @@ export function BuyCryptoForm({ providerAvailabilities }: { providerAvailabiliti
     onRampUnit: unit,
     enabled: Boolean(!inputError),
   })
+
+  useEffect(() => {
+    const checkAndLogout = async () => {
+      if (!isBtc && canSwitch && wagmiConnector && cryptoCurrency?.chainId && evmAddress) {
+        const needsLogout = await requireLogout(wagmiConnector, cryptoCurrency.chainId, evmAddress)
+        if (needsLogout) {
+          switchNetwork(cryptoCurrency.chainId)
+        }
+      }
+    }
+
+    checkAndLogout()
+  }, [cryptoCurrency?.chainId, wagmiConnector, evmAddress, canSwitch, switchNetwork, isBtc])
 
   const outputValue = useMemo(() => {
     if (inputError || !selectedQuote) return undefined

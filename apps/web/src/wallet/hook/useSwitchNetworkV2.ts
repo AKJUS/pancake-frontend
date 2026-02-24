@@ -27,10 +27,9 @@ type ReplaceGuardState = {
   requestId: number
 }
 export const useSwitchNetworkV2 = () => {
-  const { isConnected } = useAccount()
   const { switchChainAsync } = useSwitchChain()
   const switching = useAtomValue(switchChainUpdatingAtom)
-  const { address: evmAddress, connector: wagmiConnector } = useAccount()
+  const { isConnected, address: evmAddress, connector: wagmiConnector } = useAccount()
   const processSwitching = useProcessSwitchChainRequest()
   const router = useRouter()
 
@@ -96,7 +95,7 @@ export const useSwitchNetworkV2 = () => {
   return { switchNetwork: switchChain, canSwitch, isLoading: switching, canSwitchToChain }
 }
 
-const requireLogout = async (connector: Connector, chainId: number, address: `0x${string}` | undefined) => {
+export const requireLogout = async (connector: Connector, chainId: number, address: `0x${string}` | undefined) => {
   try {
     if (typeof connector.getProvider !== 'function') return false
 
