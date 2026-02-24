@@ -234,7 +234,7 @@ export const V2OrSSPositionsTable: React.FC<V2PositionsTableProps> = ({ poolInfo
 
   // V2 farm actions and earnings
   const { onHarvest } = useV2FarmActions(poolInfo.lpAddress!, poolInfo.bCakeWrapperAddress)
-  const { earningsBusd } = useV2CakeEarning(poolInfo)
+  const { earningsBusd, hasEarnings, isLoading: isEarningsLoading } = useV2CakeEarning(poolInfo)
 
   const handleHarvestAll = useCallback(async () => {
     if (loading || !onHarvest || !earningsBusd) return
@@ -269,7 +269,10 @@ export const V2OrSSPositionsTable: React.FC<V2PositionsTableProps> = ({ poolInfo
 
   // Create harvest all button
   const harvestAllButton = (
-    <PrimaryOutlineButton onClick={handleHarvestAll} disabled={loading || isSwitchingNetwork || !earningsBusd}>
+    <PrimaryOutlineButton
+      onClick={handleHarvestAll}
+      disabled={loading || isEarningsLoading || isSwitchingNetwork || !hasEarnings}
+    >
       {loading ? t('Harvesting...') : t('Harvest All')}
     </PrimaryOutlineButton>
   )

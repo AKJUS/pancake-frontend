@@ -302,11 +302,13 @@ const V2HarvestAction: React.FC<V2PositionActionsProps> = ({ chainId, lpAddress,
     }
   }, [setLatestTxReceipt, chainId, switchNetworkIfNecessary, fetchWithCatchTxError, onHarvest, t, toastSuccess])
 
-  const { earningsBusd } = useV2CakeEarning(poolInfo)
+  const { hasEarnings, isLoading } = useV2CakeEarning(poolInfo)
 
   if (!pendingReward || pendingReward.isZero()) {
     return null
   }
 
-  return <HarvestAction onHarvest={handleHarvest} executing={pendingTx} disabled={pendingTx || !earningsBusd} />
+  return (
+    <HarvestAction onHarvest={handleHarvest} executing={pendingTx} disabled={pendingTx || isLoading || !hasEarnings} />
+  )
 }

@@ -290,7 +290,7 @@ export const V3PositionActions = memo(
       [detailMode, isSwitchingNetwork, handleUnStake, isStaked, modalContent, t, outOfRange, stakeModal, attemptingTxn],
     )
 
-    const { earningsBusd } = useV3CakeEarning(
+    const { hasEarnings, isLoading: isEarningsLoading } = useV3CakeEarning(
       useMemo(() => (isStaked && tokenId ? [tokenId] : []), [tokenId, isStaked]),
       chainId,
     )
@@ -313,7 +313,7 @@ export const V3PositionActions = memo(
             <Button
               width={['100px']}
               scale="md"
-              disabled={attemptingTxn || isSwitchingNetwork || !earningsBusd}
+              disabled={attemptingTxn || isSwitchingNetwork || isEarningsLoading || !hasEarnings}
               onClick={handleHarvest}
             >
               {attemptingTxn ? t('Harvesting') : t('Harvest')}

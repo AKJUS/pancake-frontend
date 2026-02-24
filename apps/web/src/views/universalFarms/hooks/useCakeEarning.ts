@@ -19,7 +19,8 @@ export const useV2CakeEarning = (pool: PoolInfo | null | undefined) => {
     lpAddress,
     bCakeWrapperAddress: (pool as V2PoolInfo | StablePoolInfo)?.bCakeWrapperAddress,
   })
-  const earningsAmount = useMemo(() => +formatBigInt(BigInt(pendingCake ?? 0), 5), [pendingCake])
+  const pendingCakeBigInt = useMemo(() => BigInt(pendingCake ?? 0), [pendingCake])
+  const earningsAmount = useMemo(() => +formatBigInt(pendingCakeBigInt, 5), [pendingCakeBigInt])
   const earningsBusd = useMemo(() => {
     return new BigNumber(earningsAmount ?? 0).times(cakePrice.toString()).toNumber()
   }, [cakePrice, earningsAmount])
@@ -27,6 +28,7 @@ export const useV2CakeEarning = (pool: PoolInfo | null | undefined) => {
   return {
     earningsAmount,
     earningsBusd,
+    hasEarnings: pendingCakeBigInt > 0n,
     isLoading,
   }
 }
@@ -41,11 +43,15 @@ export const useV3CakeEarning = (tokenIds: bigint[] = [], chainId: number) => {
     return new BigNumber(earningsAmount.toString()).times(cakePrice.toString()).div(1e18).toNumber()
   }, [cakePrice, earningsAmount])
 
-  return {
-    earningsAmount: +formatBigInt(earningsAmount, 5),
-    earningsBusd,
-    isLoading,
-  }
+  return useMemo(
+    () => ({
+      earningsAmount: +formatBigInt(earningsAmount, 5),
+      earningsBusd,
+      hasEarnings: earningsAmount > 0n,
+      isLoading,
+    }),
+    [earningsAmount, earningsBusd, isLoading],
+  )
 }
 
 export const useV3CakeEarningsByPool = (pool: PoolInfo | null | undefined) => {
@@ -63,10 +69,11 @@ export const useV3CakeEarningsByPool = (pool: PoolInfo | null | undefined) => {
       .map((item) => item.tokenId)
       .filter(Boolean)
   }, [data])
-  const { earningsBusd, earningsAmount } = useV3CakeEarning(tokenIds, pool?.chainId ?? chainId)
+  const { earningsBusd, earningsAmount, hasEarnings } = useV3CakeEarning(tokenIds, pool?.chainId ?? chainId)
   return {
     earningsBusd,
     earningsAmount,
+    hasEarnings,
     isLoading,
   }
 }

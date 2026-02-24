@@ -573,7 +573,7 @@ export const V3PositionsTable: React.FC<V3PositionsTableProps> = ({ poolInfo }) 
 
   const [loading, setLoading] = useState(false)
 
-  const { earningsBusd } = useV3CakeEarningsByPool(poolInfo)
+  const { earningsBusd, hasEarnings, isLoading: isEarningsLoading } = useV3CakeEarningsByPool(poolInfo)
   const { switchNetworkIfNecessary, isLoading: isSwitchingNetwork } = useCheckShouldSwitchNetwork()
 
   const { onHarvestAll } = useFarmsV3BatchHarvest()
@@ -744,7 +744,7 @@ export const V3PositionsTable: React.FC<V3PositionsTableProps> = ({ poolInfo }) 
         harvestAllButton={
           <PrimaryOutlineButton
             onClick={handleHarvestAll}
-            disabled={loading || isSwitchingNetwork || !isMasterChefV3Available}
+            disabled={loading || isEarningsLoading || isSwitchingNetwork || !isMasterChefV3Available || !hasEarnings}
           >
             {loading ? t('Harvesting...') : t('Harvest All')}
           </PrimaryOutlineButton>
