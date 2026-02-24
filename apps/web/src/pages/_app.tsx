@@ -20,6 +20,7 @@ import dynamic from 'next/dynamic'
 import Head from 'next/head'
 import Script from 'next/script'
 import { Fragment, Suspense, useCallback } from 'react'
+import { useGlobalLinkHandler } from 'hooks/useGlobalLinkHandler'
 import { PersistGate } from 'redux-persist/integration/react'
 
 import { DesktopCard } from 'components/AdPanel/DesktopCard'
@@ -78,6 +79,7 @@ function GlobalHooks() {
   useInitNotificationsClient()
   useWalletConnectRouterSync()
   useEmbeddedSmartAccountConnectorV2()
+  useGlobalLinkHandler()
   return null
 }
 
@@ -177,7 +179,7 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 
   const handleDismiss = useCallback(() => {
     setIsOpen(false)
-  }, [])
+  }, [setIsOpen])
 
   if (blocking) {
     return null
