@@ -3,6 +3,7 @@ import { useTranslation } from '@pancakeswap/localization'
 import { AutoColumn, Box, CardBody, FlexGap, TableView, Text, Toggle, useMatchBreakpoints } from '@pancakeswap/uikit'
 import { displayApr } from '@pancakeswap/utils/displayApr'
 import { LightCard, LightGreyCard } from '@pancakeswap/widgets-internal'
+import { useCallback } from 'react'
 import { UnifiedPoolInfo } from 'state/farmsV4/state/type'
 import styled from 'styled-components'
 import { isInfinityProtocol } from 'utils/protocols'
@@ -61,9 +62,11 @@ export const PositionsTable: React.FC<PositionsTableProps> = ({
   const { isMobile, isTablet } = useMatchBreakpoints()
   const isSmallScreen = isMobile || isTablet
 
-  const { protocol } = poolInfo ?? {}
+  const getRowKey = useCallback((row) => row.tokenId, [])
 
   if (!poolInfo) return null
+
+  const { protocol } = poolInfo ?? {}
 
   return (
     <LightCard padding="0" borderRadius="24px">
@@ -100,7 +103,7 @@ export const PositionsTable: React.FC<PositionsTableProps> = ({
 
       {!isSmallScreen ? (
         <TableView
-          getRowKey={(row) => row.tokenId}
+          getRowKey={getRowKey}
           columns={[
             {
               title: (
@@ -162,32 +165,32 @@ export const PositionsTable: React.FC<PositionsTableProps> = ({
             </FlexGap>
           )}
           {data.map((row) => (
-            <StyledPositionCard key={row.tokenId} onClick={() => onRowClick?.(row)}>
-              <Box>{row.tokenInfo}</Box>
-              <FlexGap mt="24px" gap="4px" justifyContent="space-between" alignItems="center">
+            <StyledPositionCard
+              key={row.tokenId}
+              onClick={() => onRowClick?.(row)}
+              style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+            >
+              {row.tokenInfo}
+              <FlexGap gap="4px" justifyContent="space-between" alignItems="center">
                 <Box>
                   <Text color="textSubtle">{t('APR')}</Text>
-                  <Box>{row.apr}</Box>
+                  {row.apr}
                 </Box>
                 <Box>
                   <Text color="textSubtle">{t('Liquidity')}</Text>
-                  <Box>{row.liquidity}</Box>
+                  {row.liquidity}
                 </Box>
                 {protocol !== Protocol.V2 && protocol !== Protocol.STABLE && (
                   <Box>
                     <Text color="textSubtle">{t('Earnings')}</Text>
-                    <Box>{row.earnings}</Box>
+                    {row.earnings}
                   </Box>
                 )}
               </FlexGap>
 
-              {(isInfinityProtocol(protocol) || protocol === Protocol.V3) && (
-                <FlexGap mt="24px" width="100%" alignItems="center" justifyContent="center">
-                  <Box width="max-content">{row.priceRange}</Box>
-                </FlexGap>
-              )}
+              {(isInfinityProtocol(protocol) || protocol === Protocol.V3) && row.priceRange}
 
-              <Box mt="24px">{row.actions}</Box>
+              {row.actions}
             </StyledPositionCard>
           ))}
         </AutoColumn>
