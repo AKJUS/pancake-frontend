@@ -1,7 +1,7 @@
 import { Currency, ERC20Token, Price, Token } from "@pancakeswap/sdk";
 import { formatPrice } from "@pancakeswap/utils/formatFractions";
 import { TickMath, nearestUsableTick, priceToClosestTick, tickToPrice } from "@pancakeswap/v3-sdk";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { Bound } from "../../swap/LiquidityChartRangeInput";
 import { tryParsePrice, tryParseTick } from "../utils";
@@ -27,6 +27,15 @@ export interface PriceRangeInfo {
   ticksAtLimit: { [bound in Bound]?: boolean };
 }
 
+interface PriceRangeState {
+  fullRange: boolean;
+  priceLower?: Price<Currency, Currency>;
+  priceUpper?: Price<Currency, Currency>;
+  isMinAtLimit: boolean;
+  isMaxAtLimit: boolean;
+  previous?: Omit<PriceRangeState, "previous">;
+}
+
 export function usePriceRange({
   baseCurrency,
   quoteCurrency,
@@ -34,10 +43,6 @@ export function usePriceRange({
   priceUpper: initialPriceUpper,
   tickSpacing,
 }: Params): PriceRangeInfo | null {
-  const [fullRange, setFullRange] = useState(false);
-  const [priceLower, setPriceLower] = useState<Price<Currency, Currency> | undefined>(initialPriceLower);
-  const [priceUpper, setPriceUpper] = useState<Price<Currency, Currency> | undefined>(initialPriceUpper);
-
   const invertPrice = Boolean(baseCurrency && quoteCurrency && quoteCurrency.wrapped.sortsBefore(baseCurrency.wrapped));
 
   // lower and upper limits in the tick space for `feeAmount`
@@ -68,6 +73,27 @@ export function usePriceRange({
     };
   }, [tickSpaceLimits, invertPrice, quoteCurrency, baseCurrency]);
 
+  const initialPricesAtLimit = useMemo(() => {
+    const lowerAtLimit =
+      initialPriceLower && priceLimits[Bound.LOWER] && initialPriceLower.equalTo(priceLimits[Bound.LOWER].asFraction);
+    const upperAtLimit =
+      initialPriceUpper && priceLimits[Bound.UPPER] && initialPriceUpper.equalTo(priceLimits[Bound.UPPER].asFraction);
+    return {
+      [Bound.LOWER]: Boolean(lowerAtLimit),
+      [Bound.UPPER]: Boolean(upperAtLimit),
+    };
+  }, [initialPriceLower, initialPriceUpper, priceLimits]);
+
+  const [state, setState] = useState<PriceRangeState>(() => ({
+    fullRange: Boolean(initialPricesAtLimit[Bound.LOWER] && initialPricesAtLimit[Bound.UPPER]),
+    priceLower: initialPriceLower,
+    priceUpper: initialPriceUpper,
+    isMinAtLimit: initialPricesAtLimit[Bound.LOWER],
+    isMaxAtLimit: initialPricesAtLimit[Bound.UPPER],
+  }));
+
+  const { fullRange, priceLower, priceUpper, isMinAtLimit, isMaxAtLimit } = state;
+
   const rightRangeTypedValue = useMemo(
     () => (invertPrice ? formatPrice(priceLower, 18) : formatPrice(priceUpper, 18)),
     [priceLower, priceUpper, invertPrice]
@@ -82,7 +108,7 @@ export function usePriceRange({
   // lower should always be a smaller tick
   const tickLower = useMemo(
     () =>
-      fullRange
+      fullRange || isMinAtLimit
         ? tickSpaceLimits[Bound.LOWER]
         : priceLower && initialPriceLower?.equalTo(priceLower.asFraction) // price is the same as initial lower price, use initial price instead of parse from input
         ? priceToClosestTick(priceLower as Price<ERC20Token, ERC20Token>)
@@ -93,6 +119,7 @@ export function usePriceRange({
       priceLower,
       initialPriceLower,
       fullRange,
+      isMinAtLimit,
       tickSpaceLimits,
       invertPrice,
       quoteCurrency?.wrapped,
@@ -105,7 +132,7 @@ export function usePriceRange({
 
   const tickUpper = useMemo(
     () =>
-      fullRange
+      fullRange || isMaxAtLimit
         ? tickSpaceLimits[Bound.UPPER]
         : priceUpper && initialPriceUpper?.equalTo(priceUpper.asFraction)
         ? priceToClosestTick(priceUpper as Price<ERC20Token, ERC20Token>)
@@ -116,6 +143,7 @@ export function usePriceRange({
       priceUpper,
       initialPriceUpper,
       fullRange,
+      isMaxAtLimit,
       tickSpaceLimits,
       invertPrice,
       quoteCurrency?.wrapped,
@@ -140,7 +168,13 @@ export function usePriceRange({
         return;
       }
       const priceToSet = price.greaterThan(priceLimits.UPPER) ? priceLimits.UPPER : price;
-      setPriceUpper(priceToSet);
+      const atLimit = priceToSet.equalTo(priceLimits.UPPER.asFraction);
+      setState((prev) => ({
+        ...prev,
+        priceUpper: priceToSet,
+        isMaxAtLimit: atLimit,
+        fullRange: atLimit && prev.isMinAtLimit ? prev.fullRange : false,
+      }));
     },
     [priceLimits]
   );
@@ -151,7 +185,13 @@ export function usePriceRange({
         return;
       }
       const priceToSet = price.lessThan(priceLimits.LOWER) ? priceLimits.LOWER : price;
-      setPriceLower(priceToSet);
+      const atLimit = priceToSet.equalTo(priceLimits.LOWER.asFraction);
+      setState((prev) => ({
+        ...prev,
+        priceLower: priceToSet,
+        isMinAtLimit: atLimit,
+        fullRange: atLimit && prev.isMaxAtLimit ? prev.fullRange : false,
+      }));
     },
     [priceLimits]
   );
@@ -186,19 +226,51 @@ export function usePriceRange({
     [onLeftRangeInput, onRightRangeInput]
   );
 
-  const toggleFullRange = useCallback(() => setFullRange(!fullRange), [fullRange]);
-
-  useEffect(() => setPriceLower(initialPriceLower), [initialPriceLower]);
-
-  useEffect(() => setPriceUpper(initialPriceUpper), [initialPriceUpper]);
+  const toggleFullRange = useCallback(() => {
+    setState((prev) => {
+      const newFullRange = !prev.fullRange;
+      if (newFullRange) {
+        return {
+          ...prev,
+          fullRange: true,
+          isMinAtLimit: true,
+          isMaxAtLimit: true,
+          previous: {
+            fullRange: prev.fullRange,
+            priceLower: prev.priceLower,
+            priceUpper: prev.priceUpper,
+            isMinAtLimit: prev.isMinAtLimit,
+            isMaxAtLimit: prev.isMaxAtLimit,
+          },
+        };
+      }
+      if (!prev.previous) {
+        return {
+          ...prev,
+          fullRange: false,
+          priceLower: undefined,
+          priceUpper: undefined,
+          isMinAtLimit: false,
+          isMaxAtLimit: false,
+          previous: undefined,
+        };
+      }
+      return {
+        ...prev,
+        ...prev.previous,
+        fullRange: false,
+        previous: undefined,
+      };
+    });
+  }, []);
 
   return useMemo(
     () => ({
       ticksAtLimit,
       tickUpper,
       tickLower,
-      priceLower: fullRange ? priceLimits[Bound.LOWER] : priceLower,
-      priceUpper: fullRange ? priceLimits[Bound.UPPER] : priceUpper,
+      priceLower: ticksAtLimit?.[Bound.LOWER] ? priceLimits[Bound.LOWER] : priceLower,
+      priceUpper: ticksAtLimit?.[Bound.UPPER] ? priceLimits[Bound.UPPER] : priceUpper,
       onRightRangeInput,
       onLeftRangeInput,
       onBothRangeInput,
@@ -212,6 +284,7 @@ export function usePriceRange({
       priceLower,
       priceUpper,
       fullRange,
+      priceLimits,
       onRightRangeInput,
       onLeftRangeInput,
       onBothRangeInput,

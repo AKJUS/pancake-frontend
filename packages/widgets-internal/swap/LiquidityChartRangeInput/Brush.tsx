@@ -118,7 +118,9 @@ export const Brush = ({
 
   // initialize the brush
   useEffect(() => {
-    if (!brushRef.current) return;
+    if (!brushRef.current) return undefined;
+
+    const brushElement = brushRef.current;
 
     brushBehavior.current = brushX<SVGGElement>()
       .extent([
@@ -129,20 +131,24 @@ export const Brush = ({
       .filter(() => interactive)
       .on("brush end", brushed);
 
-    brushBehavior.current(select(brushRef.current));
+    brushBehavior.current(select(brushElement));
 
     if (previousBrushExtent && compare(brushExtent, previousBrushExtent, xScale)) {
-      select(brushRef.current)
+      select(brushElement)
         .transition()
         .call(brushBehavior.current.move as any, brushExtent.map(xScale));
     }
 
     // brush linear gradient
-    select(brushRef.current)
+    select(brushElement)
       .selectAll(".selection")
       .attr("stroke", "none")
       .attr("fill-opacity", "0.1")
       .attr("fill", `url(#${id}-gradient-selection)`);
+
+    return () => {
+      select(brushElement).on("brush end", null);
+    };
   }, [brushExtent, brushed, id, innerHeight, innerWidth, interactive, previousBrushExtent, xScale]);
 
   // respond to xScale changes only

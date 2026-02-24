@@ -8,7 +8,7 @@ import { ZoomLevels } from "./types";
 const Wrapper = styled.div<{ count: number }>`
   display: grid;
   grid-template-columns: repeat(${({ count }) => count.toString()}, 1fr);
-  grid-gap: 6px;
+  grid-gap: 4px;
 
   position: absolute;
   top: -18px;
@@ -77,7 +77,9 @@ export default function Zoom({
   );
 
   useEffect(() => {
-    if (!svg) return;
+    if (!svg) return undefined;
+
+    const svgElement = svg as Element;
 
     zoomBehavior.current = zoom()
       .scaleExtent([zoomLevels.min, zoomLevels.max])
@@ -87,8 +89,12 @@ export default function Zoom({
       ])
       .on("zoom", ({ transform }: { transform: ZoomTransform }) => setZoom(transform));
 
-    select(svg as Element).call(zoomBehavior.current);
-  }, [height, width, setZoom, svg, xScale, zoomBehavior, zoomLevels, zoomLevels.max, zoomLevels.min]);
+    select(svgElement).call(zoomBehavior.current);
+
+    return () => {
+      select(svgElement).on("zoom", null);
+    };
+  }, [height, width, setZoom, svg, xScale, zoomLevels]);
 
   useEffect(() => {
     // reset zoom to initial on zoomLevel change
@@ -102,8 +108,6 @@ export default function Zoom({
           style={{
             cursor: "pointer",
             textAlign: "center",
-            paddingTop: "2px",
-            paddingLeft: "4px",
           }}
         >
           <AutoRenewIcon

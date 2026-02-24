@@ -1,13 +1,6 @@
 import { Price, Token, Currency, Percent, Fraction } from "@pancakeswap/sdk";
 import { parseUnits } from "viem";
-import {
-  encodeSqrtRatioX96,
-  FeeAmount,
-  nearestUsableTick,
-  priceToClosestTick,
-  TICK_SPACINGS,
-  TickMath,
-} from "@pancakeswap/v3-sdk";
+import { encodeSqrtRatioX96, nearestUsableTick, priceToClosestTick, TickMath } from "@pancakeswap/v3-sdk";
 import tryParseAmount from "@pancakeswap/utils/tryParseAmount";
 
 export * from "./computeSurroundingTicks";

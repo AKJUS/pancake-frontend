@@ -10,7 +10,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Button, DynamicSection, Flex, useMatchBreakpoints } from "@pancakeswap/uikit";
 
 import { ScrollableContainer } from "@pancakeswap/uikit/components/RoiCalculatorModal/RoiCalculatorModal";
-import { LiquidityChartRangeInput } from "../swap/LiquidityChartRangeInput";
+import { Bound, LiquidityChartRangeInput } from "../swap/LiquidityChartRangeInput";
 import { useDensityChartData } from "../swap/LiquidityChartRangeInput/hooks";
 import { AnimatedArrow } from "./AnimationArrow";
 import { CompoundFrequency } from "./CompoundFrequency";
@@ -127,7 +127,7 @@ export function RoiCalculator({
   const [compoundOn, setCompoundOn] = useState(true);
   const [compoundIndex, setCompoundIndex] = useState(3);
   const [invertBase, setInvertBase] = useState(false);
-  const onSwitchBaseCurrency = useCallback(() => setInvertBase(!invertBase), [invertBase]);
+  const onSwitchBaseCurrency = useCallback(() => setInvertBase((prev) => !prev), []);
 
   const { currencyA, currencyB, balanceA, balanceB, currencyAUsdPrice, currencyBUsdPrice } = useMemo(
     () =>
@@ -385,9 +385,11 @@ export function RoiCalculator({
     ticks: ticksRaw,
   });
 
-  const isSorted = currencyA && currencyB && currencyA?.wrapped.sortsBefore(currencyB?.wrapped);
-  const priceStr = isSorted ? price?.toSignificant(6) : price?.invert()?.toSignificant(6);
-  const currentPrice = priceStr ? parseFloat(priceStr) : undefined;
+  const currentPrice = useMemo(() => {
+    const isSorted = currencyA && currencyB && currencyA?.wrapped.sortsBefore(currencyB?.wrapped);
+    const priceStr = isSorted ? price?.toSignificant(6) : price?.invert()?.toSignificant(6);
+    return priceStr ? parseFloat(priceStr) : undefined;
+  }, [currencyA, currencyB, price]);
 
   const priceRangeSettings = (
     <Section title={t("Set price range")}>
@@ -447,14 +449,14 @@ export function RoiCalculator({
         onSpanChange={onPriceSpanChange}
         span={priceSpan}
         priceUpper={
-          priceRange?.fullRange
+          priceRange?.ticksAtLimit[Bound.UPPER]
             ? undefined
             : invertPrice
             ? formatPrice(priceRange?.priceLower?.invert(), 6)
             : formatPrice(priceRange?.priceUpper, 6)
         }
         priceLower={
-          priceRange?.fullRange
+          priceRange?.ticksAtLimit[Bound.LOWER]
             ? undefined
             : invertPrice
             ? formatPrice(priceRange?.priceUpper?.invert(), 6)
