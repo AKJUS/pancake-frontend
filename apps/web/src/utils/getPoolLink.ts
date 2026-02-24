@@ -1,6 +1,6 @@
 import { Protocol } from '@pancakeswap/farms'
 import { LegacyRouter } from '@pancakeswap/smart-router/legacy-router'
-import { wSolToSol } from '@pancakeswap/sdk'
+import { NATIVE, WNATIVE, wSolToSol } from '@pancakeswap/sdk'
 import { CHAIN_QUERY_NAME } from 'config/chains'
 import { PERSIST_CHAIN_KEY } from 'config/constants'
 import { getAddInfinityLiquidityURL } from 'config/constants/liquidity'
@@ -14,15 +14,27 @@ import { currencyId } from './currencyId'
 
 export function getPoolAddLiquidityLink(pool: PoolInfo): string {
   const { chainId, protocol, lpAddress, feeTier } = pool
-  const token0Address = pool.token0 ? wSolToSol(currencyId(pool.token0)) : undefined
-  const token1Address = pool.token1 ? wSolToSol(currencyId(pool.token1)) : undefined
-  const tokenPath = token0Address && token1Address ? `${token0Address}/${token1Address}` : ''
   const { poolId } = pool as Partial<InfinityPoolInfo>
 
   if ([Protocol.InfinityBIN, Protocol.InfinityCLAMM].includes(protocol)) {
     const href = getAddInfinityLiquidityURL({ chainId, poolId: poolId || lpAddress })
     return addQueryToPath(href, { chain: CHAIN_QUERY_NAME[chainId], [PERSIST_CHAIN_KEY]: '1' })
   }
+
+  const token0 = isAddressEqual(pool.token0?.wrapped?.address, WNATIVE[chainId]?.address)
+    ? NATIVE[chainId]?.symbol
+    : pool.token0
+    ? currencyId(pool.token0)
+    : undefined
+  const token1 = isAddressEqual(pool.token1?.wrapped?.address, WNATIVE[chainId]?.address)
+    ? NATIVE[chainId]?.symbol
+    : pool.token1
+    ? currencyId(pool.token1)
+    : undefined
+
+  const token0Address = token0 ? wSolToSol(token0) : undefined
+  const token1Address = token1 ? wSolToSol(token1) : undefined
+  const tokenPath = token0Address && token1Address ? `${token0Address}/${token1Address}` : ''
 
   if (protocol === Protocol.V2) {
     return addQueryToPath(`/v2/add/${tokenPath}`, { chain: CHAIN_QUERY_NAME[chainId], [PERSIST_CHAIN_KEY]: '1' })

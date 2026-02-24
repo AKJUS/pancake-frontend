@@ -17,6 +17,8 @@ import { isInfinityProtocol } from 'utils/protocols'
 import { Address } from 'viem'
 import { formatDollarAmount } from 'views/V3Info/utils/numbers'
 import { NextLinkFromReactRouter } from '@pancakeswap/widgets-internal'
+import { NATIVE, WNATIVE } from '@pancakeswap/sdk'
+import { getPoolAddLiquidityLink } from 'utils/getPoolLink'
 import { ChangePercent } from './ChangePercent'
 import { PoolTokens } from './PoolTokens'
 
@@ -70,30 +72,7 @@ export const PoolStatus: React.FC<PoolStatusProps> = ({ poolInfo, ...props }) =>
   const addLiquidityLink = useMemo(() => {
     if (!poolInfo) return ''
 
-    const { protocol, feeTier } = poolInfo
-
-    const token0Token1 = `${poolInfo.token0.wrapped.address}/${poolInfo.token1.wrapped.address}`
-
-    let link = ''
-    if (protocol === 'v3') {
-      link = `/add/${token0Token1}/${feeTier}`
-    }
-    if (protocol === 'v2') {
-      link = `/v2/add/${token0Token1}`
-    }
-    if (protocol === 'stable') {
-      link = `/stable/add/${token0Token1}`
-    }
-    if (isInfinityProtocol(protocol)) {
-      link = getAddInfinityLiquidityURL({
-        chainId: poolInfo.chainId,
-        poolId: (poolInfo as InfinityPoolInfo).poolId,
-      })
-    }
-    return addQueryToPath(link, {
-      chain: CHAIN_QUERY_NAME[poolInfo.chainId],
-      [PERSIST_CHAIN_KEY]: '1',
-    })
+    return getPoolAddLiquidityLink(poolInfo)
   }, [poolInfo])
 
   if (!poolInfo) {
