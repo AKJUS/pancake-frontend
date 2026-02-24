@@ -30,7 +30,7 @@ const MONAD_RPC_URLS = [
 const ARBITRUM_NODES = [
   ...arbitrum.rpcUrls.default.http,
   'https://arbitrum-one.publicnode.com',
-  'https://arbitrum.llamarpc.com',
+  // 'https://arbitrum.llamarpc.com',
 ].filter(Boolean)
 
 export const SERVER_NODES = {
@@ -51,7 +51,7 @@ export const SERVER_NODES = {
   [ChainId.ETHEREUM]: [
     getNodeRealUrl(ChainId.ETHEREUM, process.env.SERVER_NODE_REAL_API_ETH) || '',
     'https://ethereum.publicnode.com',
-    'https://eth.llamarpc.com',
+    // 'https://eth.llamarpc.com',
     // Remove cloudflare-eth.com, seems it returns wrong gas_estimation for some reason
     // 'https://cloudflare-eth.com',
   ],
@@ -116,7 +116,7 @@ export const PUBLIC_NODES: Partial<Record<ChainId, readonly string[]>> = {
     process.env.NEXT_PUBLIC_NODIES_ETH || '',
     // getGroveUrl(ChainId.ETHEREUM, process.env.NEXT_PUBLIC_GROVE_API_KEY) || '',
     'https://ethereum.publicnode.com',
-    'https://eth.llamarpc.com',
+    // 'https://eth.llamarpc.com',
     // Remove cloudflare-eth.com
     // for cross-chain swap, it will use the wrong gas_estimation for some reason
     // 'https://cloudflare-eth.com',
@@ -154,7 +154,7 @@ export const PUBLIC_NODES: Partial<Record<ChainId, readonly string[]>> = {
     process.env.NEXT_PUBLIC_NODIES_BASE || '',
     // getGroveUrl(ChainId.BASE, process.env.NEXT_PUBLIC_GROVE_API_KEY) || '',
     // process.env.NEXT_PUBLIC_NODE_REAL_BASE_PRODUCTION,
-    'https://base.llamarpc.com',
+    // 'https://base.llamarpc.com',
     'https://base.meowrpc.com',
     ...base.rpcUrls.default.http,
   ].filter(Boolean) as readonly string[],
