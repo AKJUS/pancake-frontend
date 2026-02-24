@@ -1,7 +1,5 @@
 import { useMemo } from 'react'
-
-import useSWR from 'swr'
-
+import { useQuery } from '@tanstack/react-query'
 import { WSOLMint } from '@pancakeswap/solana-core-sdk'
 import { PublicKey } from '@solana/web3.js'
 import { isValidPublicKey } from 'utils/solana/publicKeys'
@@ -32,20 +30,20 @@ export const useBirdeyeTokenPrice = (props: {
 
   const readyList = useMemo(
     () => Array.from(new Set(mintList.filter((m) => !!m && isValidPublicKey(m)).map((m) => solToWSol(m!).toString()))),
-    [JSON.stringify(mintList)],
+    [mintList],
   )
 
   const shouldFetch = readyList.length > 0 && enabled
 
-  const { data, isLoading, error, ...rest } = useSWR(
-    shouldFetch ? [BIRDEYE_PRICE_URL, readyList.join(',')] : null,
-    fetcher,
-    {
-      refreshInterval,
-      dedupingInterval: refreshInterval,
-      focusThrottleInterval: refreshInterval,
-    },
-  )
+  const { data, isLoading, error, ...rest } = useQuery({
+    queryKey: [BIRDEYE_PRICE_URL, readyList.join(',')],
+    queryFn: () => fetcher([BIRDEYE_PRICE_URL, readyList.join(',')]),
+    enabled: shouldFetch,
+    refetchInterval: refreshInterval,
+    staleTime: refreshInterval,
+    refetchOnWindowFocus: false,
+  })
+
   const isEmptyResult = !isLoading && !(data && !error)
 
   if (data?.data && data?.success) {

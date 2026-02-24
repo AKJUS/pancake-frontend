@@ -21,12 +21,19 @@ export const SolanaPoolDerivedAprText: React.FC<{ pool: SolanaV3PoolInfo; fontSi
   const { ticks } = useSolanaDerivedInfo(pool.token0, pool.token1, pool.feeTier, pool.token0, undefined, formState)
 
   // Token + reward mints for price map
-  const rewardMints = (onchain?.computePoolInfo?.rewardInfos || [])
-    .map((ri: any) => ri?.tokenMint?.toBase58?.())
-    .filter(Boolean) as string[]
+  const rewardMints = useMemo(
+    () =>
+      (onchain?.computePoolInfo?.rewardInfos || [])
+        .map((ri: any) => ri?.tokenMint?.toBase58?.())
+        .filter(Boolean) as string[],
+    [onchain?.computePoolInfo?.rewardInfos],
+  )
   const mintA = pool?.rawPool?.mintA?.address
   const mintB = pool?.rawPool?.mintB?.address
-  const { data: birdeyePrices } = useBirdeyeTokenPrice({ mintList: [mintA, mintB, ...rewardMints] })
+
+  const mintList = useMemo(() => [mintA, mintB, ...rewardMints], [mintA, mintB, rewardMints])
+
+  const { data: birdeyePrices } = useBirdeyeTokenPrice({ mintList })
 
   const tokenPrices = useMemo(() => {
     const rec: Record<string, { value: number }> = {}
