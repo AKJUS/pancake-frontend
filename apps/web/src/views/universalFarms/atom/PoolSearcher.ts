@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import { isTestnetChainId } from '@pancakeswap/chains'
 import edgeFarmQueries, { FarmQuery } from 'state/farmsV4/search/edgeFarmQueries'
-import { FarmV4SupportedChainId } from '@pancakeswap/farms'
+import { FarmV4SupportedChainId, Protocol } from '@pancakeswap/farms'
 import { FarmInfo, farmToPoolInfo, getFarmKey } from 'state/farmsV4/search/farm.util'
 import uniqBy from '@pancakeswap/utils/uniqBy'
 import { getHashKey } from 'utils/hash'
@@ -17,6 +17,7 @@ import keyBy from 'lodash/keyBy'
 import { Emitter } from '@pancakeswap/utils/Emitter'
 import { CakeAprValue } from 'state/farmsV4/atom'
 import { TokenInfo } from '@pancakeswap/token-lists'
+import { INFINITY_STABLE_POOL_FEE_DENOMINATOR } from '@pancakeswap/infinity-stable-sdk'
 import { farmFilters, isInWhitelist } from './farmSearch.filter'
 import { parseExtendSearchParams } from './farmSearch.parser'
 
@@ -41,7 +42,7 @@ function buildFarmList(list: FarmInfo[]) {
       chainId,
       tvlUsd: Number(farm.tvlUSD) || 0,
       ...rest,
-      feeTierBase: 1e6,
+      feeTierBase: farm.protocol === Protocol.InfinitySTABLE ? INFINITY_STABLE_POOL_FEE_DENOMINATOR : 1e6,
       vol24hUsd: farm.vol24hUsd,
       pool,
     } as FarmInfo
@@ -152,6 +153,7 @@ export class PoolSearcher extends Emitter<PoolSearchEvent> {
     const checkWhiteList = isInWhitelist(this.tokensMap)
     const allResults = await this.fetch(query, useShowTestnet)
     const filtered = this.filter(allResults, query)
+
     for (const farm of filtered) {
       farm.inWhitelist = checkWhiteList(farm)
     }

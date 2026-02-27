@@ -10,7 +10,11 @@ const logger = getLogger('tx-error')
  * @param error an error from the ethers provider
  * @param t Translation function
  */
-export function transactionErrorToUserReadableMessage(error: any, t: TranslateFunction) {
+export function transactionErrorToUserReadableMessage(
+  error: any,
+  t: TranslateFunction,
+  customUnknownErrorMessage?: string,
+) {
   let reason: string | undefined
   const parsedError = parseViemError(error)
   if (parsedError) {
@@ -88,8 +92,11 @@ export function transactionErrorToUserReadableMessage(error: any, t: TranslateFu
           'An error occurred when trying to execute this operation. You may need to increase your slippage tolerance. If that does not work, there may be an incompatibility with the token you are trading.',
         )
       }
-      return t('Unknown error%reason%. Try increasing your slippage tolerance.', {
-        reason: reason ? `: "${reason}"` : '',
-      })
+      return (
+        customUnknownErrorMessage ||
+        t('Unknown error%reason%. Try increasing your slippage tolerance.', {
+          reason: reason ? `: "${reason}"` : '',
+        })
+      )
   }
 }

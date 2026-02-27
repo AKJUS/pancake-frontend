@@ -7,7 +7,7 @@ export type RemotePoolBase = {
   tvlUSD: string
   volumeUSD24h: string
   apr24h: string
-  protocol: 'v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable'
+  protocol: 'v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable' | 'infinityStable'
   token0: RemoteToken
   token1: RemoteToken
   isDynamicFee?: boolean
@@ -63,10 +63,20 @@ export interface RemotePoolBIN extends RemotePoolBase, RemoteBinProps {
   protocol: 'infinityBin'
 }
 
+export interface RemotePoolInfinityStable extends RemotePoolBase {
+  protocol: 'infinityStable'
+}
+
 export interface RemoteToken {
   id: Address
   decimals: number
   symbol: string
 }
 
-export type RemotePool = RemotePoolV2 | RemotePoolV3 | RemotePoolCL | RemotePoolBIN | RemotePoolStable
+export type RemotePool =
+  | RemotePoolV2
+  | RemotePoolV3
+  | RemotePoolCL
+  | RemotePoolBIN
+  | RemotePoolStable
+  | RemotePoolInfinityStable

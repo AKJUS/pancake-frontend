@@ -1,4 +1,4 @@
-import { isInfinityBinPool, isInfinityCLPool } from '@pancakeswap/routing-sdk-addon-infinity'
+import { isInfinityBinPool, isInfinityCLPool, isInfinityStablePool } from '@pancakeswap/routing-sdk-addon-infinity'
 import { isStablePool } from '@pancakeswap/routing-sdk-addon-stable-swap'
 import { isV2Pool } from '@pancakeswap/routing-sdk-addon-v2'
 import { isV3Pool } from '@pancakeswap/routing-sdk-addon-v3'
@@ -20,7 +20,7 @@ export function getOutputCurrency(pool: SupportedPool, currencyIn: Currency): Cu
     const { balances } = pool.getPoolData()
     return balances[0].currency.equals(tokenIn) ? balances[1].currency : balances[0].currency
   }
-  if (isInfinityCLPool(pool) || isInfinityBinPool(pool)) {
+  if (isInfinityCLPool(pool) || isInfinityBinPool(pool) || isInfinityStablePool(pool)) {
     const { currency0, currency1 } = pool.getPoolData()
     return currency0.wrapped.equals(tokenIn) ? currency1 : currency0
   }

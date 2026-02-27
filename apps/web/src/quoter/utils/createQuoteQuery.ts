@@ -2,6 +2,7 @@ import { ChainId } from '@pancakeswap/chains'
 import { INFINITY_SUPPORTED_CHAINS } from '@pancakeswap/infinity-sdk'
 import { PoolQuery, PoolQueryOptions, QuoteQuery, SVMQuoteQuery } from 'quoter/quoter.types'
 import { getViemClients, viemClients } from 'utils/viem'
+import { isInfinityStableSupported } from '@pancakeswap/infinity-stable-sdk'
 import { PoolHashHelper } from './PoolHashHelper'
 
 const PLACE_HOLDER_TIME = 1000 * 120 // 2 minutes
@@ -52,6 +53,7 @@ export const createPoolQuery = (quoteQuery: QuoteQuery, controller?: AbortContro
 
   const poolOptions: PoolQueryOptions = {
     infinity: quoteQuery.infinitySwap && INFINITY_SUPPORTED_CHAINS.includes(currency!.chainId),
+    infinityStable: !!quoteQuery.infinityStableSwap && isInfinityStableSupported(currency!.chainId),
     v2Pools: !!quoteQuery.v2Swap,
     v3Pools: !!quoteQuery.v3Swap,
     stableSwap: !!quoteQuery.stableSwap,

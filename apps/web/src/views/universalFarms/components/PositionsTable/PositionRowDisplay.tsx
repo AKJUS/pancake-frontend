@@ -449,7 +449,7 @@ export const PositionRowDisplay: React.FC<PositionRowDisplayProps> = memo(
                 maxPriceRaw={displayPriceRange.maxPrice}
                 currentPriceRaw={displayPriceRange.currentPriceValue}
               />
-            ) : [Protocol.V2, Protocol.STABLE].includes(position.protocol) ? (
+            ) : [Protocol.V2, Protocol.STABLE, Protocol.InfinitySTABLE].includes(position.protocol) ? (
               <Text fontSize="12px" color="textSubtle" textTransform="uppercase" textAlign="center">
                 {t('Full Range')}
               </Text>

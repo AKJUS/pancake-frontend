@@ -8,7 +8,11 @@ import {
   Card,
   CardBody,
   FlexGap,
+  Message,
+  MessageText,
   PreTitle,
+  Text,
+  Select,
   useMatchBreakpoints,
 } from '@pancakeswap/uikit'
 import { PoolTypeFilter, getCurrencyAddress } from '@pancakeswap/widgets-internal'
@@ -29,11 +33,15 @@ import { CurrencySelectV2 } from 'components/CurrencySelectV2'
 import { useSelectIdRouteParams } from 'hooks/dynamicRoute/useSelectIdRoute'
 import { useStableSwapSupportedTokens } from 'hooks/useStableSwapSupportedTokens'
 import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
-import { COMPACT_LIQUIDITY_TYPES, LIQUIDITY_TYPES, LiquidityType } from 'utils/types'
-import { bscTokens } from '@pancakeswap/tokens'
+import { LIQUIDITY_TYPES, LiquidityType } from 'utils/types'
+import { bscTokens, USDT } from '@pancakeswap/tokens'
 import { isStableSwapSupported } from '@pancakeswap/stable-swap-sdk'
 import { PERSIST_CHAIN_KEY } from 'config/constants'
+import { useStableInfinitySupportedTokens } from 'views/StableInfinity/hooks/useStableInfinitySupportedTokens'
+import { useInfinityStablePoolByPair } from 'views/StableInfinity/hooks/useInfinityStablePoolByPair'
+import { isInfinityStableSupported } from '@pancakeswap/infinity-stable-sdk'
 import { usePoolTypeQuery } from './hooks/usePoolTypeQuery'
+import { STABLE_POOL_OPTIONS, STABLE_POOL_TYPE, useStablePoolTypeQuery } from './hooks/useStablePoolTypeQuery'
 
 const StyledCard = styled(Card)`
   width: 100%;
@@ -51,6 +59,7 @@ export const AddLiquiditySelector = () => {
   const { isMobile } = useMatchBreakpoints()
   const poolTypesTree = usePoolTypes()
   const { poolType, setPoolType, poolTypeQuery } = usePoolTypeQuery()
+  const { stablePoolTypeQuery, setStablePoolType } = useStablePoolTypeQuery()
 
   const { chainId, protocol, currencyIdA, currencyIdB, updateParams } = useSelectIdRouteParams()
   const queryChainName = chainId && CHAIN_QUERY_NAME[chainId]
@@ -64,19 +73,44 @@ export const AddLiquiditySelector = () => {
     chainId,
     isStableSwapSupported(chainId) ? (baseCurrency?.wrapped as Token) : undefined,
   )
-  const [baseTokensToSelect, quoteTokensToSelect] = useMemo(
-    () => (protocol === 'stableSwap' ? [ssSupportedBaseToken, ssSupportedQuoteToken] : [undefined, undefined]),
-    [ssSupportedBaseToken, ssSupportedQuoteToken, protocol],
+
+  const { data: infinityStableSupportedTokens } = useStableInfinitySupportedTokens(chainId)
+
+  const { data: infinityStableHookAddress, isLoading: isInfinityStablePoolLoading } = useInfinityStablePoolByPair(
+    chainId,
+    protocol === LiquidityType.StableSwap && stablePoolTypeQuery === STABLE_POOL_TYPE.infinity
+      ? (baseCurrency?.wrapped as Token)
+      : undefined,
+    protocol === LiquidityType.StableSwap && stablePoolTypeQuery === STABLE_POOL_TYPE.infinity
+      ? (quoteCurrency?.wrapped as Token)
+      : undefined,
   )
 
-  const types = useMemo(() => {
-    return isMobile ? COMPACT_LIQUIDITY_TYPES : LIQUIDITY_TYPES
-  }, [isMobile])
+  const isStableContext = protocol === LiquidityType.StableSwap
+
+  const [baseTokensToSelect, quoteTokensToSelect] = useMemo(() => {
+    // Use stablePoolTypeQuery to determine which tokens to show for stable protocols
+
+    if (isStableContext) {
+      if (stablePoolTypeQuery === STABLE_POOL_TYPE.infinity) {
+        // For infinity stable, both selectors show all tokens from existing pairs
+        return [infinityStableSupportedTokens, infinityStableSupportedTokens]
+      }
+      // Default to classic
+      return [ssSupportedBaseToken, ssSupportedQuoteToken]
+    }
+
+    return [undefined, undefined]
+  }, [isStableContext, ssSupportedBaseToken, ssSupportedQuoteToken, infinityStableSupportedTokens, stablePoolTypeQuery])
+
+  // Determine if we're in stable context for UI behavior
 
   /// Functions
   const onLiquidityTypeClick = useCallback(
     (index: number) => {
-      updateParams({ protocol: LIQUIDITY_TYPES[index] })
+      const protocol = LIQUIDITY_TYPES[index]
+
+      updateParams({ protocol })
     },
     [updateParams],
   )
@@ -121,22 +155,39 @@ export const AddLiquiditySelector = () => {
     const quoteToken = quoteCurrency?.isNative ? quoteCurrency.symbol : quoteCurrency?.wrapped.address
 
     return {
-      infinity: `/liquidity/select/pools/${chainId}/infinity/${tokenParams}?${queryParams.toString()}`,
-      v3: `/add/${baseToken}/${quoteToken}?${queryParams.toString()}`,
-      v2: `/v2/add/${baseToken}/${quoteToken}?${queryParams.toString()}`,
-      stableSwap: `/stable/add/${baseToken}/${quoteToken}?${queryParams.toString()}`,
-    } satisfies Record<LiquidityType, string>
-  }, [baseCurrency, quoteCurrency, poolTypeQuery, chainId, queryChainName])
+      [LiquidityType.Infinity]: `/liquidity/select/pools/${chainId}/infinity/${tokenParams}?${queryParams.toString()}`,
+      [LiquidityType.V3]: `/add/${baseToken}/${quoteToken}?${queryParams.toString()}`,
+      [LiquidityType.V2]: `/v2/add/${baseToken}/${quoteToken}?${queryParams.toString()}`,
+      [LiquidityType.StableSwap]: `/stable/add/${baseToken}/${quoteToken}?${queryParams.toString()}`,
+      infinityStable: `/infinityStable/add/${infinityStableHookAddress}?chain=${queryChainName}&${PERSIST_CHAIN_KEY}=1`,
+      infinityStableCreate: `/liquidity/create/${queryChainName}/stableSwap/${baseToken}/${quoteToken}?${queryParams.toString()}`,
+    } as Record<LiquidityType | 'infinityStable' | 'infinityStableCreate', string>
+  }, [baseCurrency, quoteCurrency, poolTypeQuery, chainId, queryChainName, infinityStableHookAddress])
+
+  const isInfinityStableMode = isStableContext && stablePoolTypeQuery === STABLE_POOL_TYPE.infinity
+  const infinityStablePoolMissing = isInfinityStableMode && baseCurrency && quoteCurrency && !infinityStableHookAddress
 
   const nextStep = useMemo(() => {
-    const key = protocol ?? 'infinity'
+    if (isStableContext) {
+      // Use stablePoolTypeQuery to determine the actual next step
+      if (stablePoolTypeQuery === STABLE_POOL_TYPE.infinity) {
+        // If pool is missing, go to create page
+        return infinityStablePoolMissing ? nextStepURLMap.infinityStableCreate : nextStepURLMap.infinityStable
+      }
+      return nextStepURLMap[LiquidityType.StableSwap]
+    }
+
+    const key = protocol ?? LiquidityType.Infinity
     return nextStepURLMap[key]
-  }, [protocol, nextStepURLMap])
+  }, [protocol, stablePoolTypeQuery, nextStepURLMap, isStableContext, infinityStablePoolMissing])
 
   const disabled = useMemo(() => {
     const noCurrency = !baseCurrency || !quoteCurrency
-    const networkNoSupport = !chainId || (protocol === 'infinity' && !INFINITY_SUPPORTED_CHAINS.includes(chainId))
+    const networkNoSupport =
+      !chainId || (protocol === LiquidityType.Infinity && !INFINITY_SUPPORTED_CHAINS.includes(chainId))
 
+    // For infinity stable, if pool is missing, we allow them to create it (not disabled)
+    // Only disable if currencies are missing or network is not supported
     return noCurrency || networkNoSupport
   }, [baseCurrency, chainId, protocol, quoteCurrency])
 
@@ -150,8 +201,15 @@ export const AddLiquiditySelector = () => {
     [switchNetwork, updateParams],
   )
 
+  // NOTE: if chainId not support infinity stable, set stablePoolTypeQuery to classic
   useEffect(() => {
-    if (protocol === 'stableSwap') {
+    if (chainId && !isInfinityStableSupported(chainId) && stablePoolTypeQuery === STABLE_POOL_TYPE.infinity) {
+      setStablePoolType(STABLE_POOL_TYPE.classic)
+    }
+  }, [chainId, setStablePoolType, stablePoolTypeQuery])
+
+  useEffect(() => {
+    if (isStableContext && stablePoolTypeQuery === STABLE_POOL_TYPE.classic) {
       const prioritySymbols = [bscTokens.cake.symbol, bscTokens.wbnb.symbol, 'btc'].map((s) => s.toLowerCase())
       const preferredTokens = ssSupportedBaseToken
         ?.filter((token) => prioritySymbols.some((key) => token?.symbol?.toLowerCase()?.includes(key)))
@@ -167,16 +225,80 @@ export const AddLiquiditySelector = () => {
 
       const baseDefaultToken = preferredTokens?.length ? preferredTokens?.[0] : ssSupportedBaseToken?.[0]
       const quoteDefaultToken = ssSupportedQuoteToken?.[0]
+
+      if (!baseDefaultToken) return
+
       updateParams({
         currencyIdA:
           baseCurrency?.wrapped?.address && ssSupportedBaseToken?.find((token) => token.equals(baseCurrency))
             ? baseCurrency?.wrapped?.address
-            : baseDefaultToken?.wrapped?.address,
+            : baseDefaultToken.wrapped.address,
         currencyIdB: quoteDefaultToken?.wrapped?.address,
       })
+    } else if (isStableContext && stablePoolTypeQuery === STABLE_POOL_TYPE.infinity) {
+      if (!infinityStableSupportedTokens || infinityStableSupportedTokens.length === 0) return
+
+      const baseDefaultToken = infinityStableSupportedTokens?.[0]
+      const quoteInSupported =
+        quoteCurrency?.wrapped?.address && infinityStableSupportedTokens?.find((token) => token.equals(quoteCurrency))
+
+      const usdtFallback = chainId
+        ? infinityStableSupportedTokens?.find(
+            (token) => USDT[chainId] && token.address.toLowerCase() === USDT[chainId]!.address.toLowerCase(),
+          )
+        : undefined
+
+      const quoteDefaultToken =
+        quoteInSupported ??
+        usdtFallback ??
+        (infinityStableSupportedTokens?.length > 1
+          ? infinityStableSupportedTokens?.[1]
+          : infinityStableSupportedTokens?.[0])
+
+      if (!baseDefaultToken || !quoteDefaultToken) return
+
+      updateParams({
+        currencyIdA:
+          baseCurrency?.wrapped?.address && infinityStableSupportedTokens?.find((token) => token.equals(baseCurrency))
+            ? baseCurrency?.wrapped?.address
+            : baseDefaultToken.wrapped.address,
+        currencyIdB: quoteDefaultToken.wrapped.address,
+      })
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [protocol, baseCurrency, ssSupportedQuoteToken])
+  }, [
+    protocol,
+    stablePoolTypeQuery,
+    baseCurrency,
+    ssSupportedBaseToken,
+    ssSupportedQuoteToken,
+    infinityStableSupportedTokens,
+  ])
+
+  const liquidityTypeTabs = useMemo(() => {
+    const index = LIQUIDITY_TYPES.findIndex((type) => type === protocol)
+
+    if (index === -1) {
+      return 0
+    }
+
+    return index
+  }, [protocol])
+
+  const stablePoolOptions = useMemo(() => {
+    return chainId && isInfinityStableSupported(chainId)
+      ? STABLE_POOL_OPTIONS
+      : STABLE_POOL_OPTIONS.filter((option) => option.value === STABLE_POOL_TYPE.classic)
+  }, [chainId])
+
+  const stablePoolDefaultOptionIndex = useMemo(() => {
+    const selectedIndex = stablePoolOptions.findIndex((option) => option.value === stablePoolTypeQuery)
+    const normalizedIndex = selectedIndex >= 0 ? selectedIndex : 0
+
+    // Select uses 1-based defaultOptionIndex when syncing updates.
+    return normalizedIndex + 1
+  }, [stablePoolOptions, stablePoolTypeQuery])
 
   return (
     <StyledCard mt="48px" mb={['120px', null, null, '0px']} mx="auto" style={{ overflow: 'visible' }}>
@@ -185,14 +307,16 @@ export const AddLiquiditySelector = () => {
           <FlexGap gap="6px" flexDirection="column">
             <PreTitle>{t('1. Select where to provide liquidity')}</PreTitle>
             <ButtonMenu
-              activeIndex={protocol ? LIQUIDITY_TYPES.indexOf(protocol) : 0}
+              activeIndex={liquidityTypeTabs}
               onItemClick={onLiquidityTypeClick}
               scale="sm"
               variant="subtle"
               fullWidth
             >
-              {types.map((type) => (
-                <StyledButtonMenuItem key={type}>{type}</StyledButtonMenuItem>
+              {LIQUIDITY_TYPES.map((type) => (
+                <StyledButtonMenuItem key={type}>
+                  {type === LiquidityType.StableSwap && isMobile ? 'SS' : type}
+                </StyledButtonMenuItem>
               ))}
             </ButtonMenu>
 
@@ -208,11 +332,11 @@ export const AddLiquiditySelector = () => {
                 chainId={chainId}
                 selectedCurrency={baseCurrency}
                 onCurrencySelect={handleCurrencyASelect}
-                showCommonBases={protocol !== 'stableSwap'}
+                showCommonBases={!isStableContext}
                 commonBasesType={CommonBasesType.LIQUIDITY}
                 tokensToShow={baseTokensToSelect}
                 hideBalance
-                showNative={protocol !== 'stableSwap'}
+                showNative={!isStableContext}
               />
               <AddIcon color="textSubtle" />
               <CurrencySelectV2
@@ -221,24 +345,46 @@ export const AddLiquiditySelector = () => {
                 selectedCurrency={quoteCurrency}
                 onCurrencySelect={handleCurrencyBSelect}
                 tokensToShow={quoteTokensToSelect}
-                showCommonBases={protocol !== 'stableSwap'}
+                showCommonBases={!isStableContext}
                 commonBasesType={CommonBasesType.LIQUIDITY}
                 hideBalance
-                showNative={protocol !== 'stableSwap'}
+                showNative={!isStableContext}
               />
             </TokenFilterContainer>
           </FlexGap>
 
-          {protocol === 'infinity' && (
+          {protocol === LiquidityType.StableSwap && (
+            <FlexGap gap="6px" flexDirection="column">
+              <PreTitle>{t('3. Pool Filter')}</PreTitle>
+              <Select
+                key={`${chainId}-stable-pool-type`}
+                options={stablePoolOptions}
+                defaultOptionIndex={stablePoolDefaultOptionIndex}
+                onOptionChange={(option) => setStablePoolType(option.value)}
+              />
+            </FlexGap>
+          )}
+
+          {protocol === LiquidityType.Infinity && (
             <FlexGap gap="6px" flexDirection="column">
               <PreTitle>{t('3. Pool Filter (Optional)')}</PreTitle>
               <PoolTypeFilter value={poolType} onChange={(e) => setPoolType(e.value)} data={poolTypesTree} />
             </FlexGap>
           )}
 
+          {!isInfinityStablePoolLoading && infinityStablePoolMissing && (
+            <Message variant="warning">
+              <MessageText>{t('Pool is not created yet.')}</MessageText>
+            </Message>
+          )}
+
           <NextLink href={nextStep}>
-            <Button px="100px" width="100%" disabled={disabled}>
-              {t('Next.step')}
+            <Button px="100px" width="100%" disabled={disabled || isInfinityStablePoolLoading}>
+              {isInfinityStablePoolLoading
+                ? t('Checking...')
+                : infinityStablePoolMissing
+                ? t('Create')
+                : t('Next.step')}
             </Button>
           </NextLink>
         </FlexGap>

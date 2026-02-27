@@ -82,6 +82,7 @@ it("renders correctly", () => {
     }
 
     .c2 {
+      font-weight: 400;
       background-color: transparent;
       color: var(--colors-primary);
     }

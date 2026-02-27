@@ -7,6 +7,7 @@ import {
   findHook,
   getPoolId,
   isInfinitySupported,
+  whitelistLabeledHooksList,
 } from '@pancakeswap/infinity-sdk'
 import { Native } from '@pancakeswap/sdk'
 import { BigintIsh, Currency, getCurrencyAddress, sortCurrencies } from '@pancakeswap/swap-sdk-core'
@@ -70,7 +71,7 @@ export async function getInfinityClCandidatePoolsWithoutTicks({
   return getInfinityClPoolsWithoutTicks(pairsWithNative, clientProvider)
 }
 
-type InfinityClPoolMeta = PoolMeta & {
+export type InfinityClPoolMeta = PoolMeta & {
   fee: number
   protocolFee?: number
   poolManager: Address
@@ -89,41 +90,79 @@ export const getInfinityClPoolsWithoutTicks = createOnChainPoolFactory<InfinityC
     const poolIdList = new Set<string>()
     const metas: InfinityClPoolMeta[] = []
     const presets = CL_PRESETS_BY_CHAIN[chainId]
-    const hookPresets = CL_HOOK_PRESETS_BY_CHAIN[chainId]
-    for (const { fee, tickSpacing } of presets) {
-      for (const { address: hooks, registrationBitmap, poolKeyOverride } of hookPresets) {
-        const poolKey: PoolKey<'CL'> = {
-          currency0: getCurrencyAddress(currency0),
-          currency1: getCurrencyAddress(currency1),
-          fee,
-          parameters: {
-            tickSpacing,
-            hooksRegistration:
-              registrationBitmap !== undefined ? decodeHooksRegistration(registrationBitmap) : undefined,
-          },
-          poolManager: INFI_CL_POOL_MANAGER_ADDRESSES[chainId],
-          hooks,
-          ...(poolKeyOverride ?? {}),
-        }
-        const id = getPoolId(poolKey)
-        if (poolIdList.has(id)) {
-          continue
-        }
+    const defaultHookPresets = CL_HOOK_PRESETS_BY_CHAIN[chainId]
 
-        poolIdList.add(id)
-        metas.push({
-          currencyA,
-          currencyB,
-          fee,
+    // Normalize whitelist hooks without metadata into preset-like structure
+    const whitelistLabeledHooksWithoutMetadata = (
+      whitelistLabeledHooksList[chainId as keyof typeof whitelistLabeledHooksList] ?? []
+    ).map((hook) => ({
+      address: hook,
+      // Default 0x55 for whitelist labeled hooks
+      // Similar to 0x9a9B5331ce8d74b2B721291D57DE696E878353fd hook registration bitmap
+      registrationBitmap: '0x55' as Hex,
+      poolKeyOverride: undefined,
+    }))
+
+    // Helper to add pool meta if not duplicate
+    const addPoolMeta = (
+      fee: number,
+      tickSpacing: number,
+      hooks: Address,
+      registrationBitmap: Hex | number | undefined,
+      poolKeyOverride: Partial<PoolKey<'CL'>> | undefined,
+    ) => {
+      const poolKey: PoolKey<'CL'> = {
+        currency0: getCurrencyAddress(currency0),
+        currency1: getCurrencyAddress(currency1),
+        fee,
+        parameters: {
           tickSpacing,
-          hooks,
-          poolManager: poolKey.poolManager,
-          id,
-          hooksRegistrationBitmap: registrationBitmap,
-          ...poolKeyOverride,
-        })
+          hooksRegistration: registrationBitmap !== undefined ? decodeHooksRegistration(registrationBitmap) : undefined,
+        },
+        poolManager: INFI_CL_POOL_MANAGER_ADDRESSES[chainId],
+        hooks,
+        ...(poolKeyOverride ?? {}),
+      }
+      const id = getPoolId(poolKey)
+      if (poolIdList.has(id)) {
+        return
+      }
+
+      poolIdList.add(id)
+      metas.push({
+        currencyA,
+        currencyB,
+        fee,
+        tickSpacing,
+        hooks,
+        poolManager: poolKey.poolManager,
+        id,
+        hooksRegistrationBitmap: registrationBitmap,
+        ...(poolKeyOverride ?? {}),
+      })
+    }
+
+    // Process default hook presets with all CL presets
+    for (const { fee, tickSpacing } of presets) {
+      for (const { address: hooks, registrationBitmap, poolKeyOverride } of defaultHookPresets) {
+        addPoolMeta(fee, tickSpacing, hooks, registrationBitmap, poolKeyOverride)
       }
     }
+
+    // Process whitelist labeled hooks separately with all fee/tickSpacing combinations (cartesian product)
+    // Separate loop because the whitelist is small and uses all possible combinations
+    // Big O: O(|fees| × |tickSpacings| × |whitelistHooks|) = O(4 × 4 × W) = O(16W)
+    // where W is the number of whitelist hooks (currently 3 on BSC = 48 pool candidates max)
+    const fees = presets.map((p) => p.fee)
+    const tickSpacings = presets.map((p) => p.tickSpacing)
+    for (const fee of fees) {
+      for (const tickSpacing of tickSpacings) {
+        for (const { address: hooks, registrationBitmap, poolKeyOverride } of whitelistLabeledHooksWithoutMetadata) {
+          addPoolMeta(fee, tickSpacing, hooks, registrationBitmap, poolKeyOverride)
+        }
+      }
+    }
+
     return metas
   },
   buildPoolInfoCalls: ({ id, poolManager: address }) => [

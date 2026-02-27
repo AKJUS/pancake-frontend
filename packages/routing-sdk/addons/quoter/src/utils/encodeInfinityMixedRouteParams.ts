@@ -6,7 +6,7 @@ import {
   isDynamicFeeHook,
 } from '@pancakeswap/infinity-sdk'
 import { BaseRoute } from '@pancakeswap/routing-sdk'
-import { isInfinityBinPool, isInfinityCLPool } from '@pancakeswap/routing-sdk-addon-infinity'
+import { isInfinityBinPool, isInfinityCLPool, isInfinityStablePool } from '@pancakeswap/routing-sdk-addon-infinity'
 import { isStablePool } from '@pancakeswap/routing-sdk-addon-stable-swap'
 import { isV2Pool } from '@pancakeswap/routing-sdk-addon-v2'
 import { isV3Pool } from '@pancakeswap/routing-sdk-addon-v3'
@@ -47,7 +47,7 @@ export function encodeInfinityMixedRouteParams(
     if (isV3Pool(p)) {
       return encodeAbiParameters(parseAbiParameters('uint24'), [p.getPoolData().fee])
     }
-    if (isInfinityCLPool(p)) {
+    if (isInfinityCLPool(p) || isInfinityStablePool(p)) {
       const pool = p.getPoolData()
       const poolKey: PoolKey<'CL'> = {
         currency0: getCurrencyAddress(pool.currency0),

@@ -90,7 +90,7 @@ class WorkerProxy {
           params: eventId,
         })
       } catch (e) {
-        console.error('[Worker GetBestTrade]: Abort Error:', e)
+        console.error('[Worker GetBestTrade getBestTradeOffchain]: Abort Error:', e)
       }
     })
 

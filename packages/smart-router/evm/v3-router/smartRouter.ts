@@ -19,6 +19,7 @@ export {
   isInfinityBinPool,
   isInfinityClPool,
   isStablePool,
+  isInfinityStablePool,
   isV2Pool,
   isV3Pool,
   log,

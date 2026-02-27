@@ -3,7 +3,7 @@ import { BigintIsh, Currency, CurrencyAmount, erc20Abi, Percent } from '@pancake
 import { getStableSwapPools } from '@pancakeswap/stable-swap-sdk'
 import { deserializeToken } from '@pancakeswap/token-lists'
 import { DEPLOYER_ADDRESSES, FeeAmount, pancakeV3PoolABI, parseProtocolFees } from '@pancakeswap/v3-sdk'
-import { Abi, Address } from 'viem'
+import { Abi, Address, PublicClient } from 'viem'
 
 import { pancakePairABI } from '../../../abis/IPancakePair'
 import { stableSwapPairABI } from '../../../abis/StableSwapPair'
@@ -181,7 +181,7 @@ type ContractFunctionConfig = {
 
 interface OnChainPoolFactoryParams<TPool extends Pool, TPoolMeta extends PoolMeta, TAbi extends Abi | unknown[] = Abi> {
   abi: TAbi
-  getPossiblePoolMetas: (pair: [Currency, Currency]) => Promise<TPoolMeta[]>
+  getPossiblePoolMetas: (pair: [Currency, Currency], client?: PublicClient) => Promise<TPoolMeta[]>
   buildPoolInfoCalls: (poolMeta: TPoolMeta) => ContractFunctionConfig[]
   buildPool: (poolMeta: TPoolMeta, data: any[]) => TPool | null
 }
@@ -209,7 +209,7 @@ export function createOnChainPoolFactory<
     const poolAddressSet = new Set<string>()
 
     const poolMetas: TPoolMeta[] = []
-    const allPossibleMetas = await Promise.all(pairs.map((pair) => getPossiblePoolMetas(pair)))
+    const allPossibleMetas = await Promise.all(pairs.map((pair) => getPossiblePoolMetas(pair, client)))
     for (const possiblePoolMetas of allPossibleMetas) {
       for (const meta of possiblePoolMetas) {
         if (!poolAddressSet.has(meta.id)) {

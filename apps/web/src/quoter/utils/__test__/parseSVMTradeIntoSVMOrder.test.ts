@@ -178,6 +178,7 @@ describe('parseSVMTradeIntoSVMOrder', () => {
       blockNumber: 123456,
       createTime: Date.now(),
       infinitySwap: false,
+      infinityStableSwap: false,
       hash: 'mock_query_hash',
       ver: 0,
     }

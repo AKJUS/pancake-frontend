@@ -69,6 +69,20 @@ const InfinityBinType: React.FC<{ short?: boolean }> = ({ short }) => {
   );
 };
 
+const InfinityStableType: React.FC<{ short?: boolean }> = ({ short }) => {
+  const { t } = useTranslation();
+  if (short) {
+    return <span>{t("stable")}</span>;
+  }
+  return (
+    <>
+      <span>{t("Infinity")}</span>
+      <TypeDivider>|</TypeDivider>
+      <span>{t("SS")}</span>
+    </>
+  );
+};
+
 export const PoolFeaturesBadge = ({
   hookData,
   fold,
@@ -91,6 +105,8 @@ export const PoolFeaturesBadge = ({
             <InfinityClammType short={short} />
           ) : [POOL_TYPE.Bin, Protocol.InfinityBIN].includes(type) ? (
             <InfinityBinType short={short} />
+          ) : type === Protocol.InfinitySTABLE ? (
+            <InfinityStableType short={short} />
           ) : (
             type
           ),
@@ -180,7 +196,7 @@ type FeatureItemProps = PoolFeaturesBadgeProps & {
   link?: string;
 };
 
-const FeatureItem = ({
+export const FeatureItem = ({
   labelText,
   gap = "4px",
   layout = "column",

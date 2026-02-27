@@ -13,7 +13,8 @@ export function getPositionChainId(position: UnifiedPositionDetail): number {
   if (position.protocol === Protocol.V2 && 'pair' in position) {
     return (position as V2LPDetail).pair.chainId
   }
-  if (position.protocol === Protocol.STABLE && 'pair' in position) {
+
+  if ([Protocol.STABLE, Protocol.InfinitySTABLE].includes(position.protocol) && 'pair' in position) {
     return (position as StableLPDetail).pair.liquidityToken.chainId
   }
   return 0

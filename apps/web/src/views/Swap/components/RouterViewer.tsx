@@ -98,6 +98,7 @@ export const RouterViewer: React.FC<RouterViewerProps> = ({ pairs, path, inputCu
   } = useTooltip(<Text>{outputCurrency?.symbol}</Text>, {
     placement: 'right',
   })
+
   return (
     <RouterBox justifyContent="space-between" alignItems="center">
       <CurrencyLogoWrapper ref={targetRef}>

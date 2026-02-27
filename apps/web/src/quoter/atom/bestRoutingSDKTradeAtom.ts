@@ -16,7 +16,7 @@ import { InfinityGetBestTradeReturnType, QuoteQuery } from '../quoter.types'
 import { atomWithLoadable } from './atomWithLoadable'
 
 export const bestRoutingSDKTradeAtom = atomFamily((option: QuoteQuery) => {
-  const { amount, currency, tradeType, maxSplits, v2Swap, v3Swap, infinitySwap } = option
+  const { amount, currency, tradeType, maxSplits } = option
   return atomWithLoadable(async (get) => {
     if (!amount || !amount.currency || !currency) {
       return undefined
@@ -39,6 +39,7 @@ export const bestRoutingSDKTradeAtom = atomFamily((option: QuoteQuery) => {
           fetchCandidatePools(poolQuery, poolOptions),
           get(gasPriceWeiAtom(currency?.chainId)),
         ])
+
         perf.tracker.track('pool_success')
         const result = await worker.getBestTradeOffchain({
           chainId: currency.chainId,
@@ -54,6 +55,7 @@ export const bestRoutingSDKTradeAtom = atomFamily((option: QuoteQuery) => {
           candidatePools: candidatePools.map(SmartRouter.Transformer.serializePool),
           signal: controller.signal,
         })
+
         const trade = InfinityRouter.Transformer.parseTrade(currency.chainId, result) ?? null
         const verifiedTrade = await getVerifiedTrade(trade)
 

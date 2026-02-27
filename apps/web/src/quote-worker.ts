@@ -225,6 +225,8 @@ addEventListener('message', (event: MessageEvent<WorkerEvent>) => {
   if (message.cmd === 'getBestTradeOffchain') {
     const parsed = InfinityRouter.APISchema.zRouterPostParams.safeParse(message.params)
     if (parsed.success === false) {
+      console.error('[getBestTradeOffchain] zRouterPostParams error', parsed.error)
+
       postMessage([
         id,
         {
@@ -262,6 +264,7 @@ addEventListener('message', (event: MessageEvent<WorkerEvent>) => {
     })
       .then((t) => {
         if (!t) {
+          console.error('[Quote Worker] getBestTradeOffchain: No valid trade route found')
           throw new Error('No valid trade route found')
         }
         const { graph: _, ...trade } = t
@@ -276,6 +279,8 @@ addEventListener('message', (event: MessageEvent<WorkerEvent>) => {
         ])
       })
       .catch((e) => {
+        console.error('[Quote Worker] getBestTradeOffchain: findBestTrade failed', e)
+
         postMessage([
           id,
           {

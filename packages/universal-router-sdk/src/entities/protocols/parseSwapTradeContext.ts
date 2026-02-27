@@ -41,6 +41,7 @@ export const parseSwapTradeContext = (
       const section = sections[i]
 
       invariant(section.length, 'EMPTY_SECTION')
+
       const type = poolTypeToRouteType(section[0].type)
 
       invariant(
@@ -76,12 +77,16 @@ export const parseSwapTradeContext = (
         payerIsUser: false,
         pools: section,
         route: newRoute,
-        isInfinity: section[0].type === PoolType.InfinityBIN || section[0].type === PoolType.InfinityCL,
+        isInfinity:
+          section[0].type === PoolType.InfinityBIN ||
+          section[0].type === PoolType.InfinityCL ||
+          section[0].type === PoolType.InfinityStable,
       }
       swap.payerIsUser = context.options.payerIsUser
         ? swap.isFirstSection && !(swap.wrapInput || swap.unwrapInput)
         : false
       inputCurrency = poolOut
+
       routeContext.sections.push(swap)
     }
 
@@ -122,10 +127,11 @@ function poolTypeToRouteType(poolType: PoolType): RouteType {
       return RouteType.V3
     case PoolType.STABLE:
       return RouteType.STABLE
-    case PoolType.InfinityCL:
-      return RouteType.InfinityCL
     case PoolType.InfinityBIN:
       return RouteType.InfinityBIN
+    case PoolType.InfinityCL:
+    case PoolType.InfinityStable:
+      return RouteType.InfinityCL
     default:
       throw new Error('Invalid pool type')
   }

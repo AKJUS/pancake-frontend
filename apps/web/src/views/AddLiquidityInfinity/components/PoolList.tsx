@@ -6,6 +6,7 @@ import { getCurrencyAddress, PoolTypeFilter, toTokenValue } from '@pancakeswap/w
 import { CurrencySelectV2 } from 'components/CurrencySelectV2'
 import { NetworkSelector } from 'components/NetworkSelector'
 import { CommonBasesType } from 'components/SearchModal/types'
+import { CHAIN_QUERY_NAME } from 'config/chains'
 import { getAddInfinityLiquidityURL, getCreateInfinityPoolPageURL } from 'config/constants/liquidity'
 import { INFINITY_PROTOCOLS } from 'config/constants/protocols'
 import { useSelectIdRouteParams } from 'hooks/dynamicRoute/useSelectIdRoute'
@@ -31,6 +32,7 @@ import { Chain } from '@pancakeswap/chains'
 import { ALL_PROTOCOLS, Protocol } from '@pancakeswap/farms'
 import { HOOK_CATEGORY } from '@pancakeswap/infinity-sdk'
 import { isAddressEqual } from 'utils'
+import { LiquidityType } from 'utils/types'
 import { TokenFilterContainer } from './styles'
 
 const PoolsContent = styled.div`
@@ -91,10 +93,13 @@ const useColumns = () => {
       {
         title: '',
         render: (item: InfinityPoolInfo) => {
-          const href = getAddInfinityLiquidityURL({
-            chainId: item.chainId,
-            poolId: item.poolId,
-          })
+          const href =
+            item.protocol === Protocol.InfinitySTABLE
+              ? `/infinityStable/add/${item.poolId}?chain=${CHAIN_QUERY_NAME[item.chainId]}&persistChain=1`
+              : getAddInfinityLiquidityURL({
+                  chainId: item.chainId,
+                  poolId: item.poolId,
+                })
           return (
             <NextLink href={href}>
               <Button scale="sm">{t('select')}</Button>
@@ -132,28 +137,35 @@ export const PoolList = () => {
   const [nextPage, setNextPage] = useState(1)
   const poolTypeData = usePoolTypes()
 
-  const [clOnly, binOnly] = useMemo(() => {
+  const [clOnly, binOnly, stableOnly] = useMemo(() => {
     const queries = (Array.isArray(poolTypeQuery) ? poolTypeQuery : [poolTypeQuery]).filter(
       (p) => typeof p === 'string',
     )
     const protocols = queries.filter((p) => ALL_PROTOCOLS.includes(p as Protocol))
 
     if (protocols.length !== 1) {
-      return [false, false]
+      return [false, false, false]
     }
-    return [protocols[0] === Protocol.InfinityCLAMM, protocols[0] === Protocol.InfinityBIN]
+    return [
+      protocols[0] === Protocol.InfinityCLAMM,
+      protocols[0] === Protocol.InfinityBIN,
+      protocols[0] === Protocol.InfinitySTABLE,
+    ]
   }, [poolTypeQuery])
 
   const fetchQueries = useMemo(() => {
     if (!chainId) {
       return {}
     }
-    let protocols = INFINITY_PROTOCOLS
+    let protocols = [...INFINITY_PROTOCOLS, Protocol.InfinitySTABLE]
     if (clOnly) {
       protocols = [Protocol.InfinityCLAMM]
     }
     if (binOnly) {
       protocols = [Protocol.InfinityBIN]
+    }
+    if (stableOnly) {
+      protocols = [Protocol.InfinitySTABLE]
     }
     return {
       tokens: [toTokenValue({ chainId, address: currencyIdA }), toTokenValue({ chainId, address: currencyIdB })],
@@ -162,7 +174,7 @@ export const PoolList = () => {
       protocols,
       pageNo: nextPage,
     } as FetchPoolsProps
-  }, [binOnly, chainId, clOnly, currencyIdA, currencyIdB, nextPage])
+  }, [binOnly, chainId, clOnly, currencyIdA, currencyIdB, nextPage, stableOnly])
 
   const { isLoading, data: poolList, pageNo, resetExtendPools, hasNextPage } = useFetchPools(fetchQueries, !!chainId)
 
@@ -321,7 +333,7 @@ export const PoolList = () => {
       <Card marginTop={['16px', '24px']}>
         <CardHeader>
           <FilterContainer gridGap={24} gridTemplateColumns={['1fr', '1fr', '1fr', '1fr 1fr 1fr']}>
-            <NetworkSelector version="infinity" chainId={chainId} onChange={handleNetworkChange} />
+            <NetworkSelector version={LiquidityType.Infinity} chainId={chainId} onChange={handleNetworkChange} />
             <TokenFilterContainer>
               <CurrencySelectV2
                 id="add-liquidity-select-tokenA"

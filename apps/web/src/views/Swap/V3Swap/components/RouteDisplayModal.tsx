@@ -23,7 +23,6 @@ import { useUnifiedCurrency } from 'hooks/Tokens'
 import { TertiaryButton } from 'views/Swap/components/SlippageButton'
 import { useTheme } from '@pancakeswap/hooks'
 
-import { isSolana } from '@pancakeswap/chains'
 import { BridgeRoutesDisplay } from './RouteDisplay/BridgeRoutesDisplay'
 import { EVMPairNodes } from './RouteDisplay/pairNode'
 import { JupPairNodes } from './RouteDisplay/JupPairNodes'

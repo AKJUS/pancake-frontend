@@ -6,7 +6,7 @@ import {
   getFarmConfigKey,
   UniversalFarmConfig,
 } from '@pancakeswap/farms'
-import { CurrencyAmount, ERC20Token, Pair, Token, pancakePairV2ABI } from '@pancakeswap/sdk'
+import { CurrencyAmount, ERC20Token, Pair, Percent, Price, Token, pancakePairV2ABI } from '@pancakeswap/sdk'
 import { LegacyStableSwapPair } from '@pancakeswap/smart-router/legacy-router'
 import { deserializeToken } from '@pancakeswap/token-lists'
 import { getBalanceNumber } from '@pancakeswap/utils/formatBalance'

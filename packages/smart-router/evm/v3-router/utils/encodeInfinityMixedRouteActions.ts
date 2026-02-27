@@ -1,7 +1,7 @@
 import { Hex, bytesToHex } from 'viem'
 
 import { BaseRoute, InfinityMixedQuoterActions } from '../types'
-import { isInfinityBinPool, isInfinityClPool, isStablePool, isV2Pool, isV3Pool } from './pool'
+import { isInfinityBinPool, isInfinityClPool, isInfinityStablePool, isStablePool, isV2Pool, isV3Pool } from './pool'
 
 export function encodeInfinityMixedRouteActions(route: BaseRoute): Hex {
   return bytesToHex(
@@ -16,7 +16,7 @@ export function encodeInfinityMixedRouteActions(route: BaseRoute): Hex {
         if (isStablePool(p)) {
           return InfinityMixedQuoterActions.SS_2_EXACT_INPUT_SINGLE
         }
-        if (isInfinityClPool(p)) {
+        if (isInfinityClPool(p) || isInfinityStablePool(p)) {
           return InfinityMixedQuoterActions.INFI_CL_EXACT_INPUT_SINGLE
         }
         if (isInfinityBinPool(p)) {

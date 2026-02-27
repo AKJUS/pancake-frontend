@@ -107,7 +107,9 @@ export const CustomizeRoutingTab = memo(() => {
               disabled={infinityEnable && onlyOneAMMSourceEnabled}
               scale="md"
               checked={infinityEnable}
-              onChange={() => setInfinityEnable((s) => !s)}
+              onChange={() => {
+                setInfinityEnable((s) => !s)
+              }}
             />
           </Flex>
           <Flex justifyContent="space-between" alignItems="center" mb="24px">

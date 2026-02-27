@@ -177,6 +177,23 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/cached/tx/infinityStable/{chainName}/recent': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get recent stable transaction */
+    get: operations['getCachedTxStableByChainNameRecent']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/cached/tx/stable/{chainName}/recent': {
     parameters: {
       query?: never
@@ -350,6 +367,7 @@ export interface paths {
     patch?: never
     trace?: never
   }
+
   '/cached/tokens/infinityCl/{chainName}/{address}': {
     parameters: {
       query?: never
@@ -776,6 +794,23 @@ export interface paths {
     trace?: never
   }
   '/cached/pools/apr/stable/{chainName}/{address}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get stable lp apr */
+    get: operations['getCachedPoolsAprStableByChainNameByAddress']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/cached/pools/apr/infinityStable/{chainName}/{address}': {
     parameters: {
       query?: never
       header?: never
@@ -3824,7 +3859,7 @@ export interface operations {
           | 'sol'
           | 'monad'
         /** @description Protocol version */
-        protocol: 'v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable'
+        protocol: 'v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable' | 'infinityStable'
         /** @description Pool ID (EVM 0x… or Solana base58) */
         address: string
       }
@@ -3867,7 +3902,7 @@ export interface operations {
           | 'sol'
           | 'monad'
         /** @description Protocol version */
-        protocol: 'v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable'
+        protocol: 'v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable' | 'infinityStable'
         /** @description Pool ID (EVM 0x… or Solana base58) */
         address: string
       }
@@ -5242,8 +5277,8 @@ export interface operations {
         orderBy: 'tvlUSD' | 'volumeUSD24h' | 'apr24h'
         /** @description Array of protocol versions */
         protocols:
-          | ('v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable')
-          | ('v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable')[]
+          | ('v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable' | 'infinityStable')
+          | ('v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable' | 'infinityStable')[]
         /** @description Array of chain names */
         chains:
           | (
@@ -5345,8 +5380,8 @@ export interface operations {
       query: {
         /** @description Array of protocol versions */
         protocols:
-          | ('v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable')
-          | ('v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable')[]
+          | ('v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable' | 'infinityStable')
+          | ('v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable' | 'infinityStable')[]
         /** @description Array of chain names */
         chains:
           | (

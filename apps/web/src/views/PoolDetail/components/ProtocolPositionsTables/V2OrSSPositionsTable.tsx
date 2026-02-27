@@ -12,7 +12,7 @@ import router from 'next/router'
 import { useCallback, useMemo } from 'react'
 import { useAccountPositionDetailByPool } from 'state/farmsV4/hooks'
 import { StableLPDetail, V2LPDetail } from 'state/farmsV4/state/accountPositions/type'
-import { StablePoolInfo, V2PoolInfo } from 'state/farmsV4/state/type'
+import { InfinityStablePoolInfo, StablePoolInfo, V2PoolInfo } from 'state/farmsV4/state/type'
 import { useChainIdByQuery } from 'state/info/hooks'
 import { Tooltips } from 'components/Tooltips'
 import {
@@ -40,7 +40,7 @@ interface V2PositionsTableProps {
 
 // Component that only renders when position data exists
 const V2PositionWithApr: React.FC<{
-  poolInfo: V2PoolInfo | StablePoolInfo
+  poolInfo: V2PoolInfo | StablePoolInfo | InfinityStablePoolInfo
   v2OrStableData: V2LPDetail | StableLPDetail
   harvestAllButton?: React.ReactNode
 }> = ({ poolInfo, v2OrStableData, harvestAllButton }) => {
@@ -163,8 +163,23 @@ const V2PositionWithApr: React.FC<{
     const removeLiquidityUrl = `${baseUrl}/remove/${token0Address}/${token1Address}?${chainPersistQuery}`
     const migrateUrl = `/v2/migrate/${poolInfo.lpAddress}?${chainPersistQuery}`
 
-    const handleRemove = () => router.push(removeLiquidityUrl)
-    const handleAdd = () => router.push(addLiquidityUrl)
+    const infinityStableAddLiquidityUrl = `/infinityStable/add/${poolInfo.poolId}?${chainPersistQuery}`
+    const infinityStableRemoveLiquidityUrl = `/infinityStable/remove/${poolInfo.poolId}?${chainPersistQuery}`
+
+    const handleRemove = () => {
+      if (poolInfo.protocol === Protocol.InfinitySTABLE) {
+        router.push(infinityStableRemoveLiquidityUrl)
+      } else {
+        router.push(removeLiquidityUrl)
+      }
+    }
+    const handleAdd = () => {
+      if (poolInfo.protocol === Protocol.InfinitySTABLE) {
+        router.push(infinityStableAddLiquidityUrl)
+      } else {
+        router.push(addLiquidityUrl)
+      }
+    }
     const handleMigrate = () => router.push(migrateUrl)
 
     const actions = (
@@ -210,7 +225,9 @@ const V2PositionWithApr: React.FC<{
         const token0Address = poolInfo.token0?.wrapped.address
         const token1Address = poolInfo.token1?.wrapped.address
         const baseUrl =
-          poolInfo.protocol === 'v2' ? `/v2/pair/${token0Address}/${token1Address}` : `/stable/${poolInfo.lpAddress}`
+          poolInfo.protocol === 'v2'
+            ? `/v2/pair/${token0Address}/${token1Address}`
+            : `/${poolInfo.protocol === Protocol.InfinitySTABLE ? 'infinityStable' : 'stable'}/${poolInfo.lpAddress}`
         const detailUrl = `${baseUrl}?chain=${CHAIN_QUERY_NAME[poolInfo.chainId]}&${[PERSIST_CHAIN_KEY]}=1`
         router.push(detailUrl)
       }}

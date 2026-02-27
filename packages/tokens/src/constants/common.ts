@@ -379,6 +379,10 @@ export const USDC = {
   [NonEVMChainId.SOLANA]: solanaTokens.usdc,
 }
 
+export const USD1 = {
+  [ChainId.BSC]: USD1_BSC,
+}
+
 export const USDT = {
   [ChainId.BSC]: USDT_BSC,
   [ChainId.ETHEREUM]: USDT_ETH,

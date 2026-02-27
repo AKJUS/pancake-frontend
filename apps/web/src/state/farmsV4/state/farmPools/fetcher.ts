@@ -40,12 +40,15 @@ export const fetchExplorerFarmPools = async (
   let chains = Array.isArray(args?.chainId) ? args.chainId ?? [] : [args?.chainId]
   chains = chains.filter(Boolean)
 
+  // NOTE: Infinity Stable is not supported in the farming API yet
+  const farmSupportedProtocols = (args.protocols ?? DEFAULT_PROTOCOLS).filter((p) => p !== Protocol.InfinitySTABLE)
+
   try {
     const resp = await explorerApiClient.GET('/cached/pools/farming', {
       signal,
       params: {
         query: {
-          protocols: args.protocols ?? DEFAULT_PROTOCOLS,
+          protocols: farmSupportedProtocols,
           chains: chains.reduce((requestChainIds, currentChainId) => {
             const chainName = currentChainId ? getMainnetChainNameInKebabCase(currentChainId) : undefined
             if (chainName) {

@@ -46,6 +46,7 @@ export const useQuoterSync = () => {
     v2Swap,
     v3Swap,
     infinitySwap,
+    infinityStableSwap,
     stableSwap,
     maxHops,
     chainId,
@@ -74,6 +75,7 @@ export const useQuoterSync = () => {
     v2Swap,
     v3Swap,
     infinitySwap: Boolean(infinitySwap), // chain support is check inner
+    infinityStableSwap: Boolean(infinityStableSwap),
     stableSwap,
     speedQuoteEnabled,
     xEnabled,

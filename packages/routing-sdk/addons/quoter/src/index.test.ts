@@ -14,6 +14,7 @@ test('exports', () => {
       "encodeRouteToPath",
       "isInfinityCLRoute",
       "isInfinityBinRoute",
+      "isInfinityStableRoute",
       "isMixedRoute",
       "isInfinityMixedRoute",
       "isV3Route",

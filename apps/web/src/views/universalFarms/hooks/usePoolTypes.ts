@@ -33,6 +33,11 @@ export const usePoolTypes = () => {
                 label: t('LBAMM'),
                 data: Protocol.InfinityBIN,
               },
+              {
+                key: '0-0-2',
+                label: t('Stable'),
+                data: Protocol.InfinitySTABLE,
+              },
             ],
           },
           {

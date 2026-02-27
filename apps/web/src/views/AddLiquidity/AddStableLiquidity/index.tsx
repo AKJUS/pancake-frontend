@@ -36,7 +36,6 @@ import { warningSeverity } from './utils/slippage'
 import { useTotalUsdValue } from '../hooks/useTotalUsdValue'
 
 export interface AddStableChildrenProps {
-  noLiquidity?: boolean
   formattedAmounts: {
     [Field.CURRENCY_A]?: string
     [Field.CURRENCY_B]?: string
@@ -48,14 +47,9 @@ export interface AddStableChildrenProps {
     [Field.CURRENCY_A]?: Currency
     [Field.CURRENCY_B]?: Currency
   }
-  pairState: PairState
   poolTokenPercentage?: Percent
-  price: Price<Currency, Currency> | null
   executionSlippage?: Percent
   loading: boolean
-  infoLoading?: boolean
-  allowedSlippage: number
-  stableAPR?: number
   shouldShowApprovalGroup: boolean
   showFieldAApproval: boolean
   approveACallback: () => Promise<{ hash: Address } | undefined>
@@ -67,15 +61,6 @@ export interface AddStableChildrenProps {
   onPresentAddLiquidityModal: () => void
   buttonDisabled: boolean
   errorText?: string
-  setLiquidityState: Dispatch<
-    SetStateAction<{
-      attemptingTxn: boolean
-      liquidityErrorMessage: string | undefined
-      txHash: string | undefined
-    }>
-  >
-  reserves: readonly [bigint, bigint]
-  pair?: StablePair | null
   inputAmountsTotalUsdValue?: number
 }
 
@@ -397,20 +382,14 @@ export default function AddStableLiquidity({
   })
 
   return children({
-    noLiquidity,
     formattedAmounts,
     onFieldAInput,
     onFieldBInput,
     maxAmounts,
     currencies,
-    pairState,
     poolTokenPercentage,
-    price,
     executionSlippage,
     loading,
-    infoLoading,
-    allowedSlippage,
-    stableAPR,
     shouldShowApprovalGroup,
     showFieldAApproval,
     approveACallback,
@@ -422,9 +401,6 @@ export default function AddStableLiquidity({
     onPresentAddLiquidityModal,
     buttonDisabled,
     errorText,
-    setLiquidityState,
-    reserves,
-    pair,
     inputAmountsTotalUsdValue,
   })
 }

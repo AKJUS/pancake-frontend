@@ -15,7 +15,7 @@ import { V2_FEE_TIER_BASE, V2_FEE_TIER } from '../../../constants'
 interface V2StablePositionRowProps {
   position: V2LPDetail | StableLPDetail
   chainId: number
-  protocol: Protocol.V2 | Protocol.STABLE
+  protocol: Protocol.V2 | Protocol.STABLE | Protocol.InfinitySTABLE
   hideEarningsColumn?: boolean
 }
 
@@ -60,11 +60,13 @@ export const V2StablePositionRow: React.FC<V2StablePositionRowProps> = memo(
         .toNumber()
     }, [price0Usd, price1Usd, amount0, amount1])
 
-    const isStaked = isV2 ? v2Position.isStaked : stablePosition.isStaked
-
     // Type guard to check if pool is V2PoolInfo or StablePoolInfo
     const isV2OrStablePool = (p: PoolInfo | null | undefined): p is V2PoolInfo | StablePoolInfo => {
-      return p !== null && p !== undefined && (p.protocol === Protocol.V2 || p.protocol === Protocol.STABLE)
+      return (
+        p !== null &&
+        p !== undefined &&
+        (p.protocol === Protocol.V2 || p.protocol === Protocol.STABLE || p.protocol === Protocol.InfinitySTABLE)
+      )
     }
 
     const v2OrStablePool = isV2OrStablePool(pool) ? pool : null

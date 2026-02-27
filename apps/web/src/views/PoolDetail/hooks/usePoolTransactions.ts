@@ -13,6 +13,7 @@ const urlMap = {
   [Protocol.V3]: '/cached/tx/v3/{chainName}/recent' as const,
   [Protocol.InfinityBIN]: '/cached/tx/infinityBin/{chainName}/recent' as const,
   [Protocol.InfinityCLAMM]: '/cached/tx/infinityCl/{chainName}/recent' as const,
+  [Protocol.InfinitySTABLE]: '/cached/tx/infinityStable/{chainName}/recent' as const,
   [Protocol.STABLE]: '/cached/tx/stable/{chainName}/recent' as const,
   [Protocol.V2]: '/cached/tx/v2/{chainName}/recent' as const,
 } as const

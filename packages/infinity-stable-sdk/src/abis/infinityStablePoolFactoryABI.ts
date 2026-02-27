@@ -1,0 +1,151 @@
+/**
+ * InfinityStable Pool Factory ABI
+ */
+export const infinityStablePoolFactoryABI = [
+  {
+    inputs: [{ internalType: 'address', name: '_hookFactory', type: 'address' }],
+    stateMutability: 'nonpayable',
+    type: 'constructor',
+  },
+  { inputs: [], name: 'NameTooLong', type: 'error' },
+  {
+    inputs: [{ internalType: 'address', name: 'token', type: 'address' }],
+    name: 'SafeERC20FailedOperation',
+    type: 'error',
+  },
+  { inputs: [], name: 'SymbolTooLong', type: 'error' },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address[]', name: 'coins', type: 'address[]' },
+      { indexed: false, internalType: 'uint256', name: 'A', type: 'uint256' },
+      { indexed: false, internalType: 'uint256', name: 'fee', type: 'uint256' },
+      { indexed: true, internalType: 'address', name: 'creator', type: 'address' },
+      { indexed: true, internalType: 'PoolId', name: 'poolId', type: 'bytes32' },
+    ],
+    name: 'PoolCreated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address[]', name: 'coins', type: 'address[]' },
+      { indexed: false, internalType: 'uint256', name: 'A', type: 'uint256' },
+      { indexed: false, internalType: 'uint256', name: 'fee', type: 'uint256' },
+      { indexed: true, internalType: 'address', name: 'creator', type: 'address' },
+      { indexed: true, internalType: 'PoolId', name: 'poolId', type: 'bytes32' },
+      { indexed: false, internalType: 'uint256', name: 'amount0', type: 'uint256' },
+      { indexed: false, internalType: 'uint256', name: 'amount1', type: 'uint256' },
+      { indexed: false, internalType: 'uint256', name: 'lpMinted', type: 'uint256' },
+      { indexed: false, internalType: 'address', name: 'receiver', type: 'address' },
+    ],
+    name: 'PoolCreatedAndLiquidityAdded',
+    type: 'event',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: 'string', name: 'name', type: 'string' },
+          { internalType: 'string', name: 'symbol', type: 'string' },
+          { internalType: 'address[]', name: 'coins', type: 'address[]' },
+          { internalType: 'uint256', name: 'A', type: 'uint256' },
+          { internalType: 'uint256', name: 'fee', type: 'uint256' },
+          { internalType: 'uint256', name: 'offpegFeeMultiplier', type: 'uint256' },
+          { internalType: 'uint256', name: 'maExpTime', type: 'uint256' },
+          { internalType: 'uint256', name: 'implementationIdx', type: 'uint256' },
+          { internalType: 'uint8[]', name: 'assetTypes', type: 'uint8[]' },
+          { internalType: 'bytes4[]', name: 'methodIds', type: 'bytes4[]' },
+          { internalType: 'address[]', name: 'oracles', type: 'address[]' },
+        ],
+        internalType: 'struct ICLStableSwapPoolFactory.CreatePoolParam',
+        name: 'param',
+        type: 'tuple',
+      },
+    ],
+    name: 'createPool',
+    outputs: [
+      {
+        components: [
+          { internalType: 'Currency', name: 'currency0', type: 'address' },
+          { internalType: 'Currency', name: 'currency1', type: 'address' },
+          { internalType: 'contract IHooks', name: 'hooks', type: 'address' },
+          { internalType: 'contract IPoolManager', name: 'poolManager', type: 'address' },
+          { internalType: 'uint24', name: 'fee', type: 'uint24' },
+          { internalType: 'bytes32', name: 'parameters', type: 'bytes32' },
+        ],
+        internalType: 'struct PoolKey',
+        name: '',
+        type: 'tuple',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: 'string', name: 'name', type: 'string' },
+          { internalType: 'string', name: 'symbol', type: 'string' },
+          { internalType: 'address[]', name: 'coins', type: 'address[]' },
+          { internalType: 'uint256', name: 'A', type: 'uint256' },
+          { internalType: 'uint256', name: 'fee', type: 'uint256' },
+          { internalType: 'uint256', name: 'offpegFeeMultiplier', type: 'uint256' },
+          { internalType: 'uint256', name: 'maExpTime', type: 'uint256' },
+          { internalType: 'uint256', name: 'implementationIdx', type: 'uint256' },
+          { internalType: 'uint8[]', name: 'assetTypes', type: 'uint8[]' },
+          { internalType: 'bytes4[]', name: 'methodIds', type: 'bytes4[]' },
+          { internalType: 'address[]', name: 'oracles', type: 'address[]' },
+        ],
+        internalType: 'struct ICLStableSwapPoolFactory.CreatePoolParam',
+        name: 'createPoolParam',
+        type: 'tuple',
+      },
+      {
+        components: [
+          { internalType: 'uint256', name: 'amount0', type: 'uint256' },
+          { internalType: 'uint256', name: 'amount1', type: 'uint256' },
+          { internalType: 'uint256', name: 'minMintAmount', type: 'uint256' },
+          { internalType: 'address', name: 'receiver', type: 'address' },
+        ],
+        internalType: 'struct ICLStableSwapPoolFactory.AddLiquidityParam',
+        name: 'addLiquidityParam',
+        type: 'tuple',
+      },
+    ],
+    name: 'createPoolAndAddLiquidity',
+    outputs: [
+      {
+        components: [
+          { internalType: 'Currency', name: 'currency0', type: 'address' },
+          { internalType: 'Currency', name: 'currency1', type: 'address' },
+          { internalType: 'contract IHooks', name: 'hooks', type: 'address' },
+          { internalType: 'contract IPoolManager', name: 'poolManager', type: 'address' },
+          { internalType: 'uint24', name: 'fee', type: 'uint24' },
+          { internalType: 'bytes32', name: 'parameters', type: 'bytes32' },
+        ],
+        internalType: 'struct PoolKey',
+        name: '',
+        type: 'tuple',
+      },
+      { internalType: 'uint256', name: '', type: 'uint256' },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'hookFactory',
+    outputs: [{ internalType: 'contract ICLStableSwapHookFactory', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'poolManager',
+    outputs: [{ internalType: 'contract ICLPoolManager', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const

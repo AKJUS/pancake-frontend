@@ -10,18 +10,25 @@ it("renders correctly", () => {
   );
   expect(asFragment()).toMatchInlineSnapshot(`
     <DocumentFragment>
-      .c10 {
-      align-self: center;
-      fill: var(--colors-textSubtle);
-      color: var(--colors-textSubtle);
-      flex-shrink: 0;
+      .c1 {
+      border-radius: var(--radii-32px);
+      overflow: hidden;
+      min-width: 320px;
     }
 
-    .c6 {
-      color: var(--colors-text);
-      font-weight: 600;
-      line-height: 1.5;
-      font-size: 16px;
+    .c2 {
+      background: transparent;
+      padding: 12px 24px;
+    }
+
+    .c11 {
+      position: relative;
+      top: 0px;
+      padding: 24px;
+    }
+
+    .c3 {
+      display: flex;
     }
 
     .c8 {
@@ -73,25 +80,18 @@ it("renders correctly", () => {
       width: 48px;
     }
 
-    .c1 {
-      border-radius: var(--radii-32px);
-      overflow: hidden;
-      min-width: 320px;
+    .c10 {
+      align-self: center;
+      fill: var(--colors-textSubtle);
+      color: var(--colors-textSubtle);
+      flex-shrink: 0;
     }
 
-    .c2 {
-      background: transparent;
-      padding: 12px 24px;
-    }
-
-    .c11 {
-      position: relative;
-      top: 0px;
-      padding: 24px;
-    }
-
-    .c3 {
-      display: flex;
+    .c6 {
+      color: var(--colors-text);
+      font-weight: 600;
+      line-height: 1.5;
+      font-size: 16px;
     }
 
     .c4 {
@@ -135,15 +135,15 @@ it("renders correctly", () => {
       line-height: 1.1;
     }
 
-    @supports (-webkit-text-size-adjust: none) and (not (-ms-accelerator: true)) and (not (-moz-appearance: none)) {
-      .c10 {
-        filter: none!important;
-      }
-    }
-
     @media (hover: hover) {
       .c8:hover:not(:disabled):not(.pancake-button--disabled):not(.pancake-button--disabled):not(:active) {
         opacity: 0.65;
+      }
+    }
+
+    @supports (-webkit-text-size-adjust: none) and (not (-ms-accelerator: true)) and (not (-moz-appearance: none)) {
+      .c10 {
+        filter: none!important;
       }
     }
 

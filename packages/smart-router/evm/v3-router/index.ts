@@ -1,6 +1,6 @@
 export * as SmartRouter from './smartRouter'
 export { Transformer } from './utils'
-export { getPoolAddress } from './utils/pool'
+export { getPoolAddress, getTokenPrice } from './utils/pool'
 export { getRouteTypeByPools } from './utils/route'
 export { SwapRouter } from './utils/swapRouter'
 export type { SwapOptions } from './utils/swapRouter'

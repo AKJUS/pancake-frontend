@@ -8,6 +8,8 @@ import { useSelectIdRoute } from 'hooks/dynamicRoute/useSelectIdRoute'
 import { TabMenu } from 'views/BurnDashboard/components/TabMenu'
 import { useActiveChainId } from 'hooks/useActiveChainId'
 import { getChainName } from '@pancakeswap/chains'
+import { LiquidityType } from 'utils/types'
+import { isInfinityStableSupported } from '@pancakeswap/infinity-stable-sdk'
 import { useProtocolSupported } from '../hooks/useProtocolSupported'
 
 const StyledLink = styled(NextLinkFromReactRouter)`
@@ -30,7 +32,7 @@ export const BreadcrumbNav: React.FC = () => {
   const protocolFromQuery = routeParams?.selectId?.[1]
 
   const handleProtocolChange = useCallback(
-    (tab: { value: 'infinity' | 'v3' | 'v2'; label: string; disabled?: boolean }) => {
+    (tab: { value: LiquidityType; label: string; disabled?: boolean }) => {
       const protocol = tab.value
 
       if (protocol === 'infinity' && !isInfinitySupported) return
@@ -56,12 +58,14 @@ export const BreadcrumbNav: React.FC = () => {
       {protocolFromQuery && (
         <TabMenu
           tabs={[
-            { value: 'infinity', label: 'Infinity', disabled: !isInfinitySupported },
-            { value: 'v3', label: 'V3' },
-            { value: 'v2', label: 'V2', disabled: !isV2Supported(chainId) },
+            { value: LiquidityType.Infinity, label: 'Infinity', disabled: !isInfinitySupported },
+            { value: LiquidityType.V3, label: 'V3' },
+            { value: LiquidityType.V2, label: 'V2', disabled: !isV2Supported(chainId) },
+            // NOTE: SS Tab is only supported for Infinity Stable
+            { value: LiquidityType.StableSwap, label: 'SS', disabled: !isInfinityStableSupported(chainId) },
           ]}
           defaultTab={{
-            value: protocolName as 'infinity' | 'v3' | 'v2',
+            value: protocolName,
             label: protocolName,
             disabled: !isInfinitySupported,
           }}

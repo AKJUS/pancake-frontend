@@ -1,5 +1,5 @@
 import { Pool } from '../types'
-import { isInfinityBinPool, isInfinityClPool, isStablePool, isV2Pool, isV3Pool } from './pool'
+import { isInfinityBinPool, isInfinityClPool, isInfinityStablePool, isStablePool, isV2Pool, isV3Pool } from './pool'
 
 export function getCurrenciesOfPool(pool: Pool) {
   if (isV2Pool(pool)) {
@@ -14,7 +14,7 @@ export function getCurrenciesOfPool(pool: Pool) {
     const { balances } = pool
     return balances.map((b) => b.currency)
   }
-  if (isInfinityClPool(pool) || isInfinityBinPool(pool)) {
+  if (isInfinityClPool(pool) || isInfinityBinPool(pool) || isInfinityStablePool(pool)) {
     const { currency0, currency1 } = pool
     return [currency0, currency1]
   }

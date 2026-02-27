@@ -18,6 +18,7 @@ type QuoteTrace = BasePerf & {
   v2Swap: boolean
   v3Swap: boolean
   infinitySwap: boolean
+  infinityStableSwap: boolean
   xSwap: boolean
   chainId?: number
   account?: `0x${string}`
@@ -87,6 +88,7 @@ export const quoteTraceAtom = atomFamily(
         v2Swap: !!params.v2Swap,
         v3Swap: !!params.v3Swap,
         infinitySwap: params.infinitySwap,
+        infinityStableSwap: !!params.infinityStableSwap,
         xSwap: params.xEnabled,
         chainId: params.currency?.chainId,
         account,

@@ -16,7 +16,9 @@ import { edgeQueries } from 'quoter/utils/edgePoolQueries'
 import { getEdgeChainName } from 'quoter/utils/edgeQueries.util'
 import { explorerApiClient } from 'state/info/api/client'
 import { Address } from 'viem/accounts'
+import { erc20Abi } from 'viem'
 import chunk from '@pancakeswap/utils/chunk'
+import { publicClient } from 'utils/viem'
 import { FarmInfo, normalizeAddress, safeGetAddress } from './farm.util'
 
 const DEFAULT_PROTOCOLS: Protocol[] = Object.values(Protocol)
@@ -51,7 +53,7 @@ function getPoolId(farm: UniversalFarmConfig) {
   if (farm.protocol === 'stable') {
     return farm.stableSwapAddress
   }
-  if (farm.protocol === 'infinityCl' || farm.protocol === 'infinityBin') {
+  if (farm.protocol === 'infinityCl' || farm.protocol === 'infinityBin' || farm.protocol === 'infinityStable') {
     return farm.poolId
   }
   throw new Error(`Unsupported protocol: ${farm.protocol}`)
@@ -63,10 +65,16 @@ async function fetchExplorerFarmPools(query: FarmQuery) {
   const { protocols, chains } = query
   const chainIds = chains.length > 0 ? chains : supportedChainIdV4
   const chainNames = chainIds.map((chainId) => getEdgeChainName(chainId))
+
+  // NOTE: Infinity Stable is not supported in the farming API yet
+  const farmSupportedProtocols = (protocols.length > 0 ? protocols : DEFAULT_PROTOCOLS).filter(
+    (p) => p !== Protocol.InfinitySTABLE,
+  )
+
   const resp = await explorerApiClient.GET('/cached/pools/farming', {
     params: {
       query: {
-        protocols: protocols.length > 0 ? protocols : DEFAULT_PROTOCOLS,
+        protocols: farmSupportedProtocols,
         chains: chainNames,
       },
     },
@@ -125,9 +133,11 @@ async function fetchFarms(query: FarmQuery, extend: boolean) {
   const { protocols: _protocols, tokens, symbols, chains, sortBy } = query
   const protocols = _protocols.length > 0 ? _protocols : DEFAULT_PROTOCOLS
   const chainIds = chains.length > 0 ? chains : supportedChainIdV4
+
   if (!extend) {
     return mergePromiseList([fetchExplorerFarmPools(query), fetchAllExplorerPools(query)])
   }
+
   if (tokens && tokens.length > 0) {
     const byTokenAddress = fetchAllExplorerPoolsByAddress(query, true)
     const byPoolAddress = fetchAllExplorerPoolsByAddress(query, false)
@@ -232,7 +242,7 @@ async function fetchAllExplorerPoolsByAddress(query: FarmQuery, isPool: boolean 
     chunks.map((addrChunk) => {
       return edgeQueries.fetchAllPools({
         baseUrl,
-        protocols: protocolList,
+        protocols: protocolList as Array<'v2' | 'v3' | 'stable' | 'infinityBin' | 'infinityCl' | 'infinityStable'>,
         chains: chainNames,
         pools: isPool ? addrChunk : undefined,
         tokens: !isPool ? addrChunk : undefined,

@@ -12,7 +12,9 @@ export function getBestStreamsConfig(trade?: Trade<TradeType>) {
     return DEFAULT_STREAM
   }
   const priceImpact = getPriceImpact(trade)
-  if (!priceImpact) {
+  // NOTE: priceImpact is 0, bestFlowAmount will become Infinity
+  // so we prevent this by checking if priceImpact is greater than 0
+  if (!priceImpact || !priceImpact.greaterThan(0)) {
     return DEFAULT_STREAM
   }
   const { gasUseEstimateBase, inputAmount, outputAmount } = trade

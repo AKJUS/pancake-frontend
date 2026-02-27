@@ -9,6 +9,9 @@ const userUseStableSwapAtom = atomWithStorageWithErrorCatch<boolean>('pcs:useSta
 const userUseV2SwapAtom = atomWithStorageWithErrorCatch<boolean>('pcs:useV2Swap', true)
 const userUseV3SwapAtom = atomWithStorageWithErrorCatch<boolean>('pcs:useV3Swap', true)
 const userUseInfinitySwapAtom = atomWithStorageWithErrorCatch<boolean>('pcs:useInfinitySwap', true)
+// Derived: never persisted independently — always reflects (infinitySwap || stableSwap)
+// so QuoteContext reads the correct value on app load without needing a settings-modal sync.
+const userUseInfinityStableSwapAtom = atom((get) => get(userUseInfinitySwapAtom) || get(userUseStableSwapAtom))
 const userUserSplitRouteAtom = atomWithStorageWithErrorCatch<boolean>('pcs:useSplitRouting', true)
 const userUseXAtom = atomWithStorageWithErrorCatch<boolean | undefined>('pcs:useX', undefined)
 
@@ -31,6 +34,10 @@ export function useUserV3SwapEnable() {
 
 export function useUserInfinitySwapEnable() {
   return useAtom(userUseInfinitySwapAtom)
+}
+
+export function useUserInfinityStableSwapEnable() {
+  return useAtomValue(userUseInfinityStableSwapAtom)
 }
 
 export function useUserSplitRouteEnable() {
@@ -56,6 +63,8 @@ const derivedRoutingSettingChangedAtom = atom(
       get(userUseV2SwapAtom),
       get(userUseV3SwapAtom),
       get(userUseInfinitySwapAtom),
+      // userUseInfinityStableSwapAtom is derived from (infinitySwap || stableSwap),
+      // so it is already covered by the two atoms above — no need to check it separately.
       get(userUserSplitRouteAtom),
       !get(userSingleHopAtom),
     ].some((x) => x === false)

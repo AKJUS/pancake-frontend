@@ -32,7 +32,11 @@ export function getCurrencies(pool: Pool) {
     const { balances } = pool
     return balances.map((b) => b.currency)
   }
-  if (SmartRouter.isInfinityClPool(pool) || SmartRouter.isInfinityBinPool(pool)) {
+  if (
+    SmartRouter.isInfinityClPool(pool) ||
+    SmartRouter.isInfinityBinPool(pool) ||
+    SmartRouter.isInfinityStablePool(pool)
+  ) {
     const { currency0, currency1 } = pool
     return [currency0, currency1]
   }

@@ -163,8 +163,12 @@ export const usePoolInfo = <TPoolType extends PoolInfo>({
       try {
         result = await fetchExplorerPoolInfo(poolAddress ?? '', chainId)
       } catch (error) {
-        console.warn('error fetch from api', error)
-        result = await queryInfinityPoolInfoOnChain(poolAddress ?? '', chainId)
+        try {
+          console.warn('error fetch from api', error)
+          result = await queryInfinityPoolInfoOnChain(poolAddress ?? '', chainId)
+        } catch (error) {
+          console.warn('error [usePoolInfo] queryInfinityPoolInfoOnChain', error)
+        }
       }
       if (!result) {
         throw new Error('no pool found')
@@ -176,6 +180,7 @@ export const usePoolInfo = <TPoolType extends PoolInfo>({
     retry: 10,
     ...QUERY_SETTINGS_IMMUTABLE,
   })
+
   const token0 = useCurrencyByChainId(evmPoolInfo?.token0?.address, chainId) ?? undefined
   const token1 = useCurrencyByChainId(evmPoolInfo?.token1?.address, chainId) ?? undefined
 

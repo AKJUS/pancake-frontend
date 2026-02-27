@@ -68,6 +68,7 @@ export const PositionTableRow: React.FC<PositionTableRowProps> = memo(({ positio
 
     case Protocol.V2:
     case Protocol.STABLE:
+    case Protocol.InfinitySTABLE:
       return (
         <V2StablePositionRow
           position={position as V2LPDetail | StableLPDetail}

@@ -81,6 +81,7 @@ it("renders correctly", () => {
     }
 
     <input
+        checked=""
         class="c0"
         scale="md"
         type="checkbox"

@@ -29,6 +29,7 @@ import { useAccount } from 'wagmi'
 
 import ConnectWalletButton from 'components/ConnectWalletButton'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
+import { INFINITY_PROTOCOLS } from 'config/constants/protocols'
 import {
   AddLiquidityButton,
   Card,
@@ -51,6 +52,7 @@ import { positionEarningAmountAtom } from './hooks/usePositionEarningAmount'
 import { getPositionKey } from './components/PositionItem/PositionCard'
 import { matchPositionSearch } from './utils/matchPositionSearch'
 import { useSolanaV3PositionItems } from './hooks/useSolanaV3Positions'
+import { useStableInfinityPositions } from './hooks/useStableInfinityPositions'
 
 const ToggleWrapper = styled.div`
   display: inline-flex;
@@ -270,9 +272,17 @@ export const PositionPage = () => {
     farmsOnly,
   })
 
+  const { stablePositions: infinityStablePositions } = useStableInfinityPositions({
+    selectedNetwork,
+    selectedTokens,
+    positionStatus,
+    farmsOnly,
+  })
+
   const allPositionList = useMemo(() => {
     const unifiedList = [
       ...infinityPositions,
+      ...infinityStablePositions,
       ...v3Positions,
       ...solanaPositions,
       ...v2Positions,
@@ -280,9 +290,19 @@ export const PositionPage = () => {
     ] as UnifiedPositionDetail[]
     return unifiedList.filter((item) => {
       const { protocol } = item
+
       return selectedPoolTypes.includes(protocol) && matchPositionSearch(item, search)
     })
-  }, [infinityPositions, v3Positions, solanaPositions, v2Positions, stablePositions, selectedPoolTypes, search])
+  }, [
+    infinityPositions,
+    v3Positions,
+    infinityStablePositions,
+    solanaPositions,
+    v2Positions,
+    stablePositions,
+    selectedPoolTypes,
+    search,
+  ])
 
   const visibleList = useMemo(() => {
     return allPositionList.slice(0, cursorVisible)

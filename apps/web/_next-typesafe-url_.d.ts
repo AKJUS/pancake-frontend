@@ -41,6 +41,9 @@ declare module "@@@next-typesafe-url" {
     "/home": StaticRoute;
     "/increase/[[...currency]]": StaticRoute;
     "/": StaticRoute;
+    "/infinityStable/[hookAddress]": StaticRoute;
+    "/infinityStable/add/[hookAddress]": StaticRoute;
+    "/infinityStable/remove/[hookAddress]": StaticRoute;
     "/info/[chainName]": StaticRoute;
     "/info/[chainName]/pairs/[address]": StaticRoute;
     "/info/[chainName]/pairs": StaticRoute;

@@ -89,6 +89,7 @@
     "@pancakeswap/v3-sdk": "workspace:*",
     "@pancakeswap/wagmi": "workspace:*",
     "@pancakeswap/widgets-internal": "workspace:*",
+    "@pancakeswap/infinity-stable-sdk": "workspace:*",
     "@privy-io/react-auth": "^2.17.2",
     "@privy-io/wagmi": "^1.0.5",
     "@pythnetwork/pyth-evm-js": "^1.29.2",

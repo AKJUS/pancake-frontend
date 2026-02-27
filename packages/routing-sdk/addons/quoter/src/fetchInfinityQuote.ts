@@ -1,5 +1,5 @@
 import { ChainId } from '@pancakeswap/chains'
-import { InfinityBinPool, InfinityCLPool } from '@pancakeswap/routing-sdk-addon-infinity'
+import { InfinityBinPool, InfinityCLPool, InfinityStablePool } from '@pancakeswap/routing-sdk-addon-infinity'
 import { getCurrencyAddress, getMatchedCurrency } from '@pancakeswap/swap-sdk-core'
 import type { AbiStateMutability, ContractFunctionParameters } from 'viem'
 import { binQuoterAbi } from './abis/IBinQuoter'

@@ -30,6 +30,7 @@ enum Protocol {
   STABLE = 'stable',
   InfinityBIN = 'infinityBin',
   InfinityCLAMM = 'infinityCl',
+  InfinitySTABLE = 'infinityStable',
 }
 
 export type FarmInfo = FarmProps & {

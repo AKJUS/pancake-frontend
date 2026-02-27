@@ -1,7 +1,7 @@
 import { chainNames, getChainName } from '@pancakeswap/chains'
 import { Protocol } from '@pancakeswap/farms'
 import { INFINITY_SUPPORTED_CHAINS } from '@pancakeswap/infinity-sdk'
-import { CAKE, USDC } from '@pancakeswap/tokens'
+import { CAKE, USD1, USDC, USDT } from '@pancakeswap/tokens'
 import { SelectIdRoute, zSelectId } from 'dynamicRoute'
 import { useActiveChainId } from 'hooks/useActiveChainId'
 import { useUnifiedNativeCurrency } from 'hooks/useNativeCurrency'
@@ -10,7 +10,7 @@ import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo } from 'react'
 import { getUnifiedNativeCurrency } from 'utils/getUnifiedNativeCurrency'
 import { isSupportedProtocol } from 'utils/protocols'
-import { LIQUIDITY_TYPES } from 'utils/types'
+import { LIQUIDITY_TYPES, LiquidityType } from 'utils/types'
 import { useProtocolSupported } from 'views/CreateLiquidityPool/hooks/useProtocolSupported'
 import { z } from 'zod'
 
@@ -24,27 +24,36 @@ export const useSelectIdRoute = () => {
   const protocolFromQuery = useMemo(() => router.query.selectId?.[1] || '', [router.query])
 
   const protocolName = useMemo(() => {
-    return (
+    const name =
       // if no protocol and infinity is supported, set to infinity
       (
         (!protocolFromQuery || protocolFromQuery === 'infinity') && INFINITY_SUPPORTED_CHAINS.includes(activeChainId)
           ? 'infinity'
+          : protocolFromQuery === LiquidityType.StableSwap
+          ? LiquidityType.StableSwap
           : // if other protocol value is supported (v2, v3, stable), set to that protocol
           isSupportedProtocol(protocolFromQuery as Protocol)
           ? protocolFromQuery
           : // if protocol is not supported, default to v3
             'v3'
-      ) as 'infinity' | 'v3' | 'v2' | 'stable'
-    )
-  }, [activeChainId, router.query, protocolFromQuery])
+      ) as LiquidityType
+
+    return name
+  }, [activeChainId, protocolFromQuery])
 
   const replaceWithDefaultRoute = useCallback(() => {
     if (!activeChainId || !router.isReady) return
 
     const chainName = getChainName(activeChainId)
 
-    const currencyA = native.symbol
-    const currencyB: string = CAKE[activeChainId]?.address ?? USDC[activeChainId]?.address ?? ''
+    const currencyA =
+      protocolName === LiquidityType.StableSwap
+        ? USD1[activeChainId]?.address ?? USDC[activeChainId]?.address ?? ''
+        : native.symbol
+    const currencyB: string =
+      protocolName === LiquidityType.StableSwap
+        ? USDT[activeChainId]?.address ?? ''
+        : CAKE[activeChainId]?.address ?? USDC[activeChainId]?.address ?? ''
 
     router.replace(
       {
@@ -86,24 +95,25 @@ export const useSelectIdRouteParams = () => {
   const params = useMemo(() => {
     if (!routeParams || !routeParams.selectId) return null
     const [chainId, protocol, currencyIdA, currencyIdB] = routeParams.selectId
-    return { chainId, protocol, currencyIdA, currencyIdB }
+
+    return { chainId, protocol: protocol as LiquidityType | undefined, currencyIdA, currencyIdB }
   }, [routeParams])
 
   const { isV2Supported, isInfinitySupported, isStableSwapSupported, isV3Supported } = useProtocolSupported()
 
   const fallbackToSupportedProtocol = useCallback(
-    (protocol?: 'infinity' | 'v3' | 'v2' | 'stableSwap', chainId?: number) => {
+    (protocol?: LiquidityType, chainId?: number) => {
       if (!protocol || !chainId) return protocol
 
       const isSupported = (p: (typeof LIQUIDITY_TYPES)[number]): boolean => {
         switch (p) {
-          case 'infinity':
+          case LiquidityType.Infinity:
             return isInfinitySupported(chainId)
-          case 'v3':
+          case LiquidityType.V3:
             return isV3Supported(chainId)
-          case 'v2':
+          case LiquidityType.V2:
             return isV2Supported(chainId)
-          case 'stableSwap':
+          case LiquidityType.StableSwap:
             return isStableSwapSupported(chainId)
           default:
             return false
@@ -113,7 +123,8 @@ export const useSelectIdRouteParams = () => {
       if (protocol && isSupported(protocol)) return protocol
 
       const firstSupported = LIQUIDITY_TYPES.find(isSupported)
-      return firstSupported ?? 'v3'
+
+      return firstSupported ?? LiquidityType.V3
     },
     [isV2Supported, isInfinitySupported, isStableSwapSupported, isV3Supported],
   )
@@ -123,27 +134,34 @@ export const useSelectIdRouteParams = () => {
       if (!params || !Object.values(params).every((v) => v !== undefined)) return
       const hasOnlyChainId = Object.keys(p).length === 1 && 'chainId' in p && p.chainId !== params.chainId
 
+      const query = {
+        ...router.query,
+        selectId: hasOnlyChainId
+          ? [
+              getChainName(p.chainId!),
+              fallbackToSupportedProtocol(params.protocol, p.chainId),
+              params.protocol !== LiquidityType.StableSwap
+                ? getUnifiedNativeCurrency(p.chainId!).symbol
+                : params.currencyIdA,
+              params.protocol !== LiquidityType.StableSwap
+                ? CAKE[p.chainId!]?.address ?? USDC[p.chainId!]?.address ?? params.currencyIdB
+                : params.currencyIdB,
+            ]
+          : [
+              getChainName(p.chainId ?? params.chainId),
+              fallbackToSupportedProtocol(
+                (p.protocol as LiquidityType | undefined) || params.protocol,
+                p.chainId ?? params.chainId,
+              ),
+              p.currencyIdA ?? params.currencyIdA,
+              p.currencyIdB ?? params.currencyIdB,
+            ],
+        chain: chainNames[p.chainId ?? params.chainId],
+      } // keep other query params
+
       router.replace(
         {
-          query: {
-            ...router.query,
-            selectId: hasOnlyChainId
-              ? [
-                  getChainName(p.chainId!),
-                  fallbackToSupportedProtocol(params.protocol, p.chainId),
-                  params.protocol !== 'stableSwap' ? getUnifiedNativeCurrency(p.chainId!).symbol : params.currencyIdA,
-                  params.protocol !== 'stableSwap'
-                    ? CAKE[p.chainId!]?.address ?? USDC[p.chainId!]?.address ?? params.currencyIdB
-                    : params.currencyIdB,
-                ]
-              : [
-                  getChainName(p.chainId ?? params.chainId),
-                  fallbackToSupportedProtocol(p.protocol ?? params.protocol, p.chainId ?? params.chainId),
-                  p.currencyIdA ?? params.currencyIdA,
-                  p.currencyIdB ?? params.currencyIdB,
-                ],
-            chain: chainNames[p.chainId ?? params.chainId],
-          }, // keep other query params
+          query,
         },
         undefined,
         { shallow: true },

@@ -164,6 +164,7 @@ const useConfirmActions = (
     }
   }, [chainId, amountToApprove?.currency.address, account])
   const [permit2Signature, setPermit2Signature] = useState<Permit2Signature | undefined>(undefined)
+
   const {
     callback: swap,
     error: swapError,

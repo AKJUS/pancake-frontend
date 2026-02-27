@@ -23,7 +23,15 @@ import {
   PriceReferences,
   RouteWithoutGasEstimate,
 } from './types'
-import { getNativeWrappedToken, getTokenPrice, getUsdGasToken, isStablePool, isV2Pool, isV3Pool } from './utils'
+import {
+  getNativeWrappedToken,
+  getTokenPrice,
+  getUsdGasToken,
+  isInfinityStablePool,
+  isStablePool,
+  isV2Pool,
+  isV3Pool,
+} from './utils'
 
 type GasModelConfig = {
   gasPriceWei: BigintIsh | (() => Promise<BigintIsh>)
@@ -108,7 +116,7 @@ export async function createGasModel({
         continue
       }
 
-      if (isStablePool(pool)) {
+      if (isStablePool(pool) || isInfinityStablePool(pool)) {
         if (!poolTypeSet.has(type)) {
           baseGasUse += BASE_SWAP_COST_STABLE_SWAP
           poolTypeSet.add(type)

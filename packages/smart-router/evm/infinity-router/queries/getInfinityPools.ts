@@ -1,5 +1,11 @@
 import { infinityPoolTvlSelector } from '../../v3-router/providers'
-import { InfinityBinPool, InfinityClPool, InfinityPoolWithTvl, PoolType } from '../../v3-router/types'
+import {
+  InfinityBinPool,
+  InfinityClPool,
+  InfinityPoolWithTvl,
+  InfinityStablePool,
+  PoolType,
+} from '../../v3-router/types'
 import { GetInfinityCandidatePoolsParams } from '../types'
 import { fillPoolsWithBins, getInfinityBinCandidatePoolsWithoutBins } from './getInfinityBinPools'
 import { fillClPoolsWithTicks, getInfinityClCandidatePoolsWithoutTicks } from './getInfinityClPools'
@@ -30,6 +36,7 @@ async function fetchPoolsOnChain(params: GetInfinityCandidatePoolsParams) {
     getInfinityClCandidatePoolsWithoutTicks(params),
     getInfinityBinCandidatePoolsWithoutBins(params),
   ])
+
   const pools = [...clPools, ...binPools]
   const poolsWithTvl: InfinityPoolWithTvl[] = pools.map((pool) => {
     return {
@@ -44,6 +51,8 @@ export const getInfinityCandidatePoolsLite = async (
   params: GetInfinityCandidatePoolsParams,
 ): Promise<(InfinityClPool | InfinityBinPool)[]> => {
   const pools = await fetchPoolsOnChain(params)
+
   const filtered = infinityPoolTvlSelector(params.currencyA, params.currencyB, pools)
+
   return filtered as (InfinityClPool | InfinityBinPool)[]
 }

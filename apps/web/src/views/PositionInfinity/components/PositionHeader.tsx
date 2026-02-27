@@ -53,7 +53,7 @@ export const PositionHeader: React.FC<PositionHeaderProps> = ({
       })
     }
 
-    if (protocol === Protocol.InfinityCLAMM && tokenId) {
+    if ((protocol === Protocol.InfinityCLAMM || protocol === Protocol.InfinitySTABLE) && tokenId) {
       return $path({
         route: '/liquidity/position/[[...positionId]]',
         routeParams: {
@@ -84,7 +84,7 @@ export const PositionHeader: React.FC<PositionHeaderProps> = ({
         },
       })
     }
-    if (protocol === Protocol.InfinityCLAMM && tokenId) {
+    if ((protocol === Protocol.InfinityCLAMM || protocol === Protocol.InfinitySTABLE) && tokenId) {
       return $path({
         route: '/liquidity/position/[[...positionId]]',
         routeParams: {

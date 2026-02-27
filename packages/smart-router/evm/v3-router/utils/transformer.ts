@@ -5,6 +5,7 @@ import { Address } from 'viem'
 import {
   InfinityBinPool,
   InfinityClPool,
+  InfinityStablePool,
   Pool,
   PoolType,
   Route,
@@ -13,7 +14,7 @@ import {
   V2Pool,
   V3Pool,
 } from '../types'
-import { isInfinityBinPool, isInfinityClPool, isStablePool, isV2Pool, isV3Pool } from './pool'
+import { isInfinityBinPool, isInfinityClPool, isInfinityStablePool, isStablePool, isV2Pool, isV3Pool } from './pool'
 
 const ONE_HUNDRED = 100n
 
@@ -86,6 +87,14 @@ export interface SerializedInfinityBinPool
   reserve1?: SerializedCurrencyAmount
 }
 
+export interface SerializedInfinityStablePool
+  extends Omit<InfinityStablePool, 'currency0' | 'currency1' | 'reserve0' | 'reserve1'> {
+  currency0: SerializedCurrency
+  currency1: SerializedCurrency
+  reserve0?: SerializedCurrencyAmount
+  reserve1?: SerializedCurrencyAmount
+}
+
 export type SerializedBinReserves = {
   reserveX: string
   reserveY: string
@@ -103,6 +112,7 @@ export type SerializedPool =
   | SerializedStablePool
   | SerializedInfinityClPool
   | SerializedInfinityBinPool
+  | SerializedInfinityStablePool
 
 export interface SerializedRoute
   extends Omit<Route, 'pools' | 'path' | 'input' | 'output' | 'inputAmount' | 'outputAmount'> {
@@ -177,6 +187,25 @@ export function serializePool(pool: Pool): SerializedPool {
       fee: pool.fee.toSignificant(6),
     }
   }
+
+  if (isInfinityStablePool(pool)) {
+    return {
+      currency0: serializeCurrency(pool.currency0),
+      currency1: serializeCurrency(pool.currency1),
+      hooks: pool.hooks,
+      hooksRegistrationBitmap: pool.hooksRegistrationBitmap,
+      id: pool.id,
+      poolManager: pool.poolManager,
+      fee: pool.fee,
+      amplifier: pool.amplifier || 0,
+      stableFee: pool.stableFee,
+      type: PoolType.InfinityStable,
+      tickSpacing: pool.tickSpacing,
+      reserve0: pool.reserve0 && serializeCurrencyAmount(pool.reserve0),
+      reserve1: pool.reserve1 && serializeCurrencyAmount(pool.reserve1),
+    }
+  }
+
   if (isInfinityClPool(pool)) {
     return {
       ...pool,
@@ -303,6 +332,17 @@ export function parsePool(chainId: ChainId, pool: SerializedPool): Pool {
       fee: new Percent(parseFloat(pool.fee) * 1000000, ONE_HUNDRED * 1000000n),
     }
   }
+
+  if (pool.type === PoolType.InfinityStable) {
+    return {
+      ...pool,
+      currency0: parseCurrency(chainId, pool.currency0),
+      currency1: parseCurrency(chainId, pool.currency1),
+      reserve0: pool.reserve0 && parseCurrencyAmount(chainId, pool.reserve0),
+      reserve1: pool.reserve1 && parseCurrencyAmount(chainId, pool.reserve1),
+    }
+  }
+
   if (pool.type === PoolType.InfinityCL) {
     return {
       ...pool,

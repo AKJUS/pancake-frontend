@@ -129,7 +129,7 @@ export type StableLPDetail = {
   farmingBoosterMultiplier: number
   farmingBoostedAmount: CurrencyAmount<ERC20Token>
   isStaked?: boolean
-  protocol: Protocol.STABLE
+  protocol: Protocol.STABLE | Protocol.InfinitySTABLE
 }
 
 export type PairListType = PositionDetail | V2LPDetail | StableLPDetail

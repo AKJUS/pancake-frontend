@@ -22,7 +22,15 @@ export const FeeTier = forwardRef<HTMLSpanElement, FeeTierProps>(
       <StyledFeeTier ref={ref}>
         {showType ? (
           <>
-            <span style={{ textTransform: "capitalize" }}>{type}</span>
+            {type === "infinityStable" ? (
+              <>
+                <span style={{ textTransform: "capitalize" }}>Infinity</span>
+                <span style={{ opacity: 0.5 }}>|</span>
+                <span style={{ textTransform: "capitalize" }}>SS</span>
+              </>
+            ) : (
+              <span style={{ textTransform: "capitalize" }}>{type}</span>
+            )}
             <span style={{ opacity: 0.5 }}>|</span>
           </>
         ) : null}

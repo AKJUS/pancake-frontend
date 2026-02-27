@@ -44,7 +44,7 @@ exports[`PancakeSwap Universal Mixed Router Command Generation Test > mixed > la
               "zeroForOne": false,
               "amountIn": "50",
               "amountOutMinimum": "0",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -163,7 +163,7 @@ exports[`PancakeSwap Universal Mixed Router Command Generation Test > mixed > la
               "zeroForOne": false,
               "amountIn": "50",
               "amountOutMinimum": "0",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -262,7 +262,7 @@ exports[`PancakeSwap Universal Mixed Router Command Generation Test > mixed > sh
               "zeroForOne": false,
               "amountIn": "50",
               "amountOutMinimum": "0",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -381,7 +381,7 @@ exports[`PancakeSwap Universal Mixed Router Command Generation Test > mixed > sh
               "zeroForOne": false,
               "amountIn": "50",
               "amountOutMinimum": "0",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -500,7 +500,7 @@ exports[`PancakeSwap Universal Mixed Router Command Generation Test > mixed > sh
               "zeroForOne": false,
               "amountIn": "50",
               "amountOutMinimum": "0",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -622,7 +622,7 @@ exports[`PancakeSwap Universal Mixed Router Command Generation Test > mixed > sh
               "zeroForOne": false,
               "amountIn": "50",
               "amountOutMinimum": "0",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -776,7 +776,7 @@ exports[`PancakeSwap Universal Mixed Router Command Generation Test > mixed > sh
               "zeroForOne": true,
               "amountIn": "0",
               "amountOutMinimum": "476",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -830,7 +830,7 @@ exports[`PancakeSwap Universal Mixed Router Command Generation Test > mixed > sh
               "zeroForOne": true,
               "amountIn": "50",
               "amountOutMinimum": "0",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -873,7 +873,7 @@ exports[`PancakeSwap Universal Mixed Router Command Generation Test > mixed > sh
               "zeroForOne": true,
               "amountIn": "0",
               "amountOutMinimum": "9523",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -927,7 +927,7 @@ exports[`PancakeSwap Universal Mixed Router Command Generation Test > mixed > sh
               "zeroForOne": true,
               "amountIn": "50",
               "amountOutMinimum": "0",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -970,7 +970,7 @@ exports[`PancakeSwap Universal Mixed Router Command Generation Test > mixed > sh
               "zeroForOne": true,
               "amountIn": "0",
               "amountOutMinimum": "9523",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -1089,7 +1089,7 @@ exports[`PancakeSwap Universal Mixed Router Command Generation Test > mixed > sh
               "zeroForOne": true,
               "amountIn": "0",
               "amountOutMinimum": "476",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -1191,7 +1191,7 @@ exports[`PancakeSwap Universal Mixed Router Command Generation Test > multi-rout
               "zeroForOne": true,
               "amountIn": "1000",
               "amountOutMinimum": "0",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]

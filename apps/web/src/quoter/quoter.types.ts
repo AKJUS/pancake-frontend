@@ -63,6 +63,7 @@ export interface Options {
   v2Swap?: boolean
   v3Swap?: boolean
   infinitySwap: boolean
+  infinityStableSwap?: boolean
   stableSwap?: boolean
   enabled?: boolean
   autoRevalidate?: boolean
@@ -79,6 +80,7 @@ export interface PoolQuery {
 }
 export interface PoolQueryOptions {
   infinity: boolean
+  infinityStable: boolean
   v2Pools: boolean
   v3Pools: boolean
   stableSwap: boolean
@@ -128,6 +130,7 @@ export interface StrategyQuery {
   v2Swap?: boolean
   v3Swap?: boolean
   infinitySwap: boolean
+  infinityStableSwap?: boolean
   maxHops?: number
   maxSplits?: number
 }

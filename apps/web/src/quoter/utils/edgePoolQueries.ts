@@ -24,6 +24,7 @@ import { viemServerClients } from 'utils/viem.server'
 import { v3Clients } from 'utils/graphql'
 import { mockCurrency } from 'utils/mockCurrency'
 import { Address } from 'viem/accounts'
+import { isInfinityStableSupported } from '@pancakeswap/infinity-stable-sdk'
 import { APIChain, getProvider, Protocol } from './edgeQueries.util'
 
 async function getHooksMap(type: 'light' | 'full', poolWithHooks: (RemotePoolCL | RemotePoolBIN)[], chainId: ChainId) {
@@ -74,6 +75,7 @@ async function getInfinityPoolsFromApi(addressA: Address, addressB: Address, cha
     throw new Error(`Error fetching infinity pools: ${url} ${response.statusText}`)
   }
   const data = (await response.json()) as (RemotePoolCL | RemotePoolBIN)[]
+
   const hooksMap = await getHooksMap(type, data, chainId)
 
   const localPools = data
@@ -85,6 +87,7 @@ async function getInfinityPoolsFromApi(addressA: Address, addressB: Address, cha
     mockCurrency(addressB, chainId, getProvider()),
   ])
 
+  // Filter pools by TVL, and return Pools omitted tvlUSD field
   const filtered = SmartRouter.infinityPoolTvlSelector(currencyA, currencyB, localPools)
   return filtered
 }
@@ -120,6 +123,7 @@ const fetchInfinityPoolsLight = async (
 }
 const fetchInfinityPools = async (addressA: Address, addressB: Address, chainId: ChainId, type: 'full' | 'light') => {
   const pools = await fetchInfinityPoolsLight(addressA, addressB, chainId, type)
+
   return fillTicksAndBins(pools as (InfinityClPool | InfinityBinPool)[])
 }
 
@@ -204,13 +208,38 @@ const fetchSSPool = async (addressA: Address, addressB: Address, chainId: ChainI
   const client = getProvider()
   const blockNumber = await client({ chainId })?.getBlockNumber()
 
-  const pools = await SmartRouter.getStableCandidatePools({
+  return SmartRouter.getStableCandidatePools({
     currencyA,
     currencyB,
     onChainProvider: getProvider(),
     blockNumber,
   })
-  return pools
+}
+
+const fetchInfinityStablePools = async (addressA: Address, addressB: Address, chainId: ChainId) => {
+  if (!isInfinityStableSupported(chainId)) {
+    console.warn('Infinity Stable not supported on chain', chainId)
+    return []
+  }
+
+  try {
+    const [currencyA, currencyB] = await Promise.all([
+      mockCurrency(addressA, chainId, getProvider()),
+      mockCurrency(addressB, chainId, getProvider()),
+    ])
+
+    const pools = await InfinityRouter.getInfinityStableCandidatePools({
+      currencyA,
+      currencyB,
+      clientProvider: getProvider(),
+    })
+
+    return pools
+  } catch (error) {
+    // Return empty array on unsupported chains or missing client
+    console.warn('Failed to fetch Infinity Stable pools:', error)
+    return []
+  }
 }
 
 const querySingleType = async (
@@ -233,6 +262,9 @@ const querySingleType = async (
     case 'infinityBin':
     case 'infinityCl': {
       return fetchInfinityPools(addressA, addressB, chainId, type)
+    }
+    case 'infinityStable': {
+      return fetchInfinityStablePools(addressA, addressB, chainId)
     }
     default:
       throw new Error('invalid pool')
@@ -259,6 +291,9 @@ const querySingleTypeLite = async (
     case 'infinityBin':
     case 'infinityCl': {
       return fetchInfinityPoolsLight(addressA, addressB, chainId, type)
+    }
+    case 'infinityStable': {
+      return fetchInfinityStablePools(addressA, addressB, chainId)
     }
     default:
       throw new Error('invalid pool')
@@ -301,7 +336,7 @@ const fetchAllCandidatePoolsLite = async (
 export const poolTvlMap = async (protocols: Protocol[], chain: APIChain) => {
   try {
     const remotePools = await fetchAllPools({
-      baseUrl: 'https://explorer.pancakeswap.com/api/cached/pools/tvl-refs',
+      baseUrl: `${process.env.NEXT_PUBLIC_EXPLORE_API_ENDPOINT}/cached/pools/tvl-refs`,
       protocols,
       chains: [chain],
       orderBy: 'tvlUSD',
@@ -330,7 +365,7 @@ type PaginatedResponse = {
 type FetchAllPoolsParams = {
   baseUrl: string
   orderBy?: 'tvlUSD' | 'volumeUSD24h' | 'apr24h'
-  protocols: Array<'v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable'>
+  protocols: Array<'v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable' | 'infinityStable'>
   chains: Array<
     | 'bsc'
     | 'bsc-testnet'
@@ -468,6 +503,7 @@ export const edgeQueries = {
   fetchV3Pools,
   fetchV3PoolsWithoutTicks,
   fetchSSPool,
+  fetchInfinityStablePools,
   fetchInfinityPools,
   fetchInfinityPoolsLight,
   getInfinityPoolsOnChain,

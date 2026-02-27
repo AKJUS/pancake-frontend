@@ -1,5 +1,5 @@
 import { BaseRoute } from '@pancakeswap/routing-sdk'
-import { isInfinityBinPool, isInfinityCLPool } from '@pancakeswap/routing-sdk-addon-infinity'
+import { isInfinityBinPool, isInfinityCLPool, isInfinityStablePool } from '@pancakeswap/routing-sdk-addon-infinity'
 import { isStablePool } from '@pancakeswap/routing-sdk-addon-stable-swap'
 import { isV2Pool } from '@pancakeswap/routing-sdk-addon-v2'
 import { isV3Pool } from '@pancakeswap/routing-sdk-addon-v3'
@@ -22,7 +22,7 @@ export function encodeInfinityMixedRouteActions(
         if (isStablePool(p)) {
           return InfinityMixedQuoterActions.SS_2_EXACT_INPUT_SINGLE
         }
-        if (isInfinityCLPool(p)) {
+        if (isInfinityCLPool(p) || isInfinityStablePool(p)) {
           return InfinityMixedQuoterActions.INFI_CL_EXACT_INPUT_SINGLE
         }
         if (isInfinityBinPool(p)) {

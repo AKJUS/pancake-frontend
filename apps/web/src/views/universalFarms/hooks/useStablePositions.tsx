@@ -17,7 +17,6 @@ export const useStablePositions = ({
   farmsOnly: boolean
 }) => {
   const { address: account } = useAccount()
-  const allChainIds = useAllChainIds()
   // Fetch only from selected networks to reduce unnecessary API calls
   const { data: stablePositions, pending: stableLoading } = useAccountStableLpDetails(selectedNetwork, account)
 

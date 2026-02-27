@@ -46,6 +46,7 @@ export async function getRoutesWithValidQuote({
     ],
     [],
   )
+
   logger.debug(`quote calls=${routesWithoutQuote.length}`, 2)
   for (const route of routesWithoutQuote) {
     logger.debug(
@@ -55,6 +56,7 @@ export async function getRoutesWithValidQuote({
       3,
     )
   }
+
   const getRoutesWithQuote =
     tradeType === TradeType.EXACT_INPUT
       ? quoteProvider.getRouteWithQuotesExactIn

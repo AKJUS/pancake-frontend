@@ -62,6 +62,16 @@ export enum CurrencyField {
   CURRENCY_B = 'CURRENCY_B',
 }
 
-export const LIQUIDITY_TYPES = ['infinity', 'v3', 'v2', 'stableSwap'] as const
-export const COMPACT_LIQUIDITY_TYPES = ['infinity', 'v3', 'v2', 'SS'] as const
-export type LiquidityType = (typeof LIQUIDITY_TYPES)[number]
+export enum LiquidityType {
+  Infinity = 'infinity',
+  V3 = 'v3',
+  V2 = 'v2',
+  StableSwap = 'stableSwap',
+}
+
+export const LIQUIDITY_TYPES = [
+  LiquidityType.Infinity,
+  LiquidityType.V3,
+  LiquidityType.V2,
+  LiquidityType.StableSwap,
+] as const

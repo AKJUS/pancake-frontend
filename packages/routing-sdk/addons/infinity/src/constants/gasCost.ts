@@ -52,3 +52,7 @@ export const COST_PER_HOP_V3 = (id: ChainId): bigint => {
       return 0n
   }
 }
+
+export const BASE_SWAP_COST_STABLE_SWAP = 180000n
+
+export const COST_PER_EXTRA_HOP_STABLE_SWAP = 70000n

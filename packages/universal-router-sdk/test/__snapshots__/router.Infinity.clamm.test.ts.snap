@@ -79,7 +79,7 @@ exports[`PancakeSwap Universal Router Infinity-Cl Pool Command Generation Test >
               "zeroForOne": true,
               "amountIn": "10000000000000000",
               "amountOutMinimum": "952380952380952380",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -216,7 +216,7 @@ exports[`PancakeSwap Universal Router Infinity-Cl Pool Command Generation Test >
               "zeroForOne": false,
               "amountIn": "10000",
               "amountOutMinimum": "47",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -310,7 +310,7 @@ exports[`PancakeSwap Universal Router Infinity-Cl Pool Command Generation Test >
               "zeroForOne": true,
               "amountIn": "10000000000000000",
               "amountOutMinimum": "952380952380952380",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -364,7 +364,7 @@ exports[`PancakeSwap Universal Router Infinity-Cl Pool Command Generation Test >
               "zeroForOne": true,
               "amountIn": "10000000000000000",
               "amountOutMinimum": "952380952380952380",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -438,7 +438,7 @@ exports[`PancakeSwap Universal Router Infinity-Cl Pool Command Generation Test >
               "zeroForOne": false,
               "amountIn": "10000",
               "amountOutMinimum": "47",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -547,7 +547,7 @@ exports[`PancakeSwap Universal Router Infinity-Cl Pool Command Generation Test >
               "zeroForOne": false,
               "amountOut": "30",
               "amountInMaximum": "10500",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -641,7 +641,7 @@ exports[`PancakeSwap Universal Router Infinity-Cl Pool Command Generation Test >
               "zeroForOne": true,
               "amountOut": "10000",
               "amountInMaximum": "52",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -790,7 +790,7 @@ exports[`PancakeSwap Universal Router Infinity-Cl Pool Command Generation Test >
               "zeroForOne": true,
               "amountOut": "1000",
               "amountInMaximum": "52",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]
@@ -879,7 +879,7 @@ exports[`PancakeSwap Universal Router Infinity-Cl Pool Command Generation Test >
               "zeroForOne": true,
               "amountIn": "10000000000000000",
               "amountOutMinimum": "952380952380952380",
-              "hookData": "0x0000000000000000000000000000000000000000"
+              "hookData": "0x"
             }
           }
         ]

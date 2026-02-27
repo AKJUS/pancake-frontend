@@ -8,7 +8,7 @@ import { Currency, getCurrencyAddress } from '@pancakeswap/swap-sdk-core'
 import { Address, zeroAddress } from 'viem'
 
 import { BaseRoute, Pool } from '../types'
-import { getOutputCurrency, isInfinityBinPool, isInfinityClPool } from './pool'
+import { getOutputCurrency, isInfinityBinPool, isInfinityClPool, isInfinityStablePool } from './pool'
 
 export type PathKey = {
   intermediateCurrency: Address
@@ -25,7 +25,7 @@ export type PathKey = {
  * @returns the encoded path keys
  */
 export function encodeInfinityRouteToPath(route: BaseRoute, exactOutput: boolean): PathKey[] {
-  if (route.pools.some((p) => !isInfinityClPool(p) && !isInfinityBinPool(p))) {
+  if (route.pools.some((p) => !isInfinityClPool(p) && !isInfinityBinPool(p) && !isInfinityStablePool(p))) {
     throw new Error('Failed to encode path keys. Invalid Infinity pool found in route.')
   }
 
@@ -40,12 +40,13 @@ export function encodeInfinityRouteToPath(route: BaseRoute, exactOutput: boolean
     ): { baseCurrency: Currency; path: PathKey[] } => {
       const isInfinityCl = isInfinityClPool(pool)
       const isInfinityBin = isInfinityBinPool(pool)
-      if (!isInfinityCl && !isInfinityBin) throw new Error(`Invalid Infinity pool ${pool}`)
+      const isInfinityStable = isInfinityStablePool(pool)
+      if (!isInfinityCl && !isInfinityBin && !isInfinityStable) throw new Error(`Invalid Infinity pool ${pool}`)
       const quoteCurrency = getOutputCurrency(pool, baseCurrency)
       const hooksRegistration =
         pool.hooksRegistrationBitmap !== undefined ? decodeHooksRegistration(pool.hooksRegistrationBitmap) : undefined
       const parameters = encodePoolParameters(
-        isInfinityCl
+        isInfinityCl || isInfinityStable
           ? {
               tickSpacing: pool.tickSpacing,
               hooksRegistration,

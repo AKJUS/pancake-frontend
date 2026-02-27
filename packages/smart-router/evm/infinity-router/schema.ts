@@ -130,7 +130,29 @@ const zInfinityBinPool = z
     reserveOfBin: z.record(zBigNumber, zBinReserves).optional(),
   })
 
-export const zPools = z.array(z.union([zV3Pool, zV2Pool, zStablePool, zInfinityClPool, zInfinityBinPool]))
+const zInfinityStablePool = z
+  .object({
+    type: z.literal(PoolType.InfinityStable),
+    currency0: zCurrency,
+    currency1: zCurrency,
+    fee: zFee,
+    tickSpacing: z.number(),
+    id: zHex,
+    poolManager: zAddress,
+  })
+  .required()
+  .extend({
+    hooks: zAddress.optional(),
+    hooksRegistrationBitmap: zHooksRegistrationBitmap.optional(),
+    reserve0: zCurrencyAmountOptional,
+    reserve1: zCurrencyAmountOptional,
+    stableFee: zFee,
+    amplifier: z.number(),
+  })
+
+export const zPools = z.array(
+  z.union([zV3Pool, zV2Pool, zStablePool, zInfinityClPool, zInfinityBinPool, zInfinityStablePool]),
+)
 
 export const zRouterPostParams = z
   .object({

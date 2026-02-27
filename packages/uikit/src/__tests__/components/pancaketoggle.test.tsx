@@ -141,6 +141,7 @@ it("renders correctly", () => {
         scale="md"
       >
         <input
+          checked=""
           class="c1"
           id="pancake-toggle"
           scale="md"
@@ -310,6 +311,7 @@ it("renders correctly scale sm", () => {
         scale="sm"
       >
         <input
+          checked=""
           class="c1"
           id="pancake-toggle"
           scale="sm"

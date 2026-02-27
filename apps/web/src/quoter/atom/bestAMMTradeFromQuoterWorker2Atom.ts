@@ -35,7 +35,7 @@ export const bestAMMTradeFromQuoterWorker2Atom = atomFamily((option: QuoteQuery)
       gasLimit,
     })
     const worker = await get(globalWorkerAtom)
-    console.log('[worker] bestAMMTradeFromQuoterWorker2Atom', option, worker)
+
     if (!worker) {
       throw new Error('Quote worker not initialized')
     }
@@ -109,6 +109,7 @@ export const bestAMMTradeFromQuoterWorker2Atom = atomFamily((option: QuoteQuery)
           nativeCurrencyUsdPrice,
           signal: controller.signal,
         })
+
         const parsed = SmartRouter.Transformer.parseTrade(currency.chainId, result as any) as any as
           | InfinityRouter.InfinityTradeWithoutGraph<TradeType>
           | undefined

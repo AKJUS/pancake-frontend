@@ -42,6 +42,14 @@ export function getPoolAddLiquidityLink(pool: PoolInfo): string {
   if (protocol === Protocol.STABLE) {
     return addQueryToPath(`/stable/add/${tokenPath}`, { chain: CHAIN_QUERY_NAME[chainId], [PERSIST_CHAIN_KEY]: '1' })
   }
+
+  if (protocol === Protocol.InfinitySTABLE) {
+    return addQueryToPath(`/infinityStable/add/${lpAddress}`, {
+      chain: CHAIN_QUERY_NAME[chainId],
+      [PERSIST_CHAIN_KEY]: '1',
+    })
+  }
+
   return addQueryToPath(`/add/${tokenPath}/${feeTier}`, { chain: CHAIN_QUERY_NAME[chainId], [PERSIST_CHAIN_KEY]: '1' })
 }
 

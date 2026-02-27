@@ -321,7 +321,7 @@ function CurrencySearch({
     (e: KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter') {
         const s = debouncedQuery.toLowerCase().trim()
-        if (!isSolana && s === native.symbol.toLowerCase().trim()) {
+        if (!isSolana && showNativeProp && s === native.symbol.toLowerCase().trim()) {
           handleCurrencySelect(native)
         } else if (filteredSortedTokens.length > 0) {
           if (
@@ -334,7 +334,7 @@ function CurrencySearch({
         }
       }
     },
-    [debouncedQuery, filteredSortedTokens, handleCurrencySelect, native, isSolana],
+    [debouncedQuery, filteredSortedTokens, handleCurrencySelect, native, isSolana, showNativeProp],
   )
 
   const hasFilteredInactiveTokens = Boolean(filteredInactiveTokens?.length)
@@ -464,6 +464,7 @@ function CurrencySearch({
             selectedCurrency={selectedCurrency}
             commonBasesType={commonBasesType}
             disabledCurrencies={isSolWSolToken(otherSelectedCurrency?.wrapped) ? [native] : undefined}
+            showNative={showNativeProp}
           />
         )}
       </AutoColumn>

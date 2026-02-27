@@ -456,6 +456,10 @@ export const ExpandedRowContent: React.FC<ExpandedRowContentProps> = memo(
         return `/${prefix}/remove/${token0Id}/${token1Id}?chain=${CHAIN_QUERY_NAME[chainId]}&${PERSIST_CHAIN_KEY}=1`
       }
 
+      if (position.protocol === Protocol.InfinitySTABLE && pool?.poolId) {
+        return `/infinityStable/remove/${pool?.poolId}?chain=${CHAIN_QUERY_NAME[chainId]}&${PERSIST_CHAIN_KEY}=1`
+      }
+
       return undefined
     }, [chainId, tokenId, position.protocol, pool, poolId])
 
@@ -468,11 +472,17 @@ export const ExpandedRowContent: React.FC<ExpandedRowContentProps> = memo(
       }
     }, [pool])
 
-    const showPriceRange = position.protocol !== Protocol.V2 && position.protocol !== Protocol.STABLE
+    const showPriceRange =
+      position.protocol !== Protocol.V2 &&
+      position.protocol !== Protocol.STABLE &&
+      position.protocol !== Protocol.InfinitySTABLE
 
     // Hide hardcoded plus/minus buttons for Solana V3 positions (they have their own action buttons)
     const isSolanaV3Position = position.protocol === Protocol.V3 && isSolana(chainId)
-    const isV2OrStablePosition = position.protocol === Protocol.V2 || position.protocol === Protocol.STABLE
+    const isV2OrStablePosition =
+      position.protocol === Protocol.V2 ||
+      position.protocol === Protocol.STABLE ||
+      position.protocol === Protocol.InfinitySTABLE
 
     return (
       <Container>

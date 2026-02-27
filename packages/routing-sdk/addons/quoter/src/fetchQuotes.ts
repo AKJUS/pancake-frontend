@@ -4,7 +4,7 @@ import { buildInfinityBinQuoteCall, buildInfinityCLQuoteCall, buildInfinityMixed
 import { buildMixedRouteQuoteCall } from './fetchMixedRouteQuote'
 import { buildV3QuoteCall } from './fetchV3Quote'
 import { FetchQuotes, SupportedPool } from './types'
-import { isInfinityBinRoute, isInfinityCLRoute, isInfinityMixedRoute, isV3Route } from './utils'
+import { isInfinityBinRoute, isInfinityCLRoute, isInfinityMixedRoute, isInfinityStableRoute, isV3Route } from './utils'
 
 export const fetchQuotes: FetchQuotes<SupportedPool> = async ({ routes, client }) => {
   const [route] = routes
@@ -20,7 +20,9 @@ export const fetchQuotes: FetchQuotes<SupportedPool> = async ({ routes, client }
     if (isInfinityBinRoute(r)) {
       return isExactOut ? buildInfinityBinQuoteCall(r) : buildInfinityMixedQuoteCall(r)
     }
-    if (isInfinityMixedRoute(r)) {
+
+    // NOTE: InfinityStable used mixed route quoter because it doesn't support exact out similar to MixedQuote
+    if (isInfinityStableRoute(r) || isInfinityMixedRoute(r)) {
       return buildInfinityMixedQuoteCall(r)
     }
     return buildMixedRouteQuoteCall(r)
@@ -31,7 +33,7 @@ export const fetchQuotes: FetchQuotes<SupportedPool> = async ({ routes, client }
 
   return results.map((result, i) => {
     if (result.status === 'failure') {
-      console.warn('[QUOTER]: fail to get quote', result.error)
+      console.warn('[routing-sdk][QUOTER]: fail to get quote', result.error)
       console.warn('failed route & call ', routes[i], calls[i])
       return undefined
     }

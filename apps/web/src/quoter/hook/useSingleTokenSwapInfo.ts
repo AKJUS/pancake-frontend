@@ -39,6 +39,7 @@ export function useSingleTokenSwapInfo(query: Query): { [key: string]: number } 
     xEnabled: false,
     speedQuoteEnabled: true,
     infinitySwap: false,
+    infinityStableSwap: false,
     blockNumber,
     gasLimit,
     routeKey: 'single-token-swap',

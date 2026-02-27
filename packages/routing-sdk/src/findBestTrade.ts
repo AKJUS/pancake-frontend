@@ -126,6 +126,7 @@ async function getBestTrade({
   const inputCurrency = isExactIn ? baseCurrency : quoteCurrency
   const logger = RemoteLogger.getLogger(quoteId)
   const outputCurrency = isExactIn ? quoteCurrency : baseCurrency
+
   const graph = graphOverride || createGraph({ pools: candidatePools })
   logger.debug(`Candidate pools: ${candidatePools.length}, maxHops=${maxHops}`)
   logPools(quoteId, candidatePools)
@@ -361,6 +362,7 @@ async function getBestTrade({
             )
             throw new Error('Invalid quote result')
           }
+
           const { quote } = quoteResult
           const gasPriceInV2 = priceCalculator.getGasPriceInBase(v2)
           invariant(gasPriceInV2 !== undefined, 'Invalid gas price in v2')
@@ -399,7 +401,7 @@ async function getBestTrade({
           //   e.pool,
           //   _err,
           // )
-          // console.error(_err)
+
           continue
         }
       }
@@ -411,7 +413,7 @@ async function getBestTrade({
   const routes: Route[] = []
   logAmts(quoteId, amounts)
   for (const [i, { amount, percent }] of Object.entries(amounts)) {
-    logger.debug(`check route #${i}, amt=${amount} percent=${percent}%`, 2)
+    logger.debug(`check route #${i}, amt=${amount.toSignificant(6)} ${amount.currency.symbol} percent=${percent}%`, 2)
     // eslint-disable-next-line no-await-in-loop
     const route = await findBestRoute(amount)
     if (route === undefined) {
@@ -492,7 +494,10 @@ async function getBestTrade({
       gasUseEstimateBase: gasCostInBase,
     })
   }
-  return buildTrade(finalGraph, finalRoutes)
+
+  const bestTrade = buildTrade(finalGraph, finalRoutes)
+
+  return bestTrade
 }
 
 function getStreamedAmounts(

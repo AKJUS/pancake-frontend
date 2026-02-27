@@ -43,7 +43,7 @@ export class ContextBuilder {
   }
 
   static build(option: QuoteQuery, routes: Route[], get: AtomGetterFunction): QuoteContext {
-    const { destinationBlockNumber, gasLimitDestinationChain, infinitySwap, ..._option } = option
+    const { destinationBlockNumber, gasLimitDestinationChain, infinitySwap, infinityStableSwap, ..._option } = option
 
     const swapState = get(swapReducerAtom) as SwapReducerState
     const { account: evmAccount, solanaAccount } = get(accountActiveChainAtom) as AccountChainState
@@ -98,6 +98,7 @@ export class ContextBuilder {
             hash: '',
             placeholderHash: '',
             infinitySwap,
+            infinityStableSwap,
             // Disable xSwap is not supported for cross chain swap
             xEnabled: false,
             ...swapOption,
@@ -110,6 +111,15 @@ export class ContextBuilder {
             !CROSSCHAIN_INFINITY_SWAP_SUPPORTED_CHAINS.includes(customSwapOption.baseCurrency?.chainId)
           ) {
             customSwapOption.infinitySwap = false
+          }
+
+          // Apply the same chain support check for infinityStableSwap
+          if (
+            customSwapOption.infinityStableSwap &&
+            customSwapOption.baseCurrency?.chainId &&
+            !CROSSCHAIN_INFINITY_SWAP_SUPPORTED_CHAINS.includes(customSwapOption.baseCurrency?.chainId)
+          ) {
+            customSwapOption.infinityStableSwap = false
           }
 
           const quoteQuery = createQuoteQuery(customSwapOption)

@@ -86,6 +86,7 @@ const useBestTrade = (fromToken?: string, toToken?: string, value?: string) => {
     xEnabled: false,
     speedQuoteEnabled: true,
     infinitySwap: false,
+    infinityStableSwap: false,
     blockNumber,
     routeKey: 'twap',
     gasLimit,

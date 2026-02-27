@@ -10,11 +10,13 @@ import { CreateLiquidityV3Form } from 'views/CreateLiquidityPool/V3/CreateLiquid
 import PageLayout from 'components/Layout/Page'
 import { Box } from '@pancakeswap/uikit'
 import { CreateLiquidityV2Form } from 'views/CreateLiquidityPool/V2/CreateLiquidityV2Form'
+import { CreateStableSwapForm } from 'views/StableInfinity/components/CreateStableSwapForm'
 import styled from 'styled-components'
 import { isSolana } from '@pancakeswap/chains'
 import { useActiveChainId } from 'hooks/useAccountActiveChain'
 import { CreateSolanaLiquidityV3Form } from 'views/CreateLiquidityPool/Solana/CreateSolanaLiquidityV3Form'
 import { useCurrencies } from 'views/CreateLiquidityPool/hooks/useCurrencies'
+import { LiquidityType } from 'utils/types'
 
 const StyledBox = styled(Box)`
   background: ${({ theme }) => theme.colors.backgroundPage};
@@ -37,16 +39,18 @@ const CreateLiquidityPage = () => {
       <PageLayout>
         <BreadcrumbNav />
         <Box mt="24px">
-          {protocolName === 'infinity' ? (
+          {protocolName === LiquidityType.Infinity ? (
             <CreateLiquidityInfinityForm />
-          ) : protocolName === 'v3' ? (
+          ) : protocolName === LiquidityType.V3 ? (
             isSolana(chainId) || isSolana(baseCurrency?.chainId) ? (
               <CreateSolanaLiquidityV3Form />
             ) : (
               <CreateLiquidityV3Form />
             )
-          ) : protocolName === 'v2' ? (
+          ) : protocolName === LiquidityType.V2 ? (
             <CreateLiquidityV2Form />
+          ) : protocolName === LiquidityType.StableSwap ? (
+            <CreateStableSwapForm />
           ) : null}
         </Box>
       </PageLayout>

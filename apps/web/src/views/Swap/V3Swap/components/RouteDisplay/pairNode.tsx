@@ -1,9 +1,10 @@
 import { findHook, HOOK_CATEGORY, parseProtocolFeesToNumbers } from '@pancakeswap/infinity-sdk'
-import { Rounding } from '@pancakeswap/sdk'
+import { Percent, Rounding } from '@pancakeswap/sdk'
 import { InfinityBinPool, InfinityClPool, SmartRouter } from '@pancakeswap/smart-router'
 import { Column } from '@pancakeswap/uikit'
 import { useTranslation } from '@pancakeswap/localization'
 import React, { Fragment } from 'react'
+import { INFINITY_STABLE_POOL_FEE_DENOMINATOR } from '@pancakeswap/infinity-stable-sdk'
 import { v3FeeToPercent } from '../../utils/exchange'
 import { HookDiscountFeeDisplay } from './HookDiscountFeeDisplay'
 import { PairNode } from '../PairNode'
@@ -41,6 +42,7 @@ export function EVMPairNodes({
         const pool = pools[index]
         const isInfinityClPool = SmartRouter.isInfinityClPool(pool)
         const isInfinityBinPool = SmartRouter.isInfinityBinPool(pool)
+        const isInfinityStablePool = SmartRouter.isInfinityStablePool(pool)
         const isInfinityPool = isInfinityBinPool || isInfinityClPool
         const useDiscountHooks = isInfinityPool && pool.hooks && hookDiscount[pool.hooks]
         let infinityFee = 0
@@ -75,16 +77,18 @@ export function EVMPairNodes({
           ? `v2_${pool.reserve0.currency.symbol}_${pool.reserve1.currency.symbol}`
           : SmartRouter.isStablePool(pool) || isV3Pool
           ? pool.address
-          : isInfinityPool
+          : isInfinityPool || isInfinityStablePool
           ? pool.id
           : undefined
         if (!key) return null
-        const feeDisplay =
-          isV3Pool || isInfinityPool
-            ? Number(
-                v3FeeToPercent(isV3Pool ? pool.fee : infinityDiscountFee).toSignificant(3, {}, Rounding.ROUND_HALF_UP),
-              ).toString()
-            : ''
+        const feePercent = isInfinityStablePool
+          ? new Percent(pool.stableFee, INFINITY_STABLE_POOL_FEE_DENOMINATOR)
+          : isV3Pool || isInfinityPool
+          ? v3FeeToPercent((isV3Pool ? pool.fee : infinityDiscountFee) || 0)
+          : undefined
+
+        const feeDisplay = feePercent ? Number(feePercent.toSignificant(3, {}, Rounding.ROUND_HALF_UP)).toString() : '-'
+
         const originalFeeDisplay = Number(
           v3FeeToPercent(infinityFee).toSignificant(3, {}, Rounding.ROUND_HALF_UP),
         ).toString()
@@ -112,10 +116,17 @@ export function EVMPairNodes({
             <span>Infinity Bin</span>
             {useDiscountHooks ? feeDisplayWithDiscount : <span>({feeDisplay}%)</span>}
           </Column>
+        ) : isInfinityStablePool ? (
+          <Column alignItems="center">
+            <span>Infinity SS</span>
+            <span>({feeDisplay}%)</span>
+          </Column>
         ) : (
           t('StableSwap')
         )
-        const tooltipText = `${input.symbol}/${output.symbol}${isV3Pool || isInfinityPool ? ` (${feeDisplay}%)` : ''}`
+        const tooltipText = `${input.symbol}/${output.symbol}${
+          isV3Pool || isInfinityPool || isInfinityStablePool ? ` (${feeDisplay}%)` : ''
+        }`
 
         if (pairNode) {
           return (
@@ -123,7 +134,7 @@ export function EVMPairNodes({
               {React.createElement(pairNode, {
                 pair: p,
                 text,
-                className: isInfinityPool || isV3Pool ? 'highlight' : '',
+                className: isInfinityPool || isV3Pool || isInfinityStablePool ? 'highlight' : '',
                 tooltipText,
               })}
             </Fragment>
@@ -135,7 +146,7 @@ export function EVMPairNodes({
             pair={p}
             key={key}
             text={text}
-            className={isInfinityPool || isV3Pool ? 'highlight' : ''}
+            className={isInfinityPool || isV3Pool || isInfinityStablePool ? 'highlight' : ''}
             tooltipText={tooltipText}
           />
         )

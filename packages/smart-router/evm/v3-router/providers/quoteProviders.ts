@@ -2,7 +2,7 @@ import { ChainId } from '@pancakeswap/chains'
 import { RemoteLogger } from '@pancakeswap/utils/RemoteLogger'
 import { INFI_SUPPORTED_CHAINS } from '../../constants/infinity'
 import { QuoteProvider, QuoterConfig, QuoterOptions, RouteType, RouteWithQuote, RouteWithoutQuote } from '../types'
-import { isInfinityBinPool, isInfinityClPool, isV3Pool } from '../utils'
+import { isInfinityBinPool, isInfinityClPool, isInfinityStablePool, isV3Pool } from '../utils'
 import { createOffChainQuoteProvider } from './offChainQuoteProvider'
 import {
   createInfinityBinOnChainQuoteProvider,
@@ -90,11 +90,21 @@ export function createQuoteProvider(config: QuoterConfig): QuoteProvider<QuoterC
           v3MultihopRoutes.push(route)
           continue
         }
+
+        if (route.type === RouteType.InfinityStable) {
+          if (isExactIn) {
+            mixedRoutesHaveV3Pool.push(route)
+            continue
+          }
+          // no support for exact out
+          continue
+        }
         if (route.type === RouteType.InfinityCL) {
           if (isExactIn) {
             mixedRoutesHaveV3Pool.push(route)
             continue
           }
+
           infinityClRoutes.push(route)
           continue
         }
@@ -107,7 +117,11 @@ export function createQuoteProvider(config: QuoterConfig): QuoteProvider<QuoterC
           continue
         }
         const { pools } = route
-        if (pools.some((pool) => isV3Pool(pool) || isInfinityClPool(pool) || isInfinityBinPool(pool))) {
+        if (
+          pools.some(
+            (pool) => isV3Pool(pool) || isInfinityClPool(pool) || isInfinityBinPool(pool) || isInfinityStablePool(pool),
+          )
+        ) {
           mixedRoutesHaveV3Pool.push(route)
           continue
         }
@@ -132,6 +146,7 @@ export function createQuoteProvider(config: QuoterConfig): QuoteProvider<QuoterC
         getInfinityClQuotes(infinityClRoutes, { blockNumber, gasModel, signal, quoteId }),
         getInfinityBinQuotes(infinityBinRoutes, { blockNumber, gasModel, signal, quoteId }),
       ])
+
       if (results.every((result) => result.status === 'rejected')) {
         throw new Error(results.map((result) => (result as PromiseRejectedResult).reason).join(','))
       }

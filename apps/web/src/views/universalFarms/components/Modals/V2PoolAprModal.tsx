@@ -9,7 +9,7 @@ import { useCakePrice } from 'hooks/useCakePrice'
 import { useMemo } from 'react'
 import { useAccountPositionDetailByPool } from 'state/farmsV4/hooks'
 import { useStableSwapPairsByChainId } from 'state/farmsV4/state/accountPositions/hooks'
-import { StablePoolInfo, V2PoolInfo } from 'state/farmsV4/state/type'
+import { InfinityStablePoolInfo, StablePoolInfo, V2PoolInfo } from 'state/farmsV4/state/type'
 import { isAddressEqual } from 'utils'
 import { getCurrencyAddress } from '@pancakeswap/swap-sdk-core'
 import getLiquidityUrlPathParts from 'utils/getLiquidityUrlPathParts'
@@ -21,7 +21,7 @@ import { useAccount } from 'wagmi'
 
 type V2PoolAprModalProps = {
   modal: UseModalV2Props
-  poolInfo: V2PoolInfo | StablePoolInfo
+  poolInfo: V2PoolInfo | StablePoolInfo | InfinityStablePoolInfo
   combinedApr: number
   lpApr?: number
 }
@@ -40,11 +40,9 @@ const AprModal: React.FC<Omit<V2PoolAprModalProps, 'modal'>> = ({ poolInfo, comb
   const lpLabel = useMemo(() => {
     return lpSymbol.replace(/pancake/gi, '')
   }, [lpSymbol])
-  const { data: userPosition } = useAccountPositionDetailByPool<Protocol.STABLE | Protocol.V2>(
-    poolInfo.chainId,
-    account,
-    poolInfo,
-  )
+  const { data: userPosition } = useAccountPositionDetailByPool<
+    Protocol.STABLE | Protocol.V2 | Protocol.InfinitySTABLE
+  >(poolInfo.chainId, account, poolInfo)
 
   const pairs = useStableSwapPairsByChainId(poolInfo?.chainId, poolInfo?.protocol === 'stable')
 
@@ -70,7 +68,7 @@ const AprModal: React.FC<Omit<V2PoolAprModalProps, 'modal'>> = ({ poolInfo, comb
   }, [poolInfo.chainId, poolInfo.token0, poolInfo.token1])
 
   const stableConfig = useMemo((): LegacyStableSwapPair | undefined => {
-    if (poolInfo.protocol === 'stable') {
+    if (poolInfo.protocol === Protocol.STABLE) {
       return pairs?.find((pair) => {
         return isAddressEqual(pair.stableSwapAddress, poolInfo?.lpAddress as Address)
       })
@@ -78,7 +76,10 @@ const AprModal: React.FC<Omit<V2PoolAprModalProps, 'modal'>> = ({ poolInfo, comb
     return undefined
   }, [pairs, poolInfo?.lpAddress, poolInfo.protocol])
 
-  const { data: farmCakePerSecond } = useBCakeWrapperRewardPerSecond(poolInfo.chainId, poolInfo.bCakeWrapperAddress)
+  const { data: farmCakePerSecond } = useBCakeWrapperRewardPerSecond(
+    poolInfo.chainId,
+    poolInfo.protocol === Protocol.InfinitySTABLE ? undefined : poolInfo.bCakeWrapperAddress,
+  )
   const { data: masterChefV2Data } = useMasterChefV2Data(poolInfo.chainId)
   const totalMultipliers = useMemo(() => {
     const { totalRegularAllocPoint } = masterChefV2Data ?? { totalRegularAllocPoint: 0n }

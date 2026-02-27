@@ -8,6 +8,7 @@ import { tokenRoutingConfigForInitAtom } from 'quoter/atom/routingStrategy'
 import { createContext, useContext } from 'react'
 import {
   useUserInfinitySwapEnable,
+  useUserInfinityStableSwapEnable,
   useUserSplitRouteEnable,
   useUserStableSwapEnable,
   useUserV2SwapEnable,
@@ -22,6 +23,7 @@ export interface QuoteContext {
   v2Swap?: boolean
   v3Swap?: boolean
   infinitySwap: boolean
+  infinityStableSwap?: boolean
   stableSwap?: boolean
   maxHops: number
   chainId: number
@@ -37,6 +39,7 @@ const QuoteContext = createContext<QuoteContext>({
   v3Swap: true,
   xEnabled: false,
   infinitySwap: true,
+  infinityStableSwap: true,
   stableSwap: true,
   maxHops: 3,
   chainId: ChainId.BSC,
@@ -55,6 +58,7 @@ export const QuoteContextProvider = ({ children }: { children: React.ReactNode }
   const [v2Swap] = useUserV2SwapEnable()
   const [v3Swap] = useUserV3SwapEnable()
   const [infinitySwap] = useUserInfinitySwapEnable()
+  const infinityStableSwap = useUserInfinityStableSwapEnable()
   const [stableSwap] = useUserStableSwapEnable()
   const config = useAtomValue(tokenRoutingConfigForInitAtom)
   if (config.loading || config.error) {
@@ -70,6 +74,7 @@ export const QuoteContextProvider = ({ children }: { children: React.ReactNode }
         v2Swap,
         v3Swap,
         infinitySwap,
+        infinityStableSwap,
         stableSwap,
         maxHops: 3,
         chainId,

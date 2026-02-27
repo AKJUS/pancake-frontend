@@ -55,6 +55,7 @@ import { isUserRejected, logError } from 'utils/sentry'
 import { LiquiditySlippageButton } from 'views/Swap/components/SlippageButton'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
 import { safeGetTokenPairPrice } from 'utils/safeGetTokenPairPrice'
+import { Protocol } from '@pancakeswap/farms'
 import { AppBody, AppHeader } from '../../components/App'
 import ConnectWalletButton from '../../components/ConnectWalletButton'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
@@ -752,7 +753,9 @@ export const RemoveLiquidityLayout = ({ currencyA, currencyB, children, pair, is
         <AppHeader
           backTo={
             isStable
-              ? `/stable/${pair?.liquidityToken?.address}`
+              ? `/${pair?.protocol === Protocol.InfinitySTABLE ? 'infinityStable' : 'stable'}/${
+                  pair?.liquidityToken?.address
+                }`
               : `/v2/pair/${currencyA?.address}/${currencyB?.address}`
           }
           title={t('Remove %assetA%-%assetB% Liquidity', {

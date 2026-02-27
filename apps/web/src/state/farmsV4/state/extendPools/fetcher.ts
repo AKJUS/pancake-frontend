@@ -13,8 +13,8 @@ import set from 'lodash/set'
 import { chainIdToExplorerInfoChainName, explorerApiClient } from 'state/info/api/client'
 import { getPoolManagerAddress } from 'utils/addressHelpers'
 import { publicClient } from 'utils/viem'
-import { Hex, zeroAddress } from 'viem'
 import { isAddressEqual } from 'utils'
+import { Hex, zeroAddress } from 'viem'
 import { InfinityBinPoolInfo, InfinityCLPoolInfo, PoolInfo, StablePoolInfo, V2PoolInfo } from '../type'
 import { parseFarmPools } from '../utils'
 import { ExtendPoolsQuery } from './atom'
@@ -59,7 +59,7 @@ export const fetchExplorerPoolsList = async (query: Required<ExtendPoolsQuery>, 
 }
 
 const composeFarmConfig = async (farm: PoolInfo) => {
-  if (farm.protocol !== 'stable' && farm.protocol !== 'v2') return farm
+  if (farm.protocol !== 'stable' && farm.protocol !== 'v2' && farm.protocol !== 'infinityStable') return farm
 
   const farmConfig = await fetchAllUniversalFarmsMap()
   if (!farm.lpAddress) {
@@ -98,12 +98,16 @@ export const fetchExplorerPoolInfo = async <TPoolType extends PoolInfo>(
   if (!resp.data) {
     return null
   }
+
   try {
     // @ts-ignore
     resp.data.chainId = chainId
     const farmConfig = await fetchAllUniversalFarms()
+
     const isFarming = farmConfig.some((farm) => farm.lpAddress?.toLowerCase() === poolAddress.toLowerCase())
+
     const farm = await parseFarmPools([resp.data], { isFarming })
+
     const data = await composeFarmConfig(farm[0])
 
     return data as TPoolType
@@ -113,6 +117,7 @@ export const fetchExplorerPoolInfo = async <TPoolType extends PoolInfo>(
   }
 }
 
+// NOTE: queryInfinityPoolInfoOnChain is only supported for Infinity CL and BIN pools
 export const queryInfinityPoolInfoOnChain = async (
   poolId: string,
   chainId: number,

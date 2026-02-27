@@ -321,9 +321,17 @@ export enum Protocol {
   STABLE = 'stable',
   InfinityBIN = 'infinityBin',
   InfinityCLAMM = 'infinityCl',
+  InfinitySTABLE = 'infinityStable',
 }
 
-export const ALL_PROTOCOLS = [Protocol.V2, Protocol.V3, Protocol.STABLE, Protocol.InfinityBIN, Protocol.InfinityCLAMM]
+export const ALL_PROTOCOLS = [
+  Protocol.V2,
+  Protocol.V3,
+  Protocol.STABLE,
+  Protocol.InfinityBIN,
+  Protocol.InfinityCLAMM,
+  Protocol.InfinitySTABLE,
+]
 
 export type FarmBaseConfig = {
   // @deprecated

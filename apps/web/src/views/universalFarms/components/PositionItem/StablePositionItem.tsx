@@ -3,6 +3,7 @@ import { memo, useMemo } from 'react'
 import { usePoolInfo, usePoolTimeFrame } from 'state/farmsV4/hooks'
 import { StableLPDetail } from 'state/farmsV4/state/accountPositions/type'
 import { StablePoolInfo } from 'state/farmsV4/state/type'
+import { Protocol } from '@pancakeswap/farms'
 import { V2PositionActions } from '../PositionActions/V2PositionActions'
 import { PositionItem } from './PositionItem'
 
@@ -51,20 +52,21 @@ export const StablePositionItem = memo(
         (!poolLength || !pool?.pid || pool.pid <= poolLength),
       [pool?.pid, poolLength, bCakeWrapperAddress, startTimestamp, endTimestamp],
     )
+
     return (
       <>
         {nativeBalance.greaterThan('0') ? (
           <PositionItem
             chainId={chainId}
             pool={pool}
-            link={`/stable/${lpAddress}`}
+            link={`/${data.protocol === Protocol.InfinitySTABLE ? 'infinityStable' : 'stable'}/${lpAddress}`}
             totalPriceUSD={nativeTotalPriceUSD}
             currency0={token0}
             currency1={token1}
             removed={false}
             outOfRange={false}
             protocol={data.protocol}
-            fee={Number(stableTotalFee) * 10000}
+            fee={stableTotalFee * 10000}
             isStaked={false}
             amount0={nativeDeposited0}
             amount1={nativeDeposited1}
@@ -88,7 +90,7 @@ export const StablePositionItem = memo(
           <PositionItem
             chainId={chainId}
             pool={pool}
-            link={`/stable/${lpAddress}`}
+            link={`/${data.protocol === Protocol.InfinitySTABLE ? 'infinityStable' : 'stable'}/${lpAddress}`}
             totalPriceUSD={farmingTotalPriceUSD}
             currency0={token0}
             currency1={token1}

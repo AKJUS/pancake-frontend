@@ -5,6 +5,7 @@ import { parseNumberToFraction } from '@pancakeswap/utils/formatFractions'
 import { findHook, HOOK_CATEGORY } from '@pancakeswap/infinity-sdk'
 import { zeroAddress } from '@pancakeswap/price-api-sdk'
 import { FeeAmount } from '@pancakeswap/v3-sdk'
+import { INFINITY_STABLE_POOL_FEE_DENOMINATOR } from '@pancakeswap/infinity-stable-sdk'
 import { isAddressEqual } from './safeGetAddress'
 import { TradeEssentialForPriceBreakdown, TradePriceBreakdown } from './swapTypes'
 
@@ -22,6 +23,7 @@ export function computeSmartTradePriceBreakdown(trade?: TradeEssentialForPriceBr
   let outputAmountWithoutPriceImpact = CurrencyAmount.fromRawAmount(trade.outputAmount.currency, 0)
   for (const route of routes) {
     const { inputAmount: routeInputAmount, pools, percent } = route
+
     const routeFeePercent = ONE_HUNDRED_PERCENT.subtract(
       pools.reduce<Percent>((currentFee, pool) => {
         if (SmartRouter.isV2Pool(pool)) {
@@ -30,6 +32,15 @@ export function computeSmartTradePriceBreakdown(trade?: TradeEssentialForPriceBr
         if (SmartRouter.isStablePool(pool)) {
           return currentFee.multiply(ONE_HUNDRED_PERCENT.subtract(pool.fee))
         }
+
+        if (SmartRouter.isInfinityStablePool(pool)) {
+          return currentFee.multiply(
+            ONE_HUNDRED_PERCENT.subtract(
+              new Percent(BigInt(pool.stableFee ?? 0), INFINITY_STABLE_POOL_FEE_DENOMINATOR),
+            ),
+          )
+        }
+
         if (SmartRouter.isV3Pool(pool)) {
           return currentFee.multiply(ONE_HUNDRED_PERCENT.subtract(v3FeeToPercent(pool.fee)))
         }

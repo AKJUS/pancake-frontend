@@ -11,7 +11,7 @@ import { Address, Hex } from 'viem'
 import { SLOW_INTERVAL } from 'config/constants'
 import { InfinityCLPoolInfo, PoolInfo } from '../../type'
 import { getAccountV2LpDetails, getStablePairDetails } from '../fetcher'
-import { getAccountInfinityCLPositionsWithFallback } from '../fetcher/infinity'
+import { getAccountInfinityCLPositionsWithFallback, getAccountInfinityStablePositionDetails } from '../fetcher/infinity'
 import { getAccountInfinityBinPositionByPoolId } from '../fetcher/infinity/getAccountInfinityBinPositionByPoolId'
 import { getAccountV3Positions } from '../fetcher/v3'
 import {
@@ -27,6 +27,7 @@ import { useStableSwapPairsByChainId } from './useStableSwapPairsByChainId'
 type PoolPositionDetail = {
   [Protocol.STABLE]: StableLPDetail
   [Protocol.V2]: V2LPDetail
+  [Protocol.InfinitySTABLE]: StableLPDetail
   [Protocol.V3]: PositionDetail[]
   [Protocol.InfinityCLAMM]: InfinityCLPositionDetail[]
   [Protocol.InfinityBIN]: InfinityBinPositionDetail[]
@@ -57,20 +58,25 @@ export const useAccountPositionDetailByPool = <TProtocol extends keyof PoolPosit
       latestTxReceipt?.blockHash,
     ],
     queryFn: async () => {
-      if (poolInfo?.protocol === 'v2') {
+      if (poolInfo?.protocol === Protocol.V2) {
         return getAccountV2LpDetails(
           chainId,
           account!,
           currency0 && currency1 ? [[currency0.wrapped, currency1.wrapped]] : [],
         )
       }
-      if (poolInfo?.protocol === 'stable') {
+      if (poolInfo?.protocol === Protocol.STABLE) {
         const stablePair = pairs.find((pair) => {
           return isAddressEqual(pair.stableSwapAddress, poolInfo?.stableSwapAddress as Address)
         })
         return getStablePairDetails(chainId, account!, stablePair ? [stablePair] : [])
       }
-      if (poolInfo?.protocol === 'v3') {
+
+      if (poolInfo?.protocol === Protocol.InfinitySTABLE) {
+        return getAccountInfinityStablePositionDetails(chainId, account!, poolInfo.lpAddress as Address)
+      }
+
+      if (poolInfo?.protocol === Protocol.V3) {
         return getAccountV3Positions(chainId, account!)
       }
       if (poolInfo?.protocol === Protocol.InfinityCLAMM) {
@@ -138,5 +144,6 @@ export const useAccountPositionDetailByPool = <TProtocol extends keyof PoolPosit
       data: positionsWithFarming,
     } as unknown as UseQueryResult<PoolPositionDetail[TProtocol]>
   }
+
   return result
 }

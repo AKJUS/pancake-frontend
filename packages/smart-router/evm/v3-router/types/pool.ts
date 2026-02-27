@@ -1,4 +1,4 @@
-import { Currency, CurrencyAmount, Percent, SPLToken, UnifiedCurrencyAmount } from '@pancakeswap/sdk'
+import { Currency, CurrencyAmount, Percent } from '@pancakeswap/sdk'
 import { FeeAmount, Tick } from '@pancakeswap/v3-sdk'
 import { Address, Hex } from 'viem'
 
@@ -8,6 +8,7 @@ export enum PoolType {
   STABLE,
   InfinityCL,
   InfinityBIN,
+  InfinityStable,
   SVM,
 }
 
@@ -85,6 +86,13 @@ export type InfinityClPool = BaseInfinityPool & {
   ticks?: Tick[]
 }
 
+export type InfinityStablePool = BaseInfinityPool & {
+  type: PoolType.InfinityStable
+  tickSpacing: number
+  amplifier: number
+  stableFee: number
+}
+
 type ActiveId = number
 type Reserve = {
   reserveX: bigint
@@ -99,7 +107,7 @@ export type InfinityBinPool = BaseInfinityPool & {
   reserveOfBin?: Record<ActiveId, Reserve>
 }
 
-export type Pool = V2Pool | V3Pool | StablePool | InfinityBinPool | InfinityClPool | SVMPool
+export type Pool = V2Pool | V3Pool | StablePool | InfinityBinPool | InfinityClPool | SVMPool | InfinityStablePool
 
 export interface WithTvl {
   tvlUSD: bigint

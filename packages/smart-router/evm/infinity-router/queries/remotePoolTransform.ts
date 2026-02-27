@@ -14,6 +14,7 @@ import {
   BaseInfinityPool,
   InfinityBinPool,
   InfinityClPool,
+  InfinityStablePool,
   PoolType,
   StablePool,
   SVMPool,
@@ -33,6 +34,7 @@ import {
   RemotePoolBase,
   RemotePoolBIN,
   RemotePoolCL,
+  RemotePoolInfinityStable,
   RemotePoolStable,
   RemotePoolV2,
   RemotePoolV3,
@@ -69,6 +71,9 @@ export function parseRemotePool(remote: RemotePool) {
   if (remote.protocol === 'infinityBin') {
     return toLocalInfinityPool(remote as RemotePoolBIN, remote.chainId as keyof typeof hooksList)
   }
+  if (remote.protocol === 'infinityStable') {
+    return parseRemoteInfinityStablePool(remote as RemotePoolInfinityStable)
+  }
   if (remote.protocol === 'v2') {
     return parseRemoteV2Pool(remote as RemotePoolV2)
   }
@@ -93,6 +98,30 @@ export function parseRemoteStablePool(remote: RemotePoolStable) {
     amplifier: 0n,
     fee: new Percent(remote.feeTier || 0, 1_000),
   } as StablePool
+}
+
+export function parseRemoteInfinityStablePool(remote: RemotePoolInfinityStable) {
+  const chainId = remote.chainId as ChainId
+  const currency0 = getValidToken(chainId, remote.token0)
+  const currency1 = getValidToken(chainId, remote.token1)
+  const tvlUSD = BigInt(normalizeTvlUSD(remote.tvlUSD))
+  const poolManagerAddress = INFI_CL_POOL_MANAGER_ADDRESSES[chainId as keyof typeof hooksList]
+
+  return {
+    type: PoolType.InfinityStable,
+    id: checksumAddress(remote.id),
+    chainId,
+    currency0,
+    currency1,
+    fee: remote.feeTier,
+    tickSpacing: 1,
+    // NOTE: amplifier and stableFee are not available in the remote pool yet
+    amplifier: 0,
+    stableFee: 0,
+    hooks: remote.hookAddress ? checksumAddress(remote.hookAddress) : undefined,
+    poolManager: poolManagerAddress,
+    tvlUSD,
+  } as InfinityStablePool & WithTvl
 }
 
 export function parseRemoteV2Pool(remote: RemotePoolV2) {
@@ -164,7 +193,9 @@ export function toLocalInfinityPool(
     hooks: hookAddress ? checksumAddress(hookAddress) : undefined,
     hooksRegistrationBitmap: relatedHook ? encodeHooksRegistration(relatedHook.hooksRegistration) : undefined,
     poolManager:
-      type === PoolType.InfinityCL ? INFI_CL_POOL_MANAGER_ADDRESSES[chainId] : INFI_BIN_POOL_MANAGER_ADDRESSES[chainId],
+      type === PoolType.InfinityBIN
+        ? INFI_BIN_POOL_MANAGER_ADDRESSES[chainId]
+        : INFI_CL_POOL_MANAGER_ADDRESSES[chainId],
     currency0,
     currency1,
     tvlUSD: bnTvlUsd,

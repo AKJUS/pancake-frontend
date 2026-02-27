@@ -54,6 +54,7 @@ export default function CommonBases({
   commonBasesType,
   supportCrossChain,
   disabledCurrencies,
+  showNative = true,
 }: {
   chainId?: UnifiedChainId
   commonBasesType?: CommonBasesType
@@ -61,6 +62,7 @@ export default function CommonBases({
   onSelect: (currency: UnifiedCurrency) => void
   supportCrossChain?: boolean
   disabledCurrencies?: UnifiedCurrency[]
+  showNative?: boolean
 }) {
   const native = useUnifiedNativeCurrency(chainId)
   const { t } = useTranslation()
@@ -84,30 +86,32 @@ export default function CommonBases({
         )}
       </AutoRow>
       <RowWrapper>
-        <ButtonWrapper>
-          <BaseWrapper
-            onClick={() => {
-              if (isNativeDisabled) {
-                return
-              }
+        {showNative && (
+          <ButtonWrapper>
+            <BaseWrapper
+              onClick={() => {
+                if (isNativeDisabled) {
+                  return
+                }
 
-              onSelect(native)
-            }}
-            disable={isNativeDisabled}
-          >
-            <CurrencyLogo
-              showChainLogo={supportCrossChain}
-              currency={native}
-              containerStyle={{
-                position: 'relative',
-                top: '1px',
+                onSelect(native)
               }}
-            />
-            <Text px="4px" color="inherit">
-              {native?.symbol}
-            </Text>
-          </BaseWrapper>
-        </ButtonWrapper>
+              disable={isNativeDisabled}
+            >
+              <CurrencyLogo
+                showChainLogo={supportCrossChain}
+                currency={native}
+                containerStyle={{
+                  position: 'relative',
+                  top: '1px',
+                }}
+              />
+              <Text px="4px" color="inherit">
+                {native?.symbol}
+              </Text>
+            </BaseWrapper>
+          </ButtonWrapper>
+        )}
         {(chainId ? SUGGESTED_BASES[chainId] || [] : []).map((token: UnifiedToken) => {
           const selected = selectedCurrency?.equals?.(token)
           const disabled = selected || Boolean(disabledCurrencies?.find((c) => c.equals(token)))

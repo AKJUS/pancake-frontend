@@ -137,12 +137,14 @@ const poolQueriesFactory = memoize((chainId: ChainId) => {
     const queryFunc = async () => {
       const provider = options.provider ?? getViemClients
       const tvMap = await fetchTvMap(['infinityBin', 'infinityCl'], query.chainId)
+
       const pools = await InfinityRouter.getInfinityCandidatePoolsLite({
         currencyA,
         currencyB,
         clientProvider: provider,
         tvlRefMap: tvMap,
       })
+
       return pools
     }
 
@@ -172,6 +174,23 @@ const poolQueriesFactory = memoize((chainId: ChainId) => {
       const provider = options.provider ?? getViemClients
       const resolvedPairs = await SmartRouter.getPairCombinations(currencyA, currencyB)
       const pools = await SmartRouter.getStablePoolsOnChain(resolvedPairs ?? [], provider, blockNumber)
+      return pools
+    }
+
+    return queryFunc()
+  }, cacheOption)
+
+  const getInfinityStableCandidatePools = cacheByLRU(async (query: PoolQuery, options: PoolQueryOptions) => {
+    const { currencyA, currencyB } = query
+
+    const queryFunc = async () => {
+      const provider = options.provider ?? getViemClients
+      const pools = await InfinityRouter.getInfinityStableCandidatePools({
+        currencyA,
+        currencyB,
+        clientProvider: provider,
+      })
+
       return pools
     }
 
@@ -221,6 +240,7 @@ const poolQueriesFactory = memoize((chainId: ChainId) => {
     getInfinityCandidatePoolsLight,
     getInfinityCandidatePools,
     getStableSwapPools,
+    getInfinityStableCandidatePools,
     getCandidatePools,
     getCandidatePoolsLight,
   }
@@ -239,6 +259,7 @@ export const fetchCandidatePools = async (query: PoolQuery, options: PoolQueryOp
       options.v2Pools ? queries.getV2CandidatePools(query, options) : ([] as Pool[]),
       options.v3Pools ? queries.getV3PoolsWithTicksOnChain(query, options) : ([] as Pool[]),
       options.infinity ? queries.getInfinityCandidatePools(query, options) : ([] as Pool[]),
+      options.infinityStable ? queries.getInfinityStableCandidatePools(query, options) : ([] as Pool[]),
     ])
     return poolsArray.flat() as Pool[]
   }
@@ -271,6 +292,7 @@ export const fetchCandidatePoolsLite = async (query: PoolQuery, options: PoolQue
       options.v2Pools ? queries.getV2CandidatePools(query, options) : ([] as Pool[]),
       options.v3Pools ? queries.getV3CandidatePoolsWithoutTicks(query, options) : ([] as Pool[]),
       options.infinity ? queries.getInfinityCandidatePoolsLight(query, options) : ([] as Pool[]),
+      options.infinityStable ? queries.getInfinityStableCandidatePools(query, options) : ([] as Pool[]),
     ])
     return poolsArray.flat() as Pool[]
   }
@@ -301,6 +323,9 @@ const protocolsFromQuery = (query: PoolQueryOptions) => {
   if (query.infinity) {
     protocols.push('infinityCl')
     protocols.push('infinityBin')
+  }
+  if (query.infinityStable) {
+    protocols.push('infinityStable')
   }
   return protocols
 }

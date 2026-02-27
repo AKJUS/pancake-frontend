@@ -23,8 +23,10 @@ export const poolInfoStr = (pool: Pool): string => {
       return `[InfinityBIN] id=${pool.id}, ${pool.currency0.symbol}/${pool.currency1.symbol}`
     case PoolType.InfinityCL:
       return `[InfinityCL] id=${pool.id}, ${pool.currency0.symbol}/${pool.currency1.symbol}`
+    case PoolType.InfinityStable:
+      return `[InfinityStable] id=${pool.id}, ${pool.currency0.symbol}/${pool.currency1.symbol}`
     default:
-      throw new Error('Unknown pool type')
+      throw new Error('[poolInfoStr]: Unknown pool type')
   }
 }
 

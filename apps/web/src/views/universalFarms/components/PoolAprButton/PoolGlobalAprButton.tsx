@@ -9,6 +9,7 @@ import { AprInfo, usePoolApr } from 'state/farmsV4/hooks'
 import { InfinityPoolInfo, PoolInfo } from 'state/farmsV4/state/type'
 import { isInfinityProtocol } from 'utils/protocols'
 import { useMyPositions } from 'views/PoolDetail/components/MyPositionsContext'
+import { Protocol } from '@pancakeswap/farms'
 
 import { APRBreakdownModal } from './AprBreakdownModal'
 import { PoolAprButton } from './PoolAprButton'
@@ -29,7 +30,8 @@ export const PoolGlobalAprButton: React.FC<PoolGlobalAprButtonProps> = ({ pool, 
 
 const PoolGlobalAprButtonWithLoadApr: React.FC<PoolGlobalAprButtonProps> = ({ pool, detailMode }) => {
   const key = useMemo(() => `${pool.chainId}:${pool.lpAddress}` as const, [pool.chainId, pool.lpAddress])
-  const hookAprInfo = usePoolApr(key, pool, !pool.stableSwapAddress)
+  const has24Apr = !pool.stableSwapAddress
+  const hookAprInfo = usePoolApr(key, pool, has24Apr)
   const { totalApr, updateTotalApr } = useMyPositions()
   const { lpApr, cakeApr, merklApr, incentraApr } = hookAprInfo
 

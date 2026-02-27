@@ -20,7 +20,7 @@ import { erc20Abi } from 'viem'
 import { ChainId, isEvm } from '@pancakeswap/chains'
 import { INCENTRA_API, IncentraCampaign } from 'hooks/useIncentra'
 import { ChainIdAddressKey, InfinityPoolInfo, PoolInfo, StablePoolInfo, V2PoolInfo, V3PoolInfo } from '../type'
-import { AprValue, CakeApr, IncentraApr, MerklApr } from './atom'
+import { CakeApr, IncentraApr, MerklApr } from './atom'
 
 export const getCakeApr = (pool: PoolInfo, cakePrice: BigNumber): Promise<CakeApr> => {
   switch (pool.protocol) {
@@ -54,8 +54,14 @@ export const getLpApr = async (
 
   const resp = await explorerApiClient.GET(
     isInfinityProtocol(protocol)
-      ? `/cached/pools/apr/${protocol as InfinityProtocol}/{chainName}/{id}`
-      : `/cached/pools/apr/${protocol as NonInfinityProtocol}/{chainName}/{address}`,
+      ? (`/cached/pools/apr/${protocol as InfinityProtocol}/{chainName}/{id}` as
+          | '/cached/pools/apr/infinityBin/{chainName}/{id}'
+          | '/cached/pools/apr/infinityCl/{chainName}/{id}')
+      : (`/cached/pools/apr/${protocol as NonInfinityProtocol}/{chainName}/{address}` as
+          | '/cached/pools/apr/v2/{chainName}/{address}'
+          | '/cached/pools/apr/v3/{chainName}/{address}'
+          | '/cached/pools/apr/stable/{chainName}/{address}'
+          | '/cached/pools/apr/infinityStable/{chainName}/{address}'),
     {
       signal,
       params: {
@@ -71,10 +77,11 @@ export const getLpApr = async (
     return 0
   }
 
+  const data = resp.data as { apr24h?: string; apr7d?: string } | undefined
   if (apr24h) {
-    return 'apr24h' in resp.data && resp.data.apr24h ? parseFloat(resp.data.apr24h) : 0
+    return data?.apr24h ? parseFloat(data.apr24h) : 0
   }
-  return resp.data.apr7d ? parseFloat(resp.data.apr7d) : 0
+  return data?.apr7d ? parseFloat(data.apr7d) : 0
 }
 
 const masterChefV3CacheMap = new Map<

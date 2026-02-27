@@ -50,9 +50,11 @@ function getRouteTypeFromPool(pool: Pick<Pool, 'type'>) {
     case PoolType.STABLE:
       return RouteType.STABLE
     case PoolType.InfinityCL:
+    case PoolType.InfinityStable:
       return RouteType.InfinityCL
     case PoolType.InfinityBIN:
       return RouteType.InfinityBIN
+
     default:
       return RouteType.MIXED
   }
@@ -87,6 +89,7 @@ export function getMidPrice({ path, pools }: Pick<Route, 'path' | 'pools'>) {
   let price: Price<Currency, Currency> | null = null
   const currencyIn = path[0]
   const currencyOut = path[path.length - 1]
+
   for (const pool of pools) {
     const input = path[i]
     const output = path[i + 1]

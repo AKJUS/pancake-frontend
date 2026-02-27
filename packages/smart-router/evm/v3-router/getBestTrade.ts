@@ -88,7 +88,7 @@ async function getBestRoutes(
     ...routeConfig,
     ...(ROUTE_CONFIG_BY_CHAIN[chainId as ChainId] || {}),
   }
-  const distributionPercent = routeConfig.maxSplits ? _distributionPercent : 100
+  const distributionPercent = maxSplits ? _distributionPercent : 100
   const logger = RemoteLogger.getLogger(quoteId)
   const isExactIn = tradeType === TradeType.EXACT_INPUT
   const inputCurrency = isExactIn ? amount.currency : currency
@@ -101,10 +101,14 @@ async function getBestRoutes(
     protocols: allowedPoolTypes,
     signal,
   })
-  logger.debug(`Candidate pools: ${candidatePools.length}, maxSplits=${maxSplits}, maxHops=${maxHops}`)
+
+  logger.debug(
+    `Candidate pools: ${candidatePools.length}, maxSplits=${maxSplits}, maxHops=${maxHops}, distributionPercent=${distributionPercent}`,
+  )
   logPools(quoteId, candidatePools, 2)
 
   let baseRoutes = computeAllRoutesNew(inputCurrency, outputCurrency, candidatePools, maxHops, quoteId)
+
   // Do not support mix route on exact output
   if (tradeType === TradeType.EXACT_OUTPUT) {
     baseRoutes = baseRoutes.filter(({ type }) => type !== RouteType.MIXED)
@@ -120,6 +124,7 @@ async function getBestRoutes(
     quoteCurrencyUsdPrice,
     nativeCurrencyUsdPrice,
   })
+
   const routesWithValidQuote = await getRoutesWithValidQuote({
     amount,
     baseRoutes,
@@ -132,6 +137,8 @@ async function getBestRoutes(
     quoteId,
     signal,
   })
+
   logger.debug(`valid route=${routesWithValidQuote.length}, maxShow=100`)
+
   return getBestRouteCombinationByQuotes(amount, currency, routesWithValidQuote, tradeType, { maxSplits }, quoteId)
 }

@@ -9,15 +9,19 @@ import { Tick } from '@pancakeswap/v3-sdk'
 
 import { createInfinityBinPool } from './createInfinityBinPool'
 import { createInfinityCLPool } from './createInfinityCLPool'
+import { createInfinityStablePool } from './createInfinityStablePool'
 import {
   BinReserves,
   InfinityBinPool,
   InfinityBinPoolData,
   InfinityCLPool,
   InfinityCLPoolData,
+  InfinityStablePool,
+  InfinityStablePoolData,
   SerializableBinReserves,
   SerializableInfinityBinPool,
   SerializableInfinityCLPool,
+  SerializableInfinityStablePool,
   SerializableTick,
 } from './types'
 
@@ -54,6 +58,20 @@ export function toSerializableInfinityCLPool(infinityCLPool: InfinityCLPool): Se
     liquidity: pool.liquidity.toString(),
     sqrtRatioX96: pool.sqrtRatioX96.toString(),
     ticks: pool.ticks?.map(toSerializableTick),
+    reserve0: pool.reserve0 && toSerializableCurrencyAmount(pool.reserve0),
+    reserve1: pool.reserve1 && toSerializableCurrencyAmount(pool.reserve1),
+  }
+}
+
+export function toSerializableInfinityStablePool(
+  infinityStablePool: InfinityStablePool,
+): SerializableInfinityStablePool {
+  const pool = infinityStablePool.getPoolData()
+  return {
+    ...pool,
+    id: pool.id,
+    currency0: toSerializableCurrency(pool.currency0),
+    currency1: toSerializableCurrency(pool.currency1),
     reserve0: pool.reserve0 && toSerializableCurrencyAmount(pool.reserve0),
     reserve1: pool.reserve1 && toSerializableCurrencyAmount(pool.reserve1),
   }
@@ -117,4 +135,16 @@ export function parseInfinityBinPool(chainId: ChainId, pool: SerializableInfinit
   }
 
   return createInfinityBinPool(poolData)
+}
+
+export function parseInfinityStablePool(chainId: ChainId, pool: SerializableInfinityStablePool): InfinityStablePool {
+  const poolData: InfinityStablePoolData = {
+    ...pool,
+    currency0: parseCurrency(chainId, pool.currency0),
+    currency1: parseCurrency(chainId, pool.currency1),
+    reserve0: pool.reserve0 && parseCurrencyAmount(chainId, pool.reserve0),
+    reserve1: pool.reserve1 && parseCurrencyAmount(chainId, pool.reserve1),
+  }
+
+  return createInfinityStablePool(poolData)
 }

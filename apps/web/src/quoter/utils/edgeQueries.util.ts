@@ -7,9 +7,9 @@ import { checksumAddress } from 'utils/checksumAddress'
 import { getViemClients } from 'utils/viem.server'
 import { type Address } from 'viem'
 
-export type Protocol = 'v2' | 'stable' | 'v3' | 'infinityCl' | 'infinityBin'
+export type Protocol = 'v2' | 'stable' | 'v3' | 'infinityCl' | 'infinityBin' | 'infinityStable'
 
-export const ALLOWED_PROTOCOLS = ['v2', 'stable', 'v3', 'infinityCl', 'infinityBin']
+export const ALLOWED_PROTOCOLS = ['v2', 'stable', 'v3', 'infinityCl', 'infinityBin', 'infinityStable']
 
 export const getProvider = () => {
   return getViemClients as OnChainProvider

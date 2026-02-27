@@ -221,7 +221,9 @@ function onChainQuoteProviderFactory({ getQuoteFunctionName, getQuoterAddress, a
                   signal,
                 },
               })
+
             const successRateError = validateSuccessRate(results, minSuccessRate)
+
             // results.forEach((result) => {
             //   if (!result.success) {
             //     logger.debugJson(result, 3)
@@ -263,6 +265,7 @@ function onChainQuoteProviderFactory({ getQuoteFunctionName, getQuoterAddress, a
             const quotes = await getQuotes({
               gasLimitPerCall: defaultGasLimitPerCall,
             })
+
             return quotes
           } catch (e: unknown) {
             logger.debug(`Error getting quotes: ${e}`, 2)
@@ -296,6 +299,7 @@ function onChainQuoteProviderFactory({ getQuoteFunctionName, getQuoterAddress, a
         }
 
         const { results: quoteResults } = quoteResult
+
         const routesWithQuote = processQuoteResults(quoteResults, routes, gasModel, adjustQuoteForGas)
 
         // metric.putMetric('QuoteApproxGasUsedPerSuccessfulCall', approxGasUsedPerSuccessCall, MetricLoggerUnit.Count)

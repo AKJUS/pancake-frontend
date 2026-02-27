@@ -8,6 +8,7 @@ import { AprInfo, usePoolApr } from 'state/farmsV4/hooks'
 import { InfinityPoolInfo, PoolInfo } from 'state/farmsV4/state/type'
 import { isInfinityProtocol } from 'utils/protocols'
 import { useMyPositions } from 'views/PoolDetail/components/MyPositionsContext'
+import { Protocol } from '@pancakeswap/farms'
 
 import { APRBreakdownModal } from './AprBreakdownModal'
 import { PoolAprButtonV3 } from './PoolAprButtonV3'
@@ -35,7 +36,9 @@ export const PoolGlobalAprButtonV3: React.FC<PoolGlobalAprButtonProps> = ({
 }) => {
   const key = useMemo(() => `${pool.chainId}:${pool.lpAddress}` as const, [pool.chainId, pool.lpAddress])
 
-  const hookAprInfo = usePoolApr(key, pool, !pool.stableSwapAddress && !aprInfo, !aprInfo)
+  const has24Apr = !pool.stableSwapAddress && !aprInfo
+
+  const hookAprInfo = usePoolApr(key, pool, has24Apr, !aprInfo)
   const { lpApr, cakeApr, merklApr, incentraApr } = aprInfo ?? hookAprInfo
 
   const numerator = useMemo(() => {
@@ -55,7 +58,9 @@ export const PoolGlobalAprButtonV3: React.FC<PoolGlobalAprButtonProps> = ({
   useEffect(() => {
     if (
       detailMode &&
-      (pool.protocol === 'v2' || pool.protocol === 'stable') &&
+      (pool.protocol === Protocol.V2 ||
+        pool.protocol === Protocol.STABLE ||
+        pool.protocol === Protocol.InfinitySTABLE) &&
       (totalApr[key]?.numerator !== numerator || totalApr[key]?.denominator !== denominator)
     ) {
       updateTotalApr(key, numerator, denominator)

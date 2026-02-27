@@ -1,5 +1,6 @@
 import { Protocol, fetchAllUniversalFarms } from '@pancakeswap/farms'
 import { BinPoolManagerAbi } from '@pancakeswap/infinity-sdk'
+import { INFINITY_STABLE_POOL_FEE_DENOMINATOR, InfinityStableHook } from '@pancakeswap/infinity-stable-sdk'
 import { Native } from '@pancakeswap/sdk'
 import { LegacyRouter } from '@pancakeswap/smart-router/legacy-router'
 import { Token, ZERO_ADDRESS } from '@pancakeswap/swap-sdk-core'
@@ -64,6 +65,23 @@ export const parseFarmPools = async (
           console.error('error fetch bin active liquidity', error)
         }
       }
+
+      // NOTE: InfinityStable pool.id is the hook address.
+      // In Contract, pool.id is Infinity Pool ID.
+      // But here we treat pool.id as hook address to make it
+      // compatible with Stable Pool interface.
+      if (pool.protocol === Protocol.InfinitySTABLE && pool.id) {
+        try {
+          const client = getViemClients({ chainId: pool.chainId })
+          const hook = new InfinityStableHook(pool.id, client)
+          const fee = await hook.fee()
+          feeTier = Number(fee)
+        } catch (error) {
+          console.error('error fetch infinity stable fee', error)
+          feeTier = 0
+        }
+      }
+
       const localFarm = pool.id
         ? fetchFarmConfig.find(
             (farm) => farm.lpAddress.toLowerCase() === pool.id.toLowerCase() && farm.chainId === pool.chainId,
@@ -113,7 +131,7 @@ export const parseFarmPools = async (
         lpFee24hUsd: pool.lpFeeUSD24h as `${number}`,
         liquidity: pool.liquidity ?? binActiveLiquidity,
         feeTier,
-        feeTierBase: 1_000_000,
+        feeTierBase: pool.protocol === Protocol.InfinitySTABLE ? INFINITY_STABLE_POOL_FEE_DENOMINATOR : 1_000_000,
         isDynamicFee: pool.isDynamicFee,
         isFarming: !!options?.isFarming,
         isActiveFarm: false,

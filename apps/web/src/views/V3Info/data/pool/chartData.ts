@@ -38,7 +38,7 @@ export async function fetchPoolChartData(
         signal,
         params: {
           path: {
-            protocol,
+            protocol: isInfinityProtocol(protocol) ? (protocol as InfinityProtocol) : Protocol.V3,
             chainName,
             address,
           },
@@ -54,7 +54,7 @@ export async function fetchPoolChartData(
         signal,
         params: {
           path: {
-            protocol,
+            protocol: isInfinityProtocol(protocol) ? (protocol as InfinityProtocol) : Protocol.V3,
             chainName,
             address,
           },

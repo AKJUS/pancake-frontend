@@ -67,6 +67,7 @@ export const PositionCard = ({ data, poolLength, allInfinityPositions }: Positio
     case Protocol.V2:
       return <V2PositionItem data={data as V2LPDetail} poolLength={poolLength} />
     case Protocol.STABLE:
+    case Protocol.InfinitySTABLE:
       return <StablePositionItem data={data as StableLPDetail} poolLength={poolLength} />
     default:
       return null

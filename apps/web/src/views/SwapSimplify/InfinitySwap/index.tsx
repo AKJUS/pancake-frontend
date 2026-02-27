@@ -50,6 +50,7 @@ export const InfinitySwapForm = memo(() => {
     () => (bestOrder?.trade ? SmartRouter.getExecutionPrice(bestOrder.trade as any) : undefined),
     [bestOrder?.trade],
   )
+
   const isPriceImpactTooHigh = useIsPriceImpactTooHigh(!tradeError ? bestOrder : undefined, !tradeLoaded)
 
   const commitHooks = useMemo(() => {

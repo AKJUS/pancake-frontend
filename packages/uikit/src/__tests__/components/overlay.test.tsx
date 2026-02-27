@@ -12,7 +12,7 @@ it("renders correctly", () => {
       left: 0px;
       width: 100%;
       height: 100%;
-      background-color: var(--colors-text99);
+      background-color: var(--colors-backgroundOverlay);
       z-index: 20;
       will-change: opacity;
       animation: dHqLl 350ms ease forwards;

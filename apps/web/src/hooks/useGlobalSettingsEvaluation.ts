@@ -14,6 +14,7 @@ import { useUserChart } from 'state/user/hooks/useUserChart'
 import { useUserTokenRisk } from 'state/user/hooks/useUserTokenRisk'
 import {
   useUserInfinitySwapEnable,
+  useUserInfinityStableSwapEnable,
   useUserSplitRouteEnable,
   useUserStableSwapEnable,
   useUserV2SwapEnable,
@@ -51,6 +52,7 @@ export function useGlobalSettingsEvaluation() {
   const [v2Enable] = useUserV2SwapEnable()
   const [v3Enable] = useUserV3SwapEnable()
   const [infinityEnable] = useUserInfinitySwapEnable()
+  const infinityStableEnable = useUserInfinityStableSwapEnable()
   const [split] = useUserSplitRouteEnable()
   const [singleHopOnly] = useUserSingleHopOnly()
   const [speedQuote] = useSpeedQuote()
@@ -58,6 +60,7 @@ export function useGlobalSettingsEvaluation() {
   useFeatureFlagEvaluation('global-settings-routing-v2', v2Enable)
   useFeatureFlagEvaluation('global-settings-routing-v3', v3Enable)
   useFeatureFlagEvaluation('global-settings-routing-infinity', infinityEnable)
+  useFeatureFlagEvaluation('global-settings-routing-infinity-stable', infinityStableEnable)
   useFeatureFlagEvaluation('global-settings-routing-split', split)
   useFeatureFlagEvaluation('global-settings-routing-single-hop', singleHopOnly)
   useFeatureFlagEvaluation('global-settings-speed-quote', speedQuote)

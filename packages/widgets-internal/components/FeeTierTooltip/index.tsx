@@ -63,6 +63,8 @@ export const FeeTierTooltip: React.FC<FeeTierTooltipProps> = ({ type, dynamic, p
         ? "SS"
         : [Protocol.InfinityBIN, Protocol.InfinityCLAMM].includes(type)
         ? "Infinity"
+        : type === Protocol.InfinitySTABLE
+        ? "Infinity SS"
         : type,
     [type]
   );

@@ -2,10 +2,13 @@ import { type Pool, type Route, type Trade, toSerializableTrade } from '@pancake
 import {
   createInfinityBinPool,
   createInfinityCLPool,
+  createInfinityStablePool,
   isInfinityBinPool,
   isInfinityCLPool,
+  isInfinityStablePool,
   toSerializableInfinityBinPool,
   toSerializableInfinityCLPool,
+  toSerializableInfinityStablePool,
 } from '@pancakeswap/routing-sdk-addon-infinity'
 import { createStablePool, isStablePool, toSerializableStablePool } from '@pancakeswap/routing-sdk-addon-stable-swap'
 import { createV2Pool, isV2Pool, toSerializableV2Pool } from '@pancakeswap/routing-sdk-addon-v2'
@@ -35,6 +38,11 @@ export function toRoutingSDKPool(p: SmartRouterPool): Pool {
   if (SmartRouter.isInfinityBinPool(p)) {
     return createInfinityBinPool(p)
   }
+
+  if (SmartRouter.isInfinityStablePool(p)) {
+    return createInfinityStablePool(p)
+  }
+
   throw new Error(`Unsupported pool type: ${p}`)
 }
 
@@ -69,6 +77,14 @@ export function toSmartRouterPool(p: any): SmartRouterPool {
       type: PoolType.InfinityBIN,
     }
   }
+
+  if (isInfinityStablePool(p)) {
+    return {
+      ...p.getPoolData(),
+      type: PoolType.InfinityStable,
+    }
+  }
+
   throw new Error('Unrecognized pool type')
 }
 
@@ -135,7 +151,15 @@ export function toSerializableInfinityTrade(
           type: PoolType.InfinityBIN,
         }
       }
-      throw new Error('Unknown pool type')
+
+      if (isInfinityStablePool(p)) {
+        return {
+          ...toSerializableInfinityStablePool(p),
+          type: PoolType.InfinityStable,
+        }
+      }
+
+      throw new Error('[toSerializableInfinityTrade]: Unknown pool type')
     },
   })
   return {

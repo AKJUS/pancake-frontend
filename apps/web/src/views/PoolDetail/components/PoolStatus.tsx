@@ -3,22 +3,19 @@ import { Protocol } from '@pancakeswap/farms'
 import { useTranslation } from '@pancakeswap/localization'
 import { AutoColumn, AutoRow, Button, Card, CardBody, CardProps, Column, Flex, Text } from '@pancakeswap/uikit'
 import BigNumber from 'bignumber.js'
-import { CHAIN_QUERY_NAME } from 'config/chains'
-import { PERSIST_CHAIN_KEY } from 'config/constants'
-import { DISABLED_ADD_LIQUIDITY_CHAINS, getAddInfinityLiquidityURL } from 'config/constants/liquidity'
+import { DISABLED_ADD_LIQUIDITY_CHAINS } from 'config/constants/liquidity'
 import { useMemo } from 'react'
 import { useStableSwapPairsByChainId } from 'state/farmsV4/state/accountPositions/hooks'
-import { InfinityPoolInfo, PoolInfo } from 'state/farmsV4/state/type'
+import { PoolInfo } from 'state/farmsV4/state/type'
 import { isAddressEqual } from 'utils'
-import { addQueryToPath } from 'utils/addQueryToPath'
 import { getLpFeesAndApr } from 'utils/getLpFeesAndApr'
 import { getPercentChange } from 'utils/infoDataHelpers'
 import { isInfinityProtocol } from 'utils/protocols'
 import { Address } from 'viem'
 import { formatDollarAmount } from 'views/V3Info/utils/numbers'
 import { NextLinkFromReactRouter } from '@pancakeswap/widgets-internal'
-import { NATIVE, WNATIVE } from '@pancakeswap/sdk'
 import { getPoolAddLiquidityLink } from 'utils/getPoolLink'
+import { useInfinityStableFee } from 'views/StableInfinity/hooks/useInfinityStableFee'
 import { ChangePercent } from './ChangePercent'
 import { PoolTokens } from './PoolTokens'
 
@@ -28,6 +25,13 @@ type PoolStatusProps = {
 export const PoolStatus: React.FC<PoolStatusProps> = ({ poolInfo, ...props }) => {
   const { t } = useTranslation()
   const pairs = useStableSwapPairsByChainId(poolInfo?.chainId ?? ChainId.BSC, poolInfo?.protocol === 'stable')
+
+  const isInfinityStable = poolInfo?.protocol === Protocol.InfinitySTABLE
+  const infinityStableTotalFee = useInfinityStableFee({
+    chainId: poolInfo?.chainId,
+    hookAddress: poolInfo?.lpAddress,
+    enabled: isInfinityStable,
+  })
 
   const tvlChange = useMemo(() => {
     if (!poolInfo) return null
@@ -45,6 +49,11 @@ export const PoolStatus: React.FC<PoolStatusProps> = ({ poolInfo, ...props }) =>
 
   const fee24hUsd = useMemo(() => {
     if (!poolInfo) return 0
+    if (poolInfo.protocol === Protocol.InfinitySTABLE) {
+      if (infinityStableTotalFee === null) return 0
+      // Similar to StableSwap
+      return new BigNumber(infinityStableTotalFee).times(poolInfo.vol24hUsd ?? 0).toNumber()
+    }
     if (isInfinityProtocol(poolInfo.protocol) && poolInfo.lpFee24hUsd) {
       return parseFloat(poolInfo.lpFee24hUsd)
     }
@@ -67,7 +76,7 @@ export const PoolStatus: React.FC<PoolStatusProps> = ({ poolInfo, ...props }) =>
     if (!stablePair) return 0
 
     return new BigNumber(stablePair.stableTotalFee).times(poolInfo.vol24hUsd ?? 0).toNumber()
-  }, [pairs, poolInfo])
+  }, [pairs, poolInfo, infinityStableTotalFee])
 
   const addLiquidityLink = useMemo(() => {
     if (!poolInfo) return ''

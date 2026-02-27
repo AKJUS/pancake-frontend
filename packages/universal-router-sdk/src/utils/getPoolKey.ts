@@ -27,7 +27,8 @@ export const getPoolKey = (pool: InfinityBinPool | InfinityClPool): PoolKey => {
 
   const hooksRegistration =
     pool.hooksRegistrationBitmap !== undefined ? decodeHooksRegistration(pool.hooksRegistrationBitmap) : undefined
-  if (SmartRouter.isInfinityClPool(pool)) {
+
+  if (SmartRouter.isInfinityClPool(pool) || SmartRouter.isInfinityStablePool(pool)) {
     const params: CLPoolParameter = {
       tickSpacing: pool.tickSpacing,
       hooksRegistration,

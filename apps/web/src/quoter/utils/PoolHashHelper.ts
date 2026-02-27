@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Currency, getCurrencyAddress, sortCurrencies } from '@pancakeswap/swap-sdk-core'
 import { keccak256, stringify } from 'viem/utils'
-import { PoolQuery, QuoteQuery, StrategyQuery, SVMQuoteQuery } from '../quoter.types'
+import { PoolQuery, QuoteQuery, StrategyQuery } from '../quoter.types'
 
 export class PoolHashHelper {
   static hashCurrenciesWithSort(a?: Currency, b?: Currency) {
@@ -75,11 +75,11 @@ export class PoolHashHelper {
   }
 
   static hashPlaceHolderQuoteQuery = (query: Omit<QuoteQuery, 'hash' | 'createTime'>) => {
-    const { amount, currency, nonce, infinitySwap, v2Swap, v3Swap, stableSwap } = query
+    const { amount, currency, nonce, infinitySwap, infinityStableSwap, v2Swap, v3Swap, stableSwap } = query
     const chainId = query.baseCurrency?.chainId
     // NOTE: Support for cross-chain quotes
     const destinationChainId = query.currency?.chainId
-    const rest = { nonce, infinitySwap, v2Swap, v3Swap, stableSwap }
+    const rest = { nonce, infinitySwap, infinityStableSwap, v2Swap, v3Swap, stableSwap }
     const restHash = keccak256(`0x${stringify(rest)}:${chainId}:${destinationChainId}`)
     const hashCurrencies = PoolHashHelper.hashCurrencies(amount?.currency, currency || undefined)
     const prts = [amount?.toExact(), hashCurrencies, restHash]
