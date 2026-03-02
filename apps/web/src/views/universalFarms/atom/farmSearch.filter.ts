@@ -192,10 +192,11 @@ const searchFilter = (_search: string) => {
 
     const clamm = pool.type === PoolType.InfinityCL ? 'clamm' : ''
     const lbamm = pool.type === PoolType.InfinityBIN ? 'lbamm' : ''
-    const isInfinity = pool.type === PoolType.InfinityCL || pool.type === PoolType.InfinityBIN
-    const dynamic = isInfinity && farm.isDynamicFee
+    const isInfinity =
+      pool.type === PoolType.InfinityCL || pool.type === PoolType.InfinityBIN || pool.type === PoolType.InfinityStable
+    const dynamic = (pool.type === PoolType.InfinityCL || pool.type === PoolType.InfinityBIN) && farm.isDynamicFee
     const infinity = isInfinity ? 'infinity' : ''
-    const stable = pool.type === PoolType.STABLE ? 'stable' : ''
+    const stable = pool.type === PoolType.STABLE || pool.type === PoolType.InfinityStable ? 'stable' : ''
     const v2 = pool.type === PoolType.V2 ? 'v2' : ''
     const v3 = pool.type === PoolType.V3 ? 'v3' : ''
 

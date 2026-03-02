@@ -18,6 +18,7 @@ import {
   PreTitle,
   Text,
   Toggle,
+  useMatchBreakpoints,
   useTooltip,
 } from '@pancakeswap/uikit'
 import { LightGreyCard } from 'components/Card'
@@ -87,6 +88,8 @@ interface PresetModalProps {
 const PresetModal: React.FC<PresetModalProps> = ({ isOpen, onDismiss, selectedPreset, onSelectPreset }) => {
   const { t } = useTranslation()
 
+  const { isTablet } = useMatchBreakpoints()
+
   const presets = useMemo(
     () => [
       {
@@ -118,14 +121,10 @@ const PresetModal: React.FC<PresetModalProps> = ({ isOpen, onDismiss, selectedPr
 
   return (
     <ModalV2 isOpen={isOpen} onDismiss={onDismiss} closeOnOverlayClick>
-      <Modal title="Select Preset" onDismiss={onDismiss} maxWidth="480px">
+      <Modal title="Select Preset" onDismiss={onDismiss} maxWidth={isTablet ? '100%' : '480px'}>
         <AutoColumn gap="16px">
           {presets.map((preset) => (
-            <LightGreyCard
-              key={preset.id}
-              style={{ cursor: 'pointer', minWidth: '438px' }}
-              onClick={() => handleSelectPreset(preset.id)}
-            >
+            <LightGreyCard key={preset.id} style={{ cursor: 'pointer' }} onClick={() => handleSelectPreset(preset.id)}>
               <Flex alignItems="center">
                 <Box style={{ flex: 1 }}>
                   <PreTitle fontSize="16px" textTransform="capitalize">
