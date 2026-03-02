@@ -2,17 +2,53 @@ import { AutoColumn, AutoRow, Box, FlexGap, Text } from '@pancakeswap/uikit'
 import styled, { useTheme } from 'styled-components'
 import useResolvedTheme from 'hooks/useTheme'
 import { formatAmount } from '@pancakeswap/utils/formatInfoNumbers'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Bar, BarChart, ResponsiveContainer, XAxis, ReferenceLine, ReferenceArea, Label, YAxis } from 'recharts'
 import { formatNumber } from '@pancakeswap/utils/formatNumber'
 import { useTranslation } from '@pancakeswap/localization'
 import { ErrorText } from '../../shared/styled'
+
+/** Sanity bounds for price values to filter corrupted data (PAN-10696) */
+const SANE_PRICE_MIN = 1e-18
+const SANE_PRICE_MAX = 1e18
+
+function isSanePrice(price: number): boolean {
+  return Number.isFinite(price) && (price === 0 || (price >= SANE_PRICE_MIN && price <= SANE_PRICE_MAX))
+}
+
+/** Zoom scale multipliers: <1 zooms in (narrower range), >1 zooms out (wider range) */
+const ZOOM_SCALES = [0.5, 1, 2, 4, 8]
+const DEFAULT_ZOOM_INDEX = 1 // index 1 = 1x (current default behavior)
 
 export interface ChartEntry {
   liquidity: number
   price0: number
   price1: number
   tick: number
+}
+
+/** Minimum bar width in pixels for visibility when chart is highly zoomed out */
+const MIN_BAR_WIDTH_PX = 1
+
+/** Custom bar shape that enforces minimum width for visibility when chart is zoomed out */
+function LiquidityBarShape({
+  x,
+  y,
+  width,
+  height,
+  fill,
+}: {
+  x: number
+  y: number
+  width: number
+  height: number
+  fill: string
+}) {
+  const barWidth = Math.max(width, MIN_BAR_WIDTH_PX)
+  const barHeight = Math.max(height, MIN_BAR_WIDTH_PX)
+  // Center the bar when we've increased width beyond original
+  const adjustedX = width < MIN_BAR_WIDTH_PX ? x - (barWidth - width) / 2 : x
+  return <rect x={adjustedX} y={y} width={barWidth} height={barHeight} fill={fill} rx={2} ry={2} />
 }
 
 interface PositionChartV2Props {
@@ -53,6 +89,18 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
   const { t } = useTranslation()
   const [renderError, setRenderError] = useState(false)
 
+  // Zoom state: controls how much of the price range is visible
+  const [zoomIndex, setZoomIndex] = useState(DEFAULT_ZOOM_INDEX)
+  const zoomScale = ZOOM_SCALES[zoomIndex]
+
+  const handleZoomIn = useCallback(() => {
+    setZoomIndex((prev) => Math.max(0, prev - 1))
+  }, [])
+
+  const handleZoomOut = useCallback(() => {
+    setZoomIndex((prev) => Math.min(ZOOM_SCALES.length - 1, prev + 1))
+  }, [])
+
   // Reset error state when data changes
   useEffect(() => {
     if (renderError) {
@@ -61,33 +109,47 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
   }, [chartData, tickLower, tickUpper, tickCurrent, renderError])
   const theme = useTheme()
   const { isDark } = useResolvedTheme()
+  const gradientId = useId()
 
   // Filter data to position range +/- margin for better visualization
   const formattedData = useMemo(() => {
     try {
       if (!chartData || chartData.length === 0) return []
 
+      // Filter out insane prices from chart data (PAN-10696)
+      const priceKey = baseIn ? 'price0' : 'price1'
+      const sanitizedData = chartData.filter((item) => {
+        const price = item[priceKey]
+        return isSanePrice(price)
+      })
+
+      if (sanitizedData.length === 0) {
+        console.warn('[PositionChartV2] All chart data filtered out as insane')
+        return []
+      }
+      const dataToUse = sanitizedData
+
       // Special handling for full range: center data around current tick
       if (isFullRange) {
-        // Show data around the current tick
-        const marginTicks = 500
+        // Show data around the current tick, scaled by zoom
+        const marginTicks = Math.round(500 * zoomScale)
         const minTick = tickCurrent - marginTicks
         const maxTick = tickCurrent + marginTicks
 
-        let filteredData = chartData.filter((item) => {
+        let filteredData = dataToUse.filter((item) => {
           return item.tick >= minTick && item.tick <= maxTick
         })
 
         // If no data found, expand the range
         if (filteredData.length === 0) {
-          const expandedMargin = 150
-          filteredData = chartData.filter((item) => {
+          const expandedMargin = Math.round(150 * zoomScale)
+          filteredData = dataToUse.filter((item) => {
             return item.tick >= tickCurrent - expandedMargin && item.tick <= tickCurrent + expandedMargin
           })
 
           // Last resort: use all data
           if (filteredData.length === 0) {
-            filteredData = chartData
+            filteredData = dataToUse
           }
         }
 
@@ -98,15 +160,15 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
       const currentRange = tickUpper - tickLower
 
       // For very narrow ranges, use a larger relative margin to ensure visibility
-      // For wider ranges, use the standard margin
+      // For wider ranges, use the standard margin, scaled by zoom
       const minMarginTicks = 50 // Minimum margin in ticks for narrow ranges
-      const relativeMargin = Math.max(currentRange * 0.3, minMarginTicks)
+      const relativeMargin = Math.max(currentRange * 0.3, minMarginTicks) * zoomScale
 
       const minTick = tickLower - relativeMargin
       const maxTick = tickUpper + relativeMargin
 
       // Filter data to the range we want to display
-      let filteredData = chartData.filter((item) => {
+      let filteredData = dataToUse.filter((item) => {
         return item.tick >= minTick && item.tick <= maxTick
       })
 
@@ -114,14 +176,14 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
       // This can happen with very narrow ranges or when tick data is sparse
       if (filteredData.length === 0) {
         // Find the closest data points to the position range
-        const expandedMargin = Math.max(currentRange * 2, 200) // Much larger margin for fallback
-        filteredData = chartData.filter((item) => {
+        const expandedMargin = Math.max(currentRange * 2, 200) * zoomScale // Much larger margin for fallback
+        filteredData = dataToUse.filter((item) => {
           return item.tick >= tickLower - expandedMargin && item.tick <= tickUpper + expandedMargin
         })
 
         // If still no data, just use all available data (last resort)
         if (filteredData.length === 0) {
-          filteredData = chartData
+          filteredData = dataToUse
         }
       }
 
@@ -131,12 +193,12 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
       setRenderError(true)
       return []
     }
-  }, [chartData, tickLower, tickUpper, baseIn, isFullRange, tickCurrent])
+  }, [chartData, tickLower, tickUpper, baseIn, isFullRange, tickCurrent, zoomScale])
 
   // Find x-axis positions for price boundaries and current price
   const [xLower, xCurrent, xUpper] = useMemo(() => {
     let dLower = formattedData.find((item) => item.tick === tickLower)
-    let dCurrent = formattedData.find((item) => item.tick === tickCurrent)
+    const dCurrentExact = formattedData.find((item) => item.tick === tickCurrent)
     let dUpper = formattedData.find((item) => item.tick === tickUpper)
 
     // Try to find the closest tick for lower boundary if exact match not found
@@ -147,9 +209,10 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
       dLower = closestData
     }
 
-    // Try to find the closest tick for current if exact match not found
-    if (!dCurrent && formattedData.length) {
-      const closestData = formattedData.reduce((acc, item) => {
+    // Try to find the closest tick for current if exact match not found (used only when priceCurrent is unavailable)
+    let dCurrentFallback: ChartEntry | undefined
+    if (!dCurrentExact && formattedData.length) {
+      dCurrentFallback = formattedData.reduce((acc, item) => {
         if (item.tick < tickCurrent) {
           return item.tick > acc.tick ? item : acc
         }
@@ -158,7 +221,6 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
         }
         return acc
       }, formattedData[0])
-      dCurrent = closestData
     }
 
     // Try to find the closest tick for upper boundary if exact match not found
@@ -175,18 +237,33 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
     const lowerPrice = baseIn ? priceLower : priceUpper > 0 ? 1 / priceUpper : priceLower
     const upperPrice = baseIn ? priceUpper : priceLower > 0 ? 1 / priceLower : priceUpper
 
-    // For current price, use data if available (for better accuracy), otherwise use prop
-    const currentPrice = baseIn ? dCurrent?.price0 ?? priceCurrent : dCurrent?.price1 ?? priceCurrent
+    // For current price: prefer priceCurrent prop when valid (fixes PAN-10588)
+    // - Prefer prop over data when valid: avoids wrong value from inexact tick match (e.g. Bin uses index as tick)
+    // - Convert to display format: priceCurrent is always price0; when !baseIn we need price1 = 1/priceCurrent
+    // - Supports price=0 when baseIn (can't invert 0 when !baseIn)
+    const dCurrent = dCurrentExact ?? dCurrentFallback
+    const currentPriceFromData = baseIn ? dCurrent?.price0 : dCurrent?.price1
+    const hasValidProp =
+      priceCurrent != null && Number.isFinite(priceCurrent) && (baseIn ? priceCurrent >= 0 : priceCurrent > 0)
+    const currentPrice = hasValidProp
+      ? baseIn
+        ? priceCurrent
+        : 1 / priceCurrent
+      : currentPriceFromData ?? (baseIn ? priceCurrent : priceCurrent > 0 ? 1 / priceCurrent : undefined)
 
     return [lowerPrice, currentPrice, upperPrice]
   }, [formattedData, tickCurrent, tickLower, tickUpper, baseIn, priceLower, priceUpper, priceCurrent])
 
-  // Format current price for display - use xCurrent from chart data, not the raw priceCurrent prop
+  // Format current price for display - use subscript for very small numbers (like PriceRangeDisplay), never round to blank
   const formattedCurrentPrice = useMemo(() => {
-    if (!xCurrent) return undefined
-    return Number(xCurrent) < 1
-      ? formatNumber(xCurrent, { maximumDecimalTrailingZeroes: 4 })
-      : formatNumber(xCurrent, { maxDecimalDisplayDigits: 2 })
+    if (xCurrent == null || !Number.isFinite(Number(xCurrent))) return undefined
+    const num = Number(xCurrent)
+    // Reject insane current prices (PAN-10696)
+    if (!isSanePrice(num)) return undefined
+    if (num === 0) return '0'
+
+    // Simple formatting: always show 4 decimals for prices
+    return num.toFixed(4)
   }, [xCurrent])
 
   // Determine range color (green if in range, red if out of range)
@@ -210,23 +287,27 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
   const xAxisDomain = useMemo(() => {
     const priceKey = baseIn ? 'price0' : 'price1'
 
-    // Special handling for full range positions: center around current price
-    if (isFullRange && priceCurrent && priceCurrent > 0) {
-      // Show a window around the current price (±10% by default)
-      const rangeMultiplier = 0.1 // 10% on each side = 20% total range
-      const windowSize = priceCurrent * rangeMultiplier
+    // Reject insane priceCurrent for domain calculation (PAN-10696)
+    const displayCurrentPrice = baseIn ? priceCurrent : priceCurrent > 0 ? 1 / priceCurrent : 0
+    const hasValidCurrentPrice = displayCurrentPrice >= 0 && isSanePrice(displayCurrentPrice)
 
-      let minPrice = priceCurrent - windowSize
-      let maxPrice = priceCurrent + windowSize
+    // Special handling for full range positions: center around current price
+    if (isFullRange && hasValidCurrentPrice) {
+      // Show a window around the current price, scaled by zoom
+      const rangeMultiplier = 0.1 * zoomScale // 10% on each side at 1x zoom
+      const windowSize = displayCurrentPrice * rangeMultiplier
+
+      let minPrice = displayCurrentPrice - windowSize
+      let maxPrice = displayCurrentPrice + windowSize
 
       // If we have chart data, expand the window to include nearby data points
       if (formattedData.length > 0) {
-        const dataPrices = formattedData.map((d) => d[priceKey]).filter((p) => p > 0)
+        const dataPrices = formattedData.map((d) => d[priceKey]).filter((p) => p > 0 && isSanePrice(p))
         if (dataPrices.length > 0) {
-          // Find data points within a larger window (±15%) for better coverage
-          const largerWindow = priceCurrent * 0.15
+          // Find data points within a larger window, scaled by zoom
+          const largerWindow = displayCurrentPrice * 0.15 * zoomScale
           const relevantPrices = dataPrices.filter(
-            (p) => p >= priceCurrent - largerWindow && p <= priceCurrent + largerWindow,
+            (p) => p >= displayCurrentPrice - largerWindow && p <= displayCurrentPrice + largerWindow,
           )
 
           if (relevantPrices.length > 0) {
@@ -255,7 +336,7 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
         return undefined
       }
 
-      const dataPrices = formattedData.map((d) => d[priceKey]).filter((p) => p > 0)
+      const dataPrices = formattedData.map((d) => d[priceKey]).filter((p) => p > 0 && isSanePrice(p))
       if (dataPrices.length === 0) {
         return undefined
       }
@@ -265,8 +346,14 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
       const range = maxDataPrice - minDataPrice
       const padding = range > 0 ? range * 0.1 : minDataPrice * 0.1 // 10% padding, handle zero range
 
-      const domainMin = Math.max(0, minDataPrice - padding)
-      const domainMax = maxDataPrice + padding
+      let domainMin = Math.max(0, minDataPrice - padding)
+      let domainMax = maxDataPrice + padding
+
+      // Include current price in domain when valid (fixes PAN-10588, supports price=0)
+      if (hasValidCurrentPrice) {
+        if (displayCurrentPrice < domainMin) domainMin = Math.max(0, displayCurrentPrice - padding)
+        if (displayCurrentPrice > domainMax) domainMax = displayCurrentPrice + padding
+      }
 
       return [domainMin, domainMax]
     }
@@ -287,18 +374,11 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
     let minDataPrice = sortedLower
     let maxDataPrice = sortedUpper
 
-    // If we have data, include it but only if it's within a reasonable range
+    // If we have data, include it in the domain calculation
+    // IMPORTANT: Don't filter data prices here - if data passed the tick filter in formattedData,
+    // we need to include it in the domain to ensure it's visible (fixes PAN-10587)
     if (formattedData.length > 0) {
-      // For narrow ranges, allow more data to show context
-      // For wider ranges, stick to 2x position range
-      const rangeMultiplier = isNarrowRange ? 5 : 2
-      const maxReasonableRange = Math.max(positionRange * rangeMultiplier, sortedLower * 0.2)
-      const minReasonablePrice = sortedLower - maxReasonableRange
-      const maxReasonablePrice = sortedUpper + maxReasonableRange
-
-      const dataPrices = formattedData
-        .map((d) => d[priceKey])
-        .filter((p) => p > 0 && p >= minReasonablePrice && p <= maxReasonablePrice)
+      const dataPrices = formattedData.map((d) => d[priceKey]).filter((p) => p > 0 && isSanePrice(p))
 
       if (dataPrices.length > 0) {
         minDataPrice = Math.min(minDataPrice, ...dataPrices)
@@ -316,16 +396,103 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
     const paddingPercent = isNarrowRange ? 0.15 : 0.05 // 15% padding for narrow, 5% for normal
     const padding = range > 0 ? range * paddingPercent : overallMin * paddingPercent
 
-    const domainMin = Math.max(0, overallMin - padding) // Ensure non-negative
-    const domainMax = overallMax + padding
+    let domainMin = Math.max(0, overallMin - padding) // Ensure non-negative
+    let domainMax = overallMax + padding
+
+    // Ensure current price is included in domain when valid (fixes PAN-10588: purple line missing for some positions)
+    // Recharts clips ReferenceLine when x is outside the axis domain - expanding domain fixes this. Supports price=0.
+    if (hasValidCurrentPrice) {
+      if (displayCurrentPrice < domainMin) {
+        const extendPadding = (domainMax - displayCurrentPrice) * 0.1
+        domainMin = Math.max(0, displayCurrentPrice - extendPadding)
+      }
+      if (displayCurrentPrice > domainMax) {
+        const extendPadding = (displayCurrentPrice - domainMin) * 0.1
+        domainMax = displayCurrentPrice + extendPadding
+      }
+    }
 
     return [domainMin, domainMax]
-  }, [formattedData, priceLower, priceUpper, baseIn, isFullRange, priceCurrent])
+  }, [formattedData, priceLower, priceUpper, baseIn, isFullRange, priceCurrent, zoomScale])
+
+  // Calculate dynamic precision and minTickGap for X-axis to avoid duplicate/overlapping labels
+  const { xAxisTickPrecision, dynamicMinTickGap } = useMemo(() => {
+    if (!xAxisDomain || formattedData.length === 0)
+      return { xAxisTickPrecision: 2, dynamicMinTickGap: compact ? 20 : 30 }
+
+    const priceKey = baseIn ? 'price0' : 'price1'
+
+    // Get all unique prices that would be displayed as ticks
+    const prices = formattedData
+      .map((d) => d[priceKey])
+      .filter((p) => p > 0 && p >= xAxisDomain[0] && p <= xAxisDomain[1])
+      .sort((a, b) => a - b)
+
+    if (prices.length < 2) return { xAxisTickPrecision: 2, dynamicMinTickGap: compact ? 20 : 30 }
+
+    // Find the minimum difference between adjacent prices
+    let minDiff = Infinity
+    for (let i = 1; i < prices.length; i++) {
+      const diff = Math.abs(prices[i] - prices[i - 1])
+      if (diff > 0 && diff < minDiff) {
+        minDiff = diff
+      }
+    }
+
+    if (!Number.isFinite(minDiff) || minDiff === 0)
+      return { xAxisTickPrecision: 2, dynamicMinTickGap: compact ? 20 : 30 }
+
+    // Calculate precision needed to show the minimum difference
+    // Start with precision 2 and increase until adjacent values are distinguishable
+    let precision = 2
+    const maxPrecision = 8
+
+    // Test if current precision is sufficient
+    while (precision < maxPrecision) {
+      let allDistinct = true
+      const formatted = new Set<string>()
+
+      for (const price of prices) {
+        const formattedVal = formatAmount(price, { precision }) ?? String(price)
+        if (formatted.has(formattedVal)) {
+          allDistinct = false
+          break
+        }
+        formatted.add(formattedVal)
+      }
+
+      if (allDistinct) {
+        break
+      }
+
+      precision++
+    }
+
+    // Calculate dynamic minTickGap based on precision to prevent physical overlap
+    // Higher precision = longer labels = need more space between ticks
+    // Base: 30px for compact=false, 20px for compact=true
+    // Each digit beyond precision 2 adds ~5px of width (approximate)
+    const baseGap = compact ? 20 : 30
+    const precisionMultiplier = Math.max(1, precision - 2) // 0 for precision 2, 1 for precision 3, etc.
+    const calculatedGap = baseGap + precisionMultiplier * 8 // Add 8px per extra digit
+
+    return {
+      xAxisTickPrecision: precision,
+      dynamicMinTickGap: calculatedGap,
+    }
+  }, [xAxisDomain, formattedData, baseIn, compact])
 
   // State to track x-axis pixel positions for RangeBar
   const [x1, setX1] = useState<number | undefined>(undefined)
   const [x2, setX2] = useState<number | undefined>(undefined)
   const [x0, setX0] = useState<number | undefined>(undefined)
+
+  // Reset pixel positions when baseIn changes to avoid stale values from the old chart scale
+  useEffect(() => {
+    setX0(undefined)
+    setX1(undefined)
+    setX2(undefined)
+  }, [baseIn])
 
   if (renderError) {
     return <ErrorText>{t('Chart display error')}</ErrorText>
@@ -336,7 +503,7 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
   }
 
   return (
-    <Box width="100%">
+    <Box width="100%" position="relative">
       {!compact && !isFullRange && (
         <RangeBar x0={x0} x1={x1} x2={x2} xLower={xLower} xUpper={xUpper} rangeColor={rangeColor} baseIn={baseIn} />
       )}
@@ -353,16 +520,16 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
           }}
         >
           <defs>
-            <linearGradient id="liquidityGradient" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
               <stop
                 offset="5%"
-                stopColor={isDark ? 'rgba(168, 129, 252, 0.8)' : 'rgba(118, 69, 217, 0.8)'}
-                stopOpacity={0.8}
+                stopColor={isDark ? 'rgba(168, 129, 252, 0.95)' : 'rgba(118, 69, 217, 0.95)'}
+                stopOpacity={0.95}
               />
               <stop
                 offset="95%"
-                stopColor={isDark ? 'rgba(168, 129, 252, 0.3)' : 'rgba(118, 69, 217, 0.3)'}
-                stopOpacity={0.8}
+                stopColor={isDark ? 'rgba(168, 129, 252, 0.5)' : 'rgba(118, 69, 217, 0.5)'}
+                stopOpacity={0.95}
               />
             </linearGradient>
           </defs>
@@ -373,23 +540,33 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
             axisLine={false}
             tickLine={false}
             tick={{ fontSize: compact ? 10 : 12, fill: theme.colors.textSubtle }}
-            tickFormatter={(value) => formatAmount(value, { precision: 2 }) ?? ''}
-            minTickGap={compact ? 20 : 30}
+            tickFormatter={(value) => formatAmount(value, { precision: xAxisTickPrecision }) ?? ''}
+            minTickGap={dynamicMinTickGap}
             interval="preserveStartEnd"
             domain={xAxisDomain}
             allowDataOverflow
           />
           <YAxis hide axisLine={false} tickLine={false} domain={[0, maxY]} />
 
-          {/* Current price line with label */}
-          {xCurrent && (
+          {/* Current price line with label - show when we have valid current price (fixes PAN-10588) */}
+          {xCurrent != null && Number.isFinite(xCurrent) && isSanePrice(xCurrent) && (
             <>
-              <ReferenceLine x={xCurrent} stroke={theme.colors.secondary} strokeWidth={2}>
-                <Label
-                  value={formattedCurrentPrice ?? ''}
-                  position="top"
-                  style={{ fill: theme.colors.secondary, fontSize: compact ? '10px' : '12px', fontWeight: 'bold' }}
-                />
+              <ReferenceLine x={xCurrent} stroke={theme.colors.secondary} strokeWidth={2} strokeDasharray="3 3">
+                {formattedCurrentPrice && (
+                  <Label
+                    value={formattedCurrentPrice}
+                    position="top"
+                    offset={10}
+                    style={{
+                      fill: theme.colors.secondary,
+                      fontSize: compact ? '11px' : '12px',
+                      fontWeight: 'bold',
+                      stroke: 'white',
+                      strokeWidth: 0.5,
+                      paintOrder: 'stroke',
+                    }}
+                  />
+                )}
               </ReferenceLine>
               <ReferenceLine
                 x={xCurrent}
@@ -437,9 +614,32 @@ export const PositionChartV2: React.FC<PositionChartV2Props> = ({
           {!isFullRange && xLower && <ReferenceLine position="start" x={xLower} stroke={rangeColor} strokeWidth={2} />}
           {!isFullRange && xUpper && <ReferenceLine position="end" x={xUpper} stroke={rangeColor} strokeWidth={2} />}
 
-          <Bar dataKey="liquidity" fill="url(#liquidityGradient)" isAnimationActive={false} />
+          <Bar
+            dataKey="liquidity"
+            fill={`url(#${gradientId})`}
+            isAnimationActive={false}
+            minPointSize={MIN_BAR_WIDTH_PX}
+            shape={(props: { x?: number; y?: number; width?: number; height?: number; fill?: string }) => (
+              <LiquidityBarShape
+                x={props.x ?? 0}
+                y={props.y ?? 0}
+                width={props.width ?? 0}
+                height={props.height ?? 0}
+                fill={props.fill ?? `url(#${gradientId})`}
+              />
+            )}
+          />
         </BarChart>
       </ResponsiveContainer>
+      {/* Zoom controls */}
+      <ZoomControlsWrapper>
+        <ZoomButton onClick={handleZoomOut} disabled={zoomIndex >= ZOOM_SCALES.length - 1}>
+          −
+        </ZoomButton>
+        <ZoomButton onClick={handleZoomIn} disabled={zoomIndex <= 0}>
+          +
+        </ZoomButton>
+      </ZoomControlsWrapper>
       {/* Current price legend - hide in compact mode */}
       {!compact && token0Symbol && token1Symbol && (
         <AutoRow justifyContent="space-between" mt="8px">
@@ -498,29 +698,53 @@ const RangeBar = ({ x0, x1, x2, xLower, xUpper, rangeColor, baseIn }) => {
 }
 
 // Price range label component
-const PriceRangeLabel = ({ x1, x2, xLower, xUpper, baseIn }) => {
+const PriceRangeLabel = ({ x1, x2, xLower, xUpper, baseIn: _baseIn }) => {
   const leftRef = useRef<HTMLDivElement>(null)
   const rightRef = useRef<HTMLDivElement>(null)
   const [leftWidth, setLeftWidth] = useState<number | undefined>(undefined)
   const [rightWidth, setRightWidth] = useState<number | undefined>(undefined)
+
+  // Calculate precision needed to distinguish xLower and xUpper
+  const rangePrecision = useMemo(() => {
+    if (!xLower || !xUpper || xLower === xUpper) return 4
+
+    const diff = Math.abs(Number(xUpper) - Number(xLower))
+    if (diff === 0) return 4
+
+    // Calculate how many decimal places we need to show the difference
+    let precision = 2
+    const maxPrecision = 8
+
+    while (precision < maxPrecision) {
+      const lowerStr = formatNumber(Number(xLower), { maxDecimalDisplayDigits: precision })
+      const upperStr = formatNumber(Number(xUpper), { maxDecimalDisplayDigits: precision })
+
+      if (lowerStr !== upperStr) {
+        break
+      }
+      precision++
+    }
+
+    return Math.max(precision, 4) // Use at least 4 for readability
+  }, [xLower, xUpper])
 
   const displayMinPrice = useMemo(() => {
     // xLower is already adjusted for baseIn in the parent component
     const price = xLower
     if (!price) return '0'
     return Number(price) < 1
-      ? formatNumber(price, { maximumDecimalTrailingZeroes: 4 })
-      : formatNumber(price, { maxDecimalDisplayDigits: 4 })
-  }, [xLower])
+      ? formatNumber(price, { maximumDecimalTrailingZeroes: rangePrecision })
+      : formatNumber(price, { maxDecimalDisplayDigits: rangePrecision })
+  }, [xLower, rangePrecision])
 
   const displayMaxPrice = useMemo(() => {
     // xUpper is already adjusted for baseIn in the parent component
     const price = xUpper
     if (!price) return '∞'
     return Number(price) < 1
-      ? formatNumber(price, { maximumDecimalTrailingZeroes: 4 })
-      : formatNumber(price, { maxDecimalDisplayDigits: 4 })
-  }, [xUpper])
+      ? formatNumber(price, { maximumDecimalTrailingZeroes: rangePrecision })
+      : formatNumber(price, { maxDecimalDisplayDigits: rangePrecision })
+  }, [xUpper, rangePrecision])
 
   const intersected = useMemo(() => {
     if (!leftWidth || !rightWidth || !x1 || !x2) return false
@@ -560,6 +784,39 @@ const PriceRangeLabel = ({ x1, x2, xLower, xUpper, baseIn }) => {
     </Box>
   )
 }
+
+// Zoom controls styled components
+const ZoomControlsWrapper = styled.div`
+  position: absolute;
+  right: 8px;
+  bottom: -12px;
+  display: flex;
+  gap: 4px;
+  z-index: 1;
+`
+
+const ZoomButton = styled.button<{ disabled?: boolean }>`
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
+  opacity: ${({ disabled }) => (disabled ? 0.4 : 0.9)};
+  background-color: ${({ theme }) => theme.colors.backgroundAlt};
+  color: ${({ theme }) => theme.colors.text};
+  user-select: none;
+  padding: 0;
+
+  &:hover {
+    opacity: ${({ disabled }) => (disabled ? 0.4 : 0.6)};
+  }
+`
 
 // Styled components
 const TrackerBar = styled.div`

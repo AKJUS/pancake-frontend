@@ -18,6 +18,10 @@ export type PositionChartByProtocolProps = {
   poolId?: Address | string // Address for EVM chains, string for Solana
   /** When true, display prices as currency1 per currency0 instead of currency0 per currency1 */
   inverted?: boolean
+  /** Fallback priceLower when tick is unavailable (PAN-10696) */
+  priceLower?: number
+  /** Fallback priceUpper when tick is unavailable (PAN-10696) */
+  priceUpper?: number
 }
 
 /** Props for V3 liquidity distribution chart. Same inputs as Add Liquidity V3 density chart. */
@@ -56,6 +60,10 @@ export type InfinityCLPositionChartProps = {
   tickSpacing?: number
   /** When true, display prices as quoteCurrency per baseCurrency instead of baseCurrency per quoteCurrency */
   inverted?: boolean
+  /** Fallback priceLower when tick is unavailable (PAN-10696) */
+  priceLower?: number
+  /** Fallback priceUpper when tick is unavailable (PAN-10696) */
+  priceUpper?: number
 }
 
 /** Props for Infinity Bin liquidity distribution chart. Same inputs as Add Liquidity Infinity Bin. */
@@ -70,4 +78,8 @@ export type InfinityBinPositionChartProps = {
   tickSpacing?: number
   /** When true, display prices as quoteCurrency per baseCurrency instead of baseCurrency per quoteCurrency */
   inverted?: boolean
+  /** Fallback priceLower when tick is unavailable (PAN-10696) */
+  priceLower?: number
+  /** Fallback priceUpper when tick is unavailable (PAN-10696) */
+  priceUpper?: number
 }

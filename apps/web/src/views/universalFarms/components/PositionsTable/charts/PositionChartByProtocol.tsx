@@ -62,6 +62,8 @@ export function PositionChartByProtocol({
   chainId,
   poolId,
   inverted,
+  priceLower,
+  priceUpper,
 }: PositionChartByProtocolProps) {
   if (protocol === Protocol.V3) {
     // Handle Solana V3 positions with Solana-specific chart
@@ -98,6 +100,8 @@ export function PositionChartByProtocol({
         tickUpper={'tickUpper' in p ? p.tickUpper : undefined}
         tickSpacing={'tickSpacing' in p ? p.tickSpacing : undefined}
         inverted={inverted}
+        priceLower={priceLower}
+        priceUpper={priceUpper}
       />
     )
   }
@@ -114,6 +118,8 @@ export function PositionChartByProtocol({
         tickUpper={'tickUpper' in p ? (p.tickUpper as number) : undefined}
         tickSpacing={'tickSpacing' in p ? (p.tickSpacing as number) : undefined}
         inverted={inverted}
+        priceLower={priceLower}
+        priceUpper={priceUpper}
       />
     )
   }

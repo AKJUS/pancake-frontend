@@ -257,6 +257,8 @@ export const ExpandedRowContent: React.FC<ExpandedRowContentProps> = memo(
       tokenId,
       tickLower: _tickLower,
       tickUpper: _tickUpper,
+      priceLower: hookPriceLower,
+      priceUpper: hookPriceUpper,
       v3Pool,
       removed,
       outOfRange,
@@ -500,6 +502,8 @@ export const ExpandedRowContent: React.FC<ExpandedRowContentProps> = memo(
                     chainId={chainId}
                     poolId={poolId}
                     inverted={inverted}
+                    priceLower={hookPriceLower}
+                    priceUpper={hookPriceUpper}
                   />
                 )}
 
@@ -783,6 +787,28 @@ function useExpandedData(position: UnifiedPositionDetail) {
   const removed = infinityInfo.removed || v3Info.removed
   const outOfRange = infinityInfo.outOfRange || v3Info.outOfRange
 
+  // Extract priceLower/priceUpper as numbers for chart fallback (PAN-10696).
+  // useExtraInfinityPositionInfo returns Price objects; convert to numeric here.
+  const priceLower = useMemo(() => {
+    const price = infinityInfo.priceLower || v3Info.priceLower
+    if (!price) return undefined
+    try {
+      return parseFloat(price.toSignificant(8))
+    } catch {
+      return undefined
+    }
+  }, [infinityInfo.priceLower, v3Info.priceLower])
+
+  const priceUpper = useMemo(() => {
+    const price = infinityInfo.priceUpper || v3Info.priceUpper
+    if (!price) return undefined
+    try {
+      return parseFloat(price.toSignificant(8))
+    } catch {
+      return undefined
+    }
+  }, [infinityInfo.priceUpper, v3Info.priceUpper])
+
   return {
     currency0,
     currency1,
@@ -792,6 +818,8 @@ function useExpandedData(position: UnifiedPositionDetail) {
     tokenId,
     tickLower,
     tickUpper,
+    priceLower,
+    priceUpper,
     v3Pool: v3Info.pool ?? undefined,
     removed,
     outOfRange,

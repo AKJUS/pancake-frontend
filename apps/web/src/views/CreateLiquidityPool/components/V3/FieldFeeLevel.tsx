@@ -189,7 +189,7 @@ export const FieldFeeLevel: React.FC<FieldFeeLevelProps> = ({
         <Flex p="16px" flexDirection="row" justifyContent="space-between" alignItems="center">
           <Text>{t('Pick a fee tier')}</Text>
           <ScrollableDropdown trigger="click" items={renderItems}>
-            <MenuItem hoverColor="white">
+            <MenuItem>
               <Flex
                 flexDirection="row"
                 justifyContent="space-between"

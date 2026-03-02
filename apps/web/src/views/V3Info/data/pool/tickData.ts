@@ -1,9 +1,19 @@
 import { Protocol } from '@pancakeswap/farms'
-import { Token } from '@pancakeswap/sdk'
+import { Native, Token, WNATIVE } from '@pancakeswap/sdk'
 import { TickMath, tickToPrice } from '@pancakeswap/v3-sdk'
 import { explorerApiClient } from 'state/info/api/client'
 import { components } from 'state/info/api/schema'
-import { Address } from 'viem'
+import { Address, zeroAddress } from 'viem'
+import { isAddressEqual } from 'utils/safeGetAddress'
+
+/** Detect native token: Explorer API may return zero address or WNATIVE address for native ETH (PAN-10696) */
+function toCurrency(chainId: number, tokenData: { id: string; decimals: number; symbol: string }) {
+  const addr = tokenData.id as Address
+  if (isAddressEqual(addr, zeroAddress)) return Native.onChain(chainId)
+  const wnative = WNATIVE[chainId as keyof typeof WNATIVE]
+  if (wnative && isAddressEqual(addr, wnative.address as Address)) return Native.onChain(chainId)
+  return new Token(chainId, addr, tokenData.decimals, tokenData.symbol)
+}
 
 const PRICE_FIXED_DIGITS = 8
 const DEFAULT_SURROUNDING_TICKS = 300
@@ -130,8 +140,10 @@ export const fetchTicksSurroundingPrice = async ({
       },
     )
 
-    const token0 = new Token(chainId, poolData.token0.id as Address, poolData.token0.decimals, poolData.token0.symbol)
-    const token1 = new Token(chainId, poolData.token1.id as Address, poolData.token1.decimals, poolData.token1.symbol)
+    // Use Native for zero or WNATIVE addresses - Explorer API may return wrong decimals
+    // for native tokens, causing tickToPrice to produce wildly incorrect values (PAN-10696)
+    const token0 = toCurrency(chainId, poolData.token0)
+    const token1 = toCurrency(chainId, poolData.token1)
     // console.log({ activeTickIdx, poolCurrentTickIdx }, 'Active ticks')
 
     // If the pool's tick is MIN_TICK (-887272), then when we find the closest

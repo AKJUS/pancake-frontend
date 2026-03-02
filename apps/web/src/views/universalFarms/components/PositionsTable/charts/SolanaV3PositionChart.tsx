@@ -103,23 +103,27 @@ export function SolanaV3PositionChart({
     }
   }, [safeTickLower, safeTickUpper, poolInfo?.config?.tickSpacing])
 
-  // Calculate prices using the same method as the chart data API for consistency
-  // This ensures range boundaries align correctly with chart data points
+  // Calculate prices using the same method as the chart data API for consistency.
+  // Always compute in baseIn=true (price0) format — PositionChartV2 handles inversion
+  // internally when baseIn=false. Using baseIn here would cause double-inversion:
+  // the Solana chart would pre-invert, then PositionChartV2 would invert again,
+  // putting reference lines/domain back in the price0 range while the XAxis shows
+  // price1 values. (PAN-10584)
   const { priceLower, priceUpper, priceCurrent } = useMemo(() => {
     if (!poolInfo || safeTickLower === undefined || safeTickUpper === undefined) {
       return { priceLower: 0, priceUpper: 0, priceCurrent: 0 }
     }
 
-    const lower = getTickPriceNumber(safeTickLower, poolInfo, baseIn)
-    const upper = getTickPriceNumber(safeTickUpper, poolInfo, baseIn)
-    const current = getTickPriceNumber(safeTickCurrent ?? 0, poolInfo, baseIn)
+    const lower = getTickPriceNumber(safeTickLower, poolInfo, true)
+    const upper = getTickPriceNumber(safeTickUpper, poolInfo, true)
+    const current = getTickPriceNumber(safeTickCurrent ?? 0, poolInfo, true)
 
     return {
       priceLower: lower,
       priceUpper: upper,
       priceCurrent: current,
     }
-  }, [poolInfo, safeTickLower, safeTickUpper, safeTickCurrent, baseIn])
+  }, [poolInfo, safeTickLower, safeTickUpper, safeTickCurrent])
 
   if (error) {
     return (
