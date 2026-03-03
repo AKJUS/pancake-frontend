@@ -229,8 +229,13 @@ export const ActionPanelV3: FC<ActionPanelV3Props> = ({
   const { hasMerkl, merklApr } = useMerklInfo(farm?.lpAddress)
   const merklLink = getMerklLink({ hasMerkl, chainId, lpAddress: farm?.lpAddress, poolProtocol: Protocol.V3 })
   const merklUserLink = useMerklUserLink()
-  const { incentraApr, hasIncentra } = useIncentraInfo(farm.lpAddress)
-  const incentraLink = getIncentraLink({ hasIncentra, chainId, lpAddress: farm.lpAddress })
+  const { incentraApr, hasIncentra, incentraCampaignType } = useIncentraInfo(farm.lpAddress)
+  const incentraLink = getIncentraLink({
+    hasIncentra,
+    chainId,
+    lpAddress: farm.lpAddress,
+    campaignType: incentraCampaignType,
+  })
   const isActive = farm.multiplier !== '0X'
   const lpLabel = useMemo(() => farm.lpSymbol && farm.lpSymbol.replace(/pancake/gi, ''), [farm.lpSymbol])
   const bsc = useMemo(

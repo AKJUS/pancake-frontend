@@ -18,7 +18,7 @@ import { publicClient } from 'utils/wagmi'
 import { erc20Abi } from 'viem'
 
 import { ChainId, isEvm } from '@pancakeswap/chains'
-import { INCENTRA_API, IncentraCampaign } from 'hooks/useIncentra'
+import { INCENTRA_API, INCENTRA_CAMPAIGN_TYPES, IncentraCampaign } from 'hooks/useIncentra'
 import { ChainIdAddressKey, InfinityPoolInfo, PoolInfo, StablePoolInfo, V2PoolInfo, V3PoolInfo } from '../type'
 import { CakeApr, IncentraApr, MerklApr } from './atom'
 
@@ -181,7 +181,7 @@ export const getAllNetworkIncentraApr = async (signal?: AbortSignal) => {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      campaign_type: [3, 4],
+      campaign_type: INCENTRA_CAMPAIGN_TYPES,
       status: [4], // ACTIVE
     }),
     signal,

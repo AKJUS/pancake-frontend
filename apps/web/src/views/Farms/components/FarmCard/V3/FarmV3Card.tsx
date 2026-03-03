@@ -67,8 +67,8 @@ export const FarmV3Card: React.FC<React.PropsWithChildren<FarmCardProps>> = ({ f
   const merklUserLink = useMerklUserLink()
   const { hasMerkl, merklApr } = useMerklInfo(lpAddress)
   const merklLink = getMerklLink({ hasMerkl, chainId, lpAddress, poolProtocol: Protocol.V3 })
-  const { incentraApr, hasIncentra } = useIncentraInfo(lpAddress)
-  const incentraLink = getIncentraLink({ hasIncentra, chainId, lpAddress })
+  const { incentraApr, hasIncentra, incentraCampaignType } = useIncentraInfo(lpAddress)
+  const incentraLink = getIncentraLink({ hasIncentra, chainId, lpAddress, campaignType: incentraCampaignType })
   const infoUrl = useMemo(() => {
     return chainId ? `/info/v3${multiChainPaths[chainId]}/pairs/${lpAddress}?chain=${CHAIN_QUERY_NAME[chainId]}` : ''
   }, [chainId, lpAddress])

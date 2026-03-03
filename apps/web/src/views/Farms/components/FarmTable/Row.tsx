@@ -158,8 +158,13 @@ const Row: React.FunctionComponent<React.PropsWithChildren<RowPropsWithLoading>>
     () => Boolean(merklLink) && isAddressEqual(farm?.lpAddress, '0x2201d2400d30BFD8172104B4ad046d019CA4E7bd'),
     [farm?.lpAddress, merklLink],
   )
-  const { incentraApr, hasIncentra } = useIncentraInfo(props.details.lpAddress)
-  const incentraLink = getIncentraLink({ hasIncentra, chainId, lpAddress: props.details.lpAddress })
+  const { incentraApr, hasIncentra, incentraCampaignType } = useIncentraInfo(props.details.lpAddress)
+  const incentraLink = getIncentraLink({
+    hasIncentra,
+    chainId,
+    lpAddress: props.details.lpAddress,
+    campaignType: incentraCampaignType,
+  })
 
   return (
     <>

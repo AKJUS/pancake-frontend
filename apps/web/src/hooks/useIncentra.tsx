@@ -3,6 +3,28 @@ import { useMemo } from 'react'
 import { isAddressEqual } from 'utils'
 
 export const INCENTRA_API = 'https://incentra-prd.brevis.network/sdk/v1'
+export const INCENTRA_CAMPAIGN_TYPES = [3, 4, 8] as const
+export const DEFAULT_INCENTRA_CAMPAIGN_TYPE = 3
+export const INCENTRA_CAMPAIGN_TYPE_ENUM_TO_ID: Record<string, number> = {
+  PANCAKE_V2: 4,
+  PANCAKE_V3: 3,
+  PANCAKE_V4_CL: 8,
+}
+
+export const parseIncentraCampaignType = (campaignType?: string | number): number | undefined => {
+  const normalized = typeof campaignType === 'string' ? campaignType.trim() : campaignType
+
+  if (typeof normalized === 'number' && Number.isFinite(normalized)) return normalized
+
+  if (typeof normalized === 'string') {
+    const numericType = Number(normalized)
+    if (Number.isFinite(numericType)) return numericType
+
+    return INCENTRA_CAMPAIGN_TYPE_ENUM_TO_ID[normalized]
+  }
+
+  return undefined
+}
 
 export type IncentraCampaign = {
   chainId: string
@@ -51,6 +73,7 @@ export function useIncentraInfo(poolAddress?: string): {
   isPending: boolean
   hasIncentra: boolean
   incentraApr?: number
+  incentraCampaignType?: number
   refreshData: () => void
 } {
   const { data, isPending, refetch } = useQuery({
@@ -60,7 +83,7 @@ export function useIncentraInfo(poolAddress?: string): {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          campaign_type: [3, 4], // PancakeSwap campaigns
+          campaign_type: INCENTRA_CAMPAIGN_TYPES, // PancakeSwap + Infinity campaigns
           status: [4], // ACTIVE
         }),
       })
@@ -90,16 +113,19 @@ export function useIncentraInfo(poolAddress?: string): {
         isPending,
         hasIncentra: false,
         incentraApr: undefined,
+        incentraCampaignType: undefined,
         refreshData: refetch,
       }
     }
 
     const campaign = data.find((c) => isPoolIdEqual(c.pools.poolId, poolAddress))
+    const campaignType = parseIncentraCampaignType(campaign?.campaignType)
 
     return {
       isPending,
       hasIncentra: Boolean(campaign),
       incentraApr: campaign?.rewardInfo?.apr,
+      incentraCampaignType: campaignType,
       refreshData: refetch,
     }
   }, [data, poolAddress, isPending, refetch])
