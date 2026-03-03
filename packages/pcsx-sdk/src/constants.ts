@@ -8,6 +8,7 @@ export const SupportedChainId = [
   ChainId.SEPOLIA,
   ChainId.ARBITRUM_ONE,
   ChainId.ETHEREUM,
+  ChainId.BASE,
 ] as const
 
 export type XSupportedChainId = (typeof SupportedChainId)[number]
@@ -18,6 +19,7 @@ export const PERMIT2_MAPPING = {
   [ChainId.SEPOLIA]: getPermit2Address(ChainId.SEPOLIA),
   [ChainId.ARBITRUM_ONE]: getPermit2Address(ChainId.ARBITRUM_ONE),
   [ChainId.ETHEREUM]: getPermit2Address(ChainId.ETHEREUM),
+  [ChainId.BASE]: getPermit2Address(ChainId.BASE),
 } as const satisfies Record<XSupportedChainId, Address | undefined>
 
 export const ORDER_QUOTER_MAPPING = {
@@ -26,6 +28,7 @@ export const ORDER_QUOTER_MAPPING = {
   [ChainId.SEPOLIA]: '0x180415ddfBeD6bf9a6C0fcE0EB23DE60B0157f58',
   [ChainId.ARBITRUM_ONE]: '0xF812A85c70b05Df76ff3bC802c0244307033Ccd0',
   [ChainId.ETHEREUM]: '0xF812A85c70b05Df76ff3bC802c0244307033Ccd0',
+  [ChainId.BASE]: '0xfd86a340c9cb94559C97b3bF5c7b4c2fE197ecDd',
 } as const satisfies Record<XSupportedChainId, Address>
 
 export enum OrderType {
@@ -53,5 +56,8 @@ export const REACTOR_ADDRESS_MAPPING = {
   },
   [ChainId.ETHEREUM]: {
     [OrderType.ExclusiveDutchOrder]: '0x35db01D1425685789dCc9228d47C7A5C049388d8',
+  },
+  [ChainId.BASE]: {
+    [OrderType.ExclusiveDutchOrder]: '0x6b9906d7106e5890852Bf98eF13ba5D8761712b9',
   },
 } as const satisfies ReactorMapping
