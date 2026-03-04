@@ -29,7 +29,7 @@ const isInternalLink = (href) => {
     const currentBase = getBaseDomain(currentHostname)
     const linkBase = getBaseDomain(linkHostname)
 
-    return linkBase === currentBase || linkHostname === 'probable.markets' || linkHostname.endsWith('.probable.markets')
+    return linkBase === currentBase
   } catch (e) {
     return true // Treat as internal
   }

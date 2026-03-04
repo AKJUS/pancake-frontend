@@ -3,11 +3,19 @@ import { ConfigMenuDropDownItemsType, ConfigMenuItemsType } from './config/confi
 
 export const getActiveMenuItem = ({ pathname, menuConfig }: { pathname: string; menuConfig: ConfigMenuItemsType[] }) =>
   menuConfig.find((menuItem) => {
+    const hasSubItems = (menuItem.items?.length ?? 0) > 0 || (menuItem.overrideSubNavItems?.length ?? 0) > 0
+    if (hasSubItems) {
+      return (
+        menuItem.href === pathname ||
+        !!getActiveSubMenuItem({ menuItem, pathname }) ||
+        !!getActiveSubMenuChildItem({ menuItem, pathname })
+      )
+    }
     return (
       (pathname.startsWith(menuItem.href) && menuItem.href !== '/') ||
       menuItem.href === pathname ||
-      getActiveSubMenuItem({ menuItem, pathname }) ||
-      getActiveSubMenuChildItem({ menuItem, pathname })
+      !!getActiveSubMenuItem({ menuItem, pathname }) ||
+      !!getActiveSubMenuChildItem({ menuItem, pathname })
     )
   })
 

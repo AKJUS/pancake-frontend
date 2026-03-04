@@ -10,7 +10,6 @@ import {
   GameIcon,
   MenuItemsType,
   MoreIcon,
-  RocketIcon,
   SwapFillIcon,
   SwapIcon,
   TradeFilledIcon,
@@ -148,12 +147,6 @@ const config: (
             supportChainIds: POOL_SUPPORTED_CHAINS,
           },
         ],
-      },
-      {
-        label: t('Prob'),
-        icon: RocketIcon,
-        href: 'https://probable.markets',
-        isHot: true,
       },
       {
         label: t('Play'),
