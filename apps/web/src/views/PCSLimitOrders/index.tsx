@@ -16,6 +16,7 @@ import { CommitButton } from './components/CommitButton'
 import { MarketPriceInput } from './components/MarketPriceInput'
 import { QuickActionButtons } from './components/QuickActionButtons'
 import { TradeDetails } from './components/TradeDetails'
+import { LimitOrderFeeTier } from './components/LimitOrderFeeTier'
 import { OrdersSummaryCard } from './components/OrderHistory/OrdersSummaryCard'
 import { inputCurrencyAtom, outputCurrencyAtom } from './state/currency/currencyAtoms'
 
@@ -99,6 +100,9 @@ export const PCSLimitOrdersView = () => {
                 )}
               </SwapUIV2.SwapTabAndInputPanelWrapper>
 
+              <PanelWrapper>
+                <LimitOrderFeeTier />
+              </PanelWrapper>
               <PanelWrapper>
                 <Suspense fallback={<CardFallback height="48px" />}>
                   <CommitButton />

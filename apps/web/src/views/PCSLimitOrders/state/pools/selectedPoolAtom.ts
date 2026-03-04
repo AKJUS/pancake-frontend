@@ -5,13 +5,15 @@ import { Pool as CLPool, DYNAMIC_FEE_FLAG } from '@pancakeswap/infinity-sdk'
 import { atomWithQuery } from 'jotai-tanstack-query'
 import { FAST_INTERVAL } from 'config/constants'
 import { accountActiveChainAtom } from 'wallet/atoms/accountStateAtoms'
+import { LIMIT_ORDER_FEE_OPTIONS, LIMIT_ORDER_SUPPORTED_LP_FEES, selectedFeeTierAtom } from '../form/feeTierAtom'
 import { supportedPoolsListAtom } from './poolsListAtom'
 import { inputCurrencyAtom, outputCurrencyAtom } from '../currency/currencyAtoms'
 
 export const selectedPoolAtom = atomWithQuery((get) => {
   const { chainId } = get(accountActiveChainAtom)
+  const selectedFeeTier = get(selectedFeeTierAtom)
   return {
-    queryKey: ['selectedPool', chainId, get(inputCurrencyAtom), get(outputCurrencyAtom)],
+    queryKey: ['selectedPool', chainId, get(inputCurrencyAtom), get(outputCurrencyAtom), selectedFeeTier],
     refetchInterval: FAST_INTERVAL,
     queryFn: async () => {
       const inputCurrency = get(inputCurrencyAtom)
@@ -22,23 +24,45 @@ export const selectedPoolAtom = atomWithQuery((get) => {
       const idA = getCurrencyAddress(inputCurrency)
       const idB = getCurrencyAddress(outputCurrency)
 
+      // Collect all basic pools matching the selected pair on the active chain
       const pools = await get(supportedPoolsListAtom)
-      const basicPool = pools.find(
+      const pairPools = pools.filter(
         (pool) =>
           pool.chainId === inputCurrency.chainId &&
           ((pool.currency0 === idA && pool.currency1 === idB) || (pool.currency0 === idB && pool.currency1 === idA)),
       )
 
-      if (!basicPool || !isPoolId(basicPool.poolId)) return null
+      if (pairPools.length === 0) return null
 
-      const { poolId, chainId } = basicPool
+      // Only proceed with pools that have valid poolIds
+      const validPools = pairPools.filter((pool) => isPoolId(pool.poolId))
+      if (validPools.length === 0) return null
 
-      // Fetch CL pool info
-      const poolInfo = await fetchCLPoolInfo(poolId, chainId)
+      // Fetch CL pool info for all valid pools in parallel
+      const poolInfoResults = await Promise.all(
+        validPools.map(async (basicPool) => {
+          const poolInfo = await fetchCLPoolInfo(basicPool.poolId, basicPool.chainId)
+          return { basicPool, poolInfo }
+        }),
+      )
 
-      // Validate the pool
-      if (!poolInfo || (!poolInfo.dynamic && poolInfo.fee >= 1e6)) return null
+      const targetLpFee = LIMIT_ORDER_FEE_OPTIONS.find((o) => o.value === selectedFeeTier)?.lpFee
+      if (targetLpFee === undefined) return null
 
+      // Filter to supported tiers, validate pool state, and find the one matching the selected tier
+      const match = poolInfoResults.find(({ poolInfo }) => {
+        if (!poolInfo) return false
+        // Reject uninitialized or fee-overflowing pools (existing validity guard)
+        if (!poolInfo.dynamic && poolInfo.fee >= 1e6) return false
+        // Only consider pools whose lpFee is a supported Limit Order tier
+        if (!LIMIT_ORDER_SUPPORTED_LP_FEES.has(poolInfo.lpFee)) return false
+        return poolInfo.lpFee === targetLpFee
+      })
+
+      if (!match || !match.poolInfo) return null
+
+      const { basicPool, poolInfo } = match
+      const { poolId } = basicPool
       const { currency0, fee, liquidity, lpFee, protocolFee, sqrtPriceX96, tick, parameters } = poolInfo
 
       // Sort currencies
