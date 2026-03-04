@@ -42,3 +42,5 @@ jobs:
           token: ${{ secrets.PCS_BOT_TOKEN }}
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GIT_AUTHOR_NAME: pcs-bot
+          GIT_AUTHOR_EMAIL: pcs-bot@pancakeswap.com
