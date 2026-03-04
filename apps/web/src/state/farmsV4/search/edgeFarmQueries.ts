@@ -219,7 +219,8 @@ async function fetchAllExplorerPools(query: FarmQuery) {
     baseUrl: `${process.env.NEXT_PUBLIC_EXPLORE_API_ENDPOINT}/cached/pools/list`,
     protocols: protocols.length > 0 ? protocols : DEFAULT_PROTOCOLS,
     chains: chainIds.map((chain) => getEdgeChainName(chain as ChainId)),
-    maxPages: 2,
+    // Infinity Stable pools may appear beyond page 2 for popular token queries.
+    maxPages: 3,
     orderBy: getOrder(sortBy),
   }
   const pools = await edgeQueries.fetchAllPools(poolQuery)
