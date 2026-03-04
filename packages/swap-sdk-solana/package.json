@@ -1,6 +1,6 @@
 {
   "name": "@pancakeswap/swap-sdk-solana",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "An SDK for Pancakeswap Solana",
   "repository": {
     "type": "git",

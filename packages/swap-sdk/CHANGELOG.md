@@ -1,5 +1,21 @@
 # @pancakeswap/sdk
 
+## 5.9.0
+
+### Minor Changes
+
+- ed68c36: merge solana liquidity to evm
+
+### Patch Changes
+
+- Updated dependencies [ed68c36]
+- Updated dependencies [f43133d]
+  - @pancakeswap/swap-sdk-core@1.6.0
+  - @pancakeswap/chains@0.8.0
+  - @pancakeswap/swap-sdk-evm@1.2.0
+  - @pancakeswap/v2-sdk@1.2.0
+  - @pancakeswap/swap-sdk-solana@1.1.7
+
 ## 5.8.18
 
 ### Patch Changes

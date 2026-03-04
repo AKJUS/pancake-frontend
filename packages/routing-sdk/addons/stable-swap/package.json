@@ -1,6 +1,6 @@
 {
   "name": "@pancakeswap/routing-sdk-addon-stable-swap",
-  "version": "5.0.5",
+  "version": "5.0.6",
   "description": "Routing sdk addon for pcs stable swap",
   "repository": {
     "type": "git",

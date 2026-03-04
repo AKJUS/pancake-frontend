@@ -1,5 +1,25 @@
 # routing-api
 
+## 0.4.0
+
+### Minor Changes
+
+- f43133d: Add Monad Mainnet support
+
+### Patch Changes
+
+- Updated dependencies [ed68c36]
+- Updated dependencies [4426ae8]
+- Updated dependencies [346eb9a]
+- Updated dependencies [f43133d]
+- Updated dependencies [87949aa]
+  - @pancakeswap/sdk@5.9.0
+  - @pancakeswap/chains@0.8.0
+  - @pancakeswap/farms@1.4.0
+  - @pancakeswap/smart-router@7.6.0
+  - @pancakeswap/v3-sdk@3.10.0
+  - @pancakeswap/stable-swap-sdk@2.0.12
+
 ## 0.3.104
 
 ### Patch Changes

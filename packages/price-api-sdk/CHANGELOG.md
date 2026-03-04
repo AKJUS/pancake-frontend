@@ -1,5 +1,21 @@
 # @pancakeswap/price-api-sdk
 
+## 12.0.0
+
+### Patch Changes
+
+- ed68c36: merge solana liquidity to evm
+- Updated dependencies [ed68c36]
+- Updated dependencies [4426ae8]
+- Updated dependencies [f43133d]
+- Updated dependencies [b7c409c]
+  - @pancakeswap/swap-sdk-core@1.6.0
+  - @pancakeswap/chains@0.8.0
+  - @pancakeswap/smart-router@7.6.0
+  - @pancakeswap/permit2-sdk@1.2.0
+  - @pancakeswap/pcsx-sdk@1.1.0
+  - @pancakeswap/utils@8.0.2
+
 ## 11.1.1
 
 ### Patch Changes

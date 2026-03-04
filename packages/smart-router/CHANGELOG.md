@@ -1,5 +1,32 @@
 # @pancakeswap/smart-router
 
+## 7.6.0
+
+### Minor Changes
+
+- f43133d: Add Monad Mainnet support
+
+### Patch Changes
+
+- ed68c36: merge solana liquidity to evm
+- 4426ae8: Patch for support compact ticks
+- Updated dependencies [ed68c36]
+- Updated dependencies [f43133d]
+- Updated dependencies [9f8255b]
+- Updated dependencies [cecbc32]
+- Updated dependencies [dd15a4f]
+- Updated dependencies [abdc983]
+  - @pancakeswap/swap-sdk-core@1.6.0
+  - @pancakeswap/token-lists@0.1.0
+  - @pancakeswap/sdk@5.9.0
+  - @pancakeswap/chains@0.8.0
+  - @pancakeswap/multicall@3.8.0
+  - @pancakeswap/tokens@0.8.0
+  - @pancakeswap/v3-sdk@3.10.0
+  - @pancakeswap/infinity-sdk@1.0.8
+  - @pancakeswap/stable-swap-sdk@2.0.12
+  - @pancakeswap/infinity-stable-sdk@1.0.1
+
 ## 7.5.4
 
 ### Patch Changes

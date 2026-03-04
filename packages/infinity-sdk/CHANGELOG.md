@@ -1,5 +1,18 @@
 # @pancakeswap/infinity-sdk
 
+## 1.0.8
+
+### Patch Changes
+
+- dd15a4f: Added whitelistLabeledHooksList
+- abdc983: Added bsc hook to whitelist
+- Updated dependencies [ed68c36]
+- Updated dependencies [f43133d]
+  - @pancakeswap/swap-sdk-core@1.6.0
+  - @pancakeswap/chains@0.8.0
+  - @pancakeswap/permit2-sdk@1.2.0
+  - @pancakeswap/v3-sdk@3.10.0
+
 ## 1.0.7
 
 ### Patch Changes

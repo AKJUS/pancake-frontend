@@ -1,6 +1,6 @@
 {
   "name": "@pancakeswap/routing-sdk-addon-infinity",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Routing sdk addon for pcs infinity",
   "repository": {
     "type": "git",

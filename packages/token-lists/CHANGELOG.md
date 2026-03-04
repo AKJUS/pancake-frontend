@@ -1,5 +1,17 @@
 # @pancakeswap/token-lists
 
+## 0.1.0
+
+### Minor Changes
+
+- ed68c36: merge solana liquidity to evm
+
+### Patch Changes
+
+- cecbc32: Add cn symbol/name support
+- Updated dependencies [ed68c36]
+  - @pancakeswap/swap-sdk-core@1.6.0
+
 ## 0.0.17
 
 ### Patch Changes

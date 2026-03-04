@@ -1,5 +1,18 @@
 # solana-frontend
 
+## 0.0.10
+
+### Patch Changes
+
+- Updated dependencies [ed68c36]
+- Updated dependencies [f43133d]
+  - @pancakeswap/solana-core-sdk@0.2.0
+  - @pancakeswap/widgets-internal@0.6.0
+  - @pancakeswap/hooks@0.0.47
+  - @pancakeswap/utils@8.0.2
+  - @pancakeswap/uikit@0.69.5
+  - @pancakeswap/solana-clmm-sdk@0.0.0
+
 ## 0.0.9
 
 ### Patch Changes

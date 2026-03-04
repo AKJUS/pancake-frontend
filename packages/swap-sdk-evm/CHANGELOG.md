@@ -1,5 +1,18 @@
 # @pancakeswap/swap-sdk-evm
 
+## 1.2.0
+
+### Minor Changes
+
+- f43133d: Add Monad Mainnet support
+
+### Patch Changes
+
+- Updated dependencies [ed68c36]
+- Updated dependencies [f43133d]
+  - @pancakeswap/swap-sdk-core@1.6.0
+  - @pancakeswap/chains@0.8.0
+
 ## 1.1.7
 
 ### Patch Changes

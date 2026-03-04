@@ -1,5 +1,25 @@
 # @pancakeswap/universal-router-sdk
 
+## 1.5.0
+
+### Minor Changes
+
+- f43133d: Add Monad Mainnet support
+
+### Patch Changes
+
+- Updated dependencies [ed68c36]
+- Updated dependencies [4426ae8]
+- Updated dependencies [f43133d]
+- Updated dependencies [dd15a4f]
+- Updated dependencies [abdc983]
+  - @pancakeswap/sdk@5.9.0
+  - @pancakeswap/chains@0.8.0
+  - @pancakeswap/smart-router@7.6.0
+  - @pancakeswap/permit2-sdk@1.2.0
+  - @pancakeswap/v3-sdk@3.10.0
+  - @pancakeswap/infinity-sdk@1.0.8
+
 ## 1.4.16
 
 ### Patch Changes

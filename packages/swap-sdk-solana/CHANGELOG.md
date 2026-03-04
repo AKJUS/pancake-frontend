@@ -1,5 +1,14 @@
 # @pancakeswap/swap-sdk-solana
 
+## 1.1.7
+
+### Patch Changes
+
+- Updated dependencies [ed68c36]
+- Updated dependencies [f43133d]
+  - @pancakeswap/swap-sdk-core@1.6.0
+  - @pancakeswap/chains@0.8.0
+
 ## 1.1.6
 
 ### Patch Changes

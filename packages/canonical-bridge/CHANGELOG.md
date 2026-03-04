@@ -1,5 +1,15 @@
 # @pancakeswap/canonical-bridge
 
+## 5.0.0
+
+### Patch Changes
+
+- 25295f4: Zod deps
+- Updated dependencies [ed68c36]
+- Updated dependencies [f43133d]
+  - @pancakeswap/chains@0.8.0
+  - @pancakeswap/uikit@0.69.5
+
 ## 4.0.1
 
 ### Patch Changes

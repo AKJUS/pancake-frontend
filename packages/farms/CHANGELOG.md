@@ -1,5 +1,29 @@
 # @pancakeswap/farms
 
+## 1.4.0
+
+### Minor Changes
+
+- f43133d: Add Monad Mainnet support
+
+### Patch Changes
+
+- ed68c36: merge solana liquidity to evm
+- 346eb9a: Added merklSupportedChainId define
+- 87949aa: Stop support farm API in testnet env
+- Updated dependencies [ed68c36]
+- Updated dependencies [f43133d]
+- Updated dependencies [cecbc32]
+  - @pancakeswap/swap-sdk-core@1.6.0
+  - @pancakeswap/token-lists@0.1.0
+  - @pancakeswap/sdk@5.9.0
+  - @pancakeswap/chains@0.8.0
+  - @pancakeswap/price-api-sdk@12.0.0
+  - @pancakeswap/tokens@0.8.0
+  - @pancakeswap/v3-sdk@3.10.0
+  - @pancakeswap/stable-swap-sdk@2.0.12
+  - @pancakeswap/utils@8.0.2
+
 ## 1.3.0
 
 ### Minor Changes

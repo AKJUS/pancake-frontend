@@ -1,5 +1,16 @@
 # @pancakeswap/aptos-swap-sdk
 
+## 1.1.0
+
+### Minor Changes
+
+- ed68c36: merge solana liquidity to evm
+
+### Patch Changes
+
+- Updated dependencies [ed68c36]
+  - @pancakeswap/swap-sdk-core@1.6.0
+
 ## 1.0.10
 
 ### Patch Changes

@@ -1,5 +1,19 @@
 # @pancakeswap/multicall
 
+## 3.8.0
+
+### Minor Changes
+
+- f43133d: Add Monad Mainnet support
+
+### Patch Changes
+
+- 9f8255b: Add Perf. Stats in returns of multicall
+- Updated dependencies [ed68c36]
+- Updated dependencies [f43133d]
+  - @pancakeswap/sdk@5.9.0
+  - @pancakeswap/chains@0.8.0
+
 ## 3.7.4
 
 ### Patch Changes

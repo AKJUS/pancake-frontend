@@ -1,6 +1,6 @@
 {
   "name": "@pancakeswap/routing-sdk-addon-v3",
-  "version": "5.0.4",
+  "version": "5.0.5",
   "description": "Routing sdk addon for pcs v3",
   "repository": {
     "type": "git",

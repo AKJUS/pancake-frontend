@@ -1,5 +1,20 @@
 # @pancakeswap/tokens
 
+## 0.8.0
+
+### Minor Changes
+
+- f43133d: Add Monad Mainnet support
+
+### Patch Changes
+
+- Updated dependencies [ed68c36]
+- Updated dependencies [f43133d]
+- Updated dependencies [cecbc32]
+  - @pancakeswap/token-lists@0.1.0
+  - @pancakeswap/sdk@5.9.0
+  - @pancakeswap/chains@0.8.0
+
 ## 0.7.10
 
 ### Patch Changes

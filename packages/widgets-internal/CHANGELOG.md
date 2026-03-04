@@ -1,5 +1,31 @@
 # @pancakeswap/widgets-internal
 
+## 0.6.0
+
+### Minor Changes
+
+- f43133d: Add Monad Mainnet support
+
+### Patch Changes
+
+- Updated dependencies [ed68c36]
+- Updated dependencies [346eb9a]
+- Updated dependencies [f43133d]
+- Updated dependencies [87949aa]
+- Updated dependencies [dd15a4f]
+- Updated dependencies [abdc983]
+  - @pancakeswap/swap-sdk-core@1.6.0
+  - @pancakeswap/sdk@5.9.0
+  - @pancakeswap/chains@0.8.0
+  - @pancakeswap/farms@1.4.0
+  - @pancakeswap/tokens@0.8.0
+  - @pancakeswap/v3-sdk@3.10.0
+  - @pancakeswap/infinity-sdk@1.0.8
+  - @pancakeswap/hooks@0.0.47
+  - @pancakeswap/utils@8.0.2
+  - @pancakeswap/pools@5.1.49
+  - @pancakeswap/uikit@0.69.5
+
 ## 0.5.1
 
 ### Patch Changes

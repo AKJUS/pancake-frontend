@@ -1,6 +1,6 @@
 {
   "name": "@pancakeswap/canonical-bridge",
-  "version": "4.0.1",
+  "version": "5.0.0",
   "sideEffects": false,
   "private": true,
   "scripts": {

@@ -1,6 +1,6 @@
 {
   "name": "@pancakeswap/solana-core-sdk",
-  "version": "0.1.139-alpha",
+  "version": "0.2.0",
   "description": "An SDK for building applications fork from Raydium.",
   "private": true,
   "license": "GPL-3.0",

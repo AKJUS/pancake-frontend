@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0
+
+### Minor Changes
+
+- ed68c36: merge solana liquidity to evm
+
 ### 1.1.0-beta.0 (2022-03-14)
 
 - Add

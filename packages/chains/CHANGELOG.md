@@ -1,5 +1,15 @@
 # @pancakeswap/chains
 
+## 0.8.0
+
+### Minor Changes
+
+- f43133d: Add Monad Mainnet support
+
+### Patch Changes
+
+- ed68c36: merge solana liquidity to evm
+
 ## 0.7.0
 
 ### Minor Changes

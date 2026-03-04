@@ -1,5 +1,27 @@
 # @pancakeswap/routing-sdk-addon-v2
 
+## 5.1.0
+
+### Minor Changes
+
+- f43133d: Add Monad Mainnet support
+
+### Patch Changes
+
+- Updated dependencies [ed68c36]
+- Updated dependencies [f43133d]
+- Updated dependencies [dd15a4f]
+- Updated dependencies [abdc983]
+  - @pancakeswap/swap-sdk-core@1.6.0
+  - @pancakeswap/chains@0.8.0
+  - @pancakeswap/v2-sdk@1.2.0
+  - @pancakeswap/infinity-sdk@1.0.8
+  - @pancakeswap/routing-sdk@0.5.5
+  - @pancakeswap/routing-sdk-addon-infinity@2.0.6
+  - @pancakeswap/routing-sdk-addon-stable-swap@5.0.6
+  - @pancakeswap/routing-sdk-addon-v2@5.0.5
+  - @pancakeswap/routing-sdk-addon-v3@5.0.5
+
 ## 5.0.6
 
 ### Patch Changes
