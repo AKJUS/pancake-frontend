@@ -21,6 +21,7 @@ import { ChainId, isEvm } from '@pancakeswap/chains'
 import { INCENTRA_API, INCENTRA_CAMPAIGN_TYPES, IncentraCampaign } from 'hooks/useIncentra'
 import { ChainIdAddressKey, InfinityPoolInfo, PoolInfo, StablePoolInfo, V2PoolInfo, V3PoolInfo } from '../type'
 import { CakeApr, IncentraApr, MerklApr } from './atom'
+import { normalizePoolIdentifier } from './normalizePoolIdentifier'
 
 export const getCakeApr = (pool: PoolInfo, cakePrice: BigNumber): Promise<CakeApr> => {
   switch (pool.protocol) {
@@ -196,7 +197,7 @@ export const getAllNetworkIncentraApr = async (signal?: AbortSignal) => {
   const filteredCampaigns = json.campaigns.filter((c) => evmChains.includes(Number(c.chainId) as ChainId))
 
   const aprs = filteredCampaigns.reduce((acc, campaign) => {
-    const poolId = safeGetAddress(campaign.pools.poolId)
+    const poolId = normalizePoolIdentifier(campaign.pools.poolId)
     if (poolId) {
       const key: ChainIdAddressKey = `${Number(campaign.chainId)}:${poolId}`
       // eslint-disable-next-line no-param-reassign

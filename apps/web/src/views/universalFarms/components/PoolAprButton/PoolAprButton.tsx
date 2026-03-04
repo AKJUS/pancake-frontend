@@ -60,10 +60,23 @@ export const PoolAprButton: React.FC<PoolGlobalAprButtonProps> = ({
     lpAddress: pool.lpAddress,
     poolProtocol: pool.protocol,
   })
+  const incentraCampaignType = useMemo(() => {
+    switch (pool.protocol) {
+      case Protocol.V2:
+        return 4
+      case Protocol.V3:
+        return 3
+      case Protocol.InfinityCLAMM:
+        return 8
+      default:
+        return undefined
+    }
+  }, [pool.protocol])
   const incentraLink = getIncentraLink({
     hasIncentra: Boolean(incentraApr),
     chainId: pool.chainId,
     lpAddress: pool.lpAddress as `0x${string}`,
+    campaignType: incentraCampaignType,
   })
 
   const modal = useModalV2()

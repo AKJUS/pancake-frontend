@@ -16,8 +16,8 @@ import {
   getCakeApr,
   getLpApr,
 } from 'state/farmsV4/state/poolApr/fetcher'
+import { normalizePoolIdentifier } from 'state/farmsV4/state/poolApr/normalizePoolIdentifier'
 import { PoolInfo } from 'state/farmsV4/state/type'
-import { safeGetAddress } from 'utils'
 import { getPoolManagerAddress } from 'utils/addressHelpers'
 import { isInfinityProtocol } from 'utils/protocols'
 import { ContractFunctionReturnType } from 'viem'
@@ -245,7 +245,14 @@ export async function batchGetMerklAprData(pools: PoolInfo[]) {
   const aprs = await cachedGetAllNetworkMerklApr()
   return pools.map((pool) => {
     const farm = pool.farm!
-    const key = `${farm.chainId}:${safeGetAddress(farm.id)}`
+    const poolId = normalizePoolIdentifier(farm.id)
+    if (!poolId) {
+      return {
+        id: getFarmKey(farm),
+        value: '0',
+      }
+    }
+    const key = `${farm.chainId}:${poolId}`
     const merklApr = aprs[key] || '0'
     return {
       id: getFarmKey(farm),
@@ -261,7 +268,14 @@ export async function batchGetIncentraAprData(pools: PoolInfo[]) {
   const aprs = await cachedGetAllNetworkIncentraApr()
   return pools.map((pool) => {
     const farm = pool.farm!
-    const key = `${farm.chainId}:${safeGetAddress(farm.id)}`
+    const poolId = normalizePoolIdentifier(farm.id)
+    if (!poolId) {
+      return {
+        id: getFarmKey(farm),
+        value: '0',
+      }
+    }
+    const key = `${farm.chainId}:${poolId}`
     const incentraApr = aprs[key] || '0'
     return {
       id: getFarmKey(farm),
