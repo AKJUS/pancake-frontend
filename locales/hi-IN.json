@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "%chainName% के साथ सोशल लॉगिन समर्थित नहीं है।",
   "An unexpected error occurred while switching chains. Please try again.": "चेन स्विच करते समय एक अप्रत्याशित त्रुटि हुई। कृपया फिर से प्रयास करें।",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "सोशल लॉगिन केवल %chains% पर काम करता है। दूसरे नेटवर्क पर फंड भेजने से स्थायी नुकसान हो सकता है।",
-  "Prob": "Prob",
   "Switch network to claim": "क्लेम करने के लिए नेटवर्क बदलें",
-  "Place Your Zero-Fee Predictions on": "अपनी शून्य-शुल्क भविष्यवाणियाँ यहाँ करें",
-  "probable.markets!": "probable.markets!",
-  "Start now": "अभी शुरू करें",
   "LeverUp IFO": "LeverUp IFO",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "LeverUp, Monad पर बना एक अगली-पीढ़ी का परपेचुअल ट्रेडिंग प्लेटफॉर्म है — एक पूरी तरह से LP-मुक्त पर्प्स DEX जो 1001x तक का लीवरेज, नुकसान पर शून्य शुल्क, और 100% प्रोटोकॉल शुल्क हितधारकों को वापस देता है।",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "प्रतिबंधित अधिकार-क्षेत्रों के उपयोगकर्ता या जोखिम जांच द्वारा फ़्लैग किए गए वॉलेट भाग लेने के पात्र नहीं हो सकते हैं।",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "कुल पोजीशन वैल्यू (USD)",
   "Total removed value (USD)": "निकाली गई कुल वैल्यू (USD)",
   "Slippage loss": "स्लिपेज हानि",
-  "fiat": "फिएट",
   "Fiat redeemable stablecoins": "फिएट रिडीमेबल स्टेबलकॉइन्स",
   "Suitable for stablecoins that are fiat redeemable": "फिएट रिडीमेबल स्टेबलकॉइन्स के लिए उपयुक्त",
-  "crypto": "क्रिप्टो",
   "Crypto collateralized stablecoins": "क्रिप्टो कोलैटरलाइज्ड स्टेबलकॉइन्स",
   "Suitable for stablecoins that are crypto-backed": "क्रिप्टो-समर्थित स्टेबलकॉइन्स के लिए उपयुक्त",
-  "lrt": "lrt",
   "Liquid restaking tokens": "लिक्विड रीस्टेकिंग टोकन",
   "Suitable for LRTS": "LRTS के लिए उपयुक्त",
   "Select preset": "प्रीसेट चुनें",
@@ -4220,5 +4213,6 @@
   "Expand row": "पंक्ति का विस्तार करें",
   "Chart display error": "चार्ट प्रदर्शन त्रुटि",
   "Stable": "स्टेबल",
-  "stable": "स्टेबल"
+  "stable": "स्टेबल",
+  "AI": "AI"
 }

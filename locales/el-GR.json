@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "Η κοινωνική σύνδεση στο %chainName% δεν υποστηρίζεται.",
   "An unexpected error occurred while switching chains. Please try again.": "Παρουσιάστηκε ένα μη αναμενόμενο σφάλμα κατά την αλλαγή δικτύων. Παρακαλώ, δοκιμάστε ξανά.",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "Η κοινωνική σύνδεση λειτουργεί μόνο στα %chains%. Η αποστολή κεφαλαίων σε άλλα δίκτυα μπορεί να προκαλέσει μόνιμη απώλεια.",
-  "Prob": "Prob",
   "Switch network to claim": "Αλλαγή δικτύου για διεκδίκηση",
-  "Place Your Zero-Fee Predictions on": "Κάντε τις προβλέψεις σας με μηδενικές χρεώσεις στο",
-  "probable.markets!": "probable.markets!",
-  "Start now": "Ξεκινήστε τώρα",
   "LeverUp IFO": "LeverUp IFO",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "Το LeverUp είναι μια πλατφόρμα perpetual trading επόμενης γενιάς που βασίζεται στο Monad — ένα DEX για διαρκή συμβόλαια (perps) εντελώς χωρίς LP, που προσφέρει μόχλευση έως και 1001x, μηδενικές χρεώσεις στις απώλειες και επιστρέφει το 100% των τελών πρωτοκόλλου στους ενδιαφερόμενους.",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "Οι χρήστες από περιορισμένες δικαιοδοσίες ή πορτοφόλια που έχουν επισημανθεί από ελέγχους κινδύνου ενδέχεται να μην είναι επιλέξιμοι για συμμετοχή.",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "Συνολική αξία θέσης (USD)",
   "Total removed value (USD)": "Συνολική αφαιρεθείσα αξία (USD)",
   "Slippage loss": "Απώλεια ολίσθησης",
-  "fiat": "fiat",
   "Fiat redeemable stablecoins": "Stablecoins ανταλλάξιμα με fiat",
   "Suitable for stablecoins that are fiat redeemable": "Κατάλληλο για stablecoin που είναι ανταλλάξιμα με fiat",
-  "crypto": "crypto",
   "Crypto collateralized stablecoins": "Stablecoins με εξασφάλιση σε κρυπτονομίσματα",
   "Suitable for stablecoins that are crypto-backed": "Κατάλληλο για stablecoins που υποστηρίζονται από κρυπτονομίσματα",
-  "lrt": "lrt",
   "Liquid restaking tokens": "Liquid Restaking Tokens",
   "Suitable for LRTS": "Κατάλληλο για LRTS",
   "Select preset": "Επιλέξτε προεπιλογή",
@@ -4220,5 +4213,6 @@
   "Expand row": "Ανάπτυξη γραμμής",
   "Chart display error": "Σφάλμα εμφάνισης γραφήματος",
   "Stable": "Σταθερό",
-  "stable": "σταθερό"
+  "stable": "σταθερό",
+  "AI": "AI"
 }

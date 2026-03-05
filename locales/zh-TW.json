@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "%chainName% 不支援社群登入。",
   "An unexpected error occurred while switching chains. Please try again.": "切換網路時發生非預期錯誤。請再試一次。",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "社群登入僅適用於 %chains%。在其他網路上發送資金可能會造成永久損失。",
-  "Prob": "Prob",
   "Switch network to claim": "切換網路以領取",
-  "Place Your Zero-Fee Predictions on": "進行您的零手續費預測，就在",
-  "probable.markets!": "probable.markets!",
-  "Start now": "立即開始",
   "LeverUp IFO": "LeverUp IFO",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "LeverUp 是一個基於 Monad 打造的次世代永續合約交易平台 — 一個完全無需 LP 的永續合約 DEX，提供高達 1001 倍的槓桿、虧損訂單零手續費，並將 100% 的協議費用返還給權益關係人。",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "來自受限制司法管轄區的用戶或被風險檢查標記的錢包，可能不符合參與資格。",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "總倉位價值 (USD)",
   "Total removed value (USD)": "總移除價值 (USD)",
   "Slippage loss": "滑價損失",
-  "fiat": "法幣",
   "Fiat redeemable stablecoins": "可由法幣贖回的穩定幣",
   "Suitable for stablecoins that are fiat redeemable": "適用於可由法幣贖回的穩定幣",
-  "crypto": "加密貨幣",
   "Crypto collateralized stablecoins": "加密貨幣抵押穩定幣",
   "Suitable for stablecoins that are crypto-backed": "適用於加密貨幣支持的穩定幣",
-  "lrt": "lrt",
   "Liquid restaking tokens": "流動性再質押代幣",
   "Suitable for LRTS": "適用於 LRTS",
   "Select preset": "選擇預設",
@@ -4220,5 +4213,6 @@
   "Expand row": "展開此列",
   "Chart display error": "圖表顯示錯誤",
   "Stable": "穩定",
-  "stable": "穩定"
+  "stable": "穩定",
+  "AI": "AI"
 }

@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "%chainName%でのソーシャルログインはサポートされていません。",
   "An unexpected error occurred while switching chains. Please try again.": "チェーンの切り替え中に予期せぬエラーが発生しました。もう一度お試しください。",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "ソーシャルログインは%chains%でのみ利用可能です。他のネットワークに資金を送金すると、永久に失われる可能性があります。",
-  "Prob": "Prob",
   "Switch network to claim": "請求するにはネットワークを切り替えてください",
-  "Place Your Zero-Fee Predictions on": "手数料ゼロで予測をしよう",
-  "probable.markets!": "probable.markets!",
-  "Start now": "今すぐ始める",
   "LeverUp IFO": "LeverUp IFO",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "LeverUpは、Monad上に構築された次世代の無期限取引プラットフォームです。完全にLPフリーのパーペチュアルDEXで、最大1001倍のレバレッジ、損失に対する手数料ゼロ、プロトコル手数料の100%をステークホルダーに還元します。",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "制限された法域のユーザー、またはリスクチェックでフラグが立てられたウォレットは、参加資格がない場合があります。",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "ポジション総額 (USD)",
   "Total removed value (USD)": "引き出した総額 (USD)",
   "Slippage loss": "スリッページ損失",
-  "fiat": "法定通貨",
   "Fiat redeemable stablecoins": "法定通貨で償還可能なステーブルコイン",
   "Suitable for stablecoins that are fiat redeemable": "法定通貨で償還可能なステーブルコインに適しています",
-  "crypto": "暗号資産",
   "Crypto collateralized stablecoins": "暗号資産担保型ステーブルコイン",
   "Suitable for stablecoins that are crypto-backed": "暗号資産に裏付けられたステーブルコインに適しています",
-  "lrt": "LRT",
   "Liquid restaking tokens": "リキッドリステーキングトークン",
   "Suitable for LRTS": "LRTに適しています",
   "Select preset": "プリセットを選択",
@@ -4220,5 +4213,6 @@
   "Expand row": "行を展開する",
   "Chart display error": "チャート表示エラー",
   "Stable": "ステーブル",
-  "stable": "ステーブル"
+  "stable": "ステーブル",
+  "AI": "AI"
 }

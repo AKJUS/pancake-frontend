@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "%chainName%-এর সাথে সোশ্যাল লগইন সমর্থিত নয়।",
   "An unexpected error occurred while switching chains. Please try again.": "চেইন পরিবর্তন করার সময় একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "সোশ্যাল লগইন শুধুমাত্র %chains%-এ কাজ করে। অন্যান্য নেটওয়ার্কে ফান্ড পাঠালে স্থায়ী ক্ষতি হতে পারে।",
-  "Prob": "Prob",
   "Switch network to claim": "ক্লেইম করতে নেটওয়ার্ক পরিবর্তন করুন",
-  "Place Your Zero-Fee Predictions on": "আপনার জিরো-ফি প্রেডিকশন দিন",
-  "probable.markets!": "probable.markets!",
-  "Start now": "এখনই শুরু করুন",
   "LeverUp IFO": "LeverUp IFO",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "LeverUp হল Monad-এর উপর নির্মিত একটি পরবর্তী প্রজন্মের পারপেচুয়াল ট্রেডিং প্ল্যাটফর্ম — একটি সম্পূর্ণ LP-মুক্ত পার্পস DEX যা 1001x পর্যন্ত লিভারেজ, লোকসানে শূন্য ফি এবং স্টেকহোল্ডারদেরকে প্রোটোকল ফি-এর 100% ফেরত দেওয়ার অফার করে।",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "সীমাবদ্ধ বিচারব্যবস্থা থেকে ব্যবহারকারী বা ঝুঁকি পরীক্ষার দ্বারা ফ্ল্যাগ করা ওয়ালেটগুলি অংশগ্রহণের জন্য যোগ্য নাও হতে পারে।",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "মোট পজিশনের মূল্য (USD)",
   "Total removed value (USD)": "মোট সরানো মূল্য (USD)",
   "Slippage loss": "স্লিপেজ লস",
-  "fiat": "ফিয়াট",
   "Fiat redeemable stablecoins": "ফিয়াট রিডিমযোগ্য স্টেবলকয়েন",
   "Suitable for stablecoins that are fiat redeemable": "ফিয়াট রিডিমযোগ্য স্টেবলকয়েনগুলোর জন্য উপযুক্ত",
-  "crypto": "ক্রিপ্টো",
   "Crypto collateralized stablecoins": "ক্রিপ্টো জামানতযুক্ত স্টেবলকয়েন",
   "Suitable for stablecoins that are crypto-backed": "ক্রিপ্টো-ব্যাকড স্টেবলকয়েনের জন্য উপযুক্ত",
-  "lrt": "lrt",
   "Liquid restaking tokens": "লিকুইড রিস্টেকিং টোকেন",
   "Suitable for LRTS": "LRTS এর জন্য উপযুক্ত",
   "Select preset": "প্রিসেট নির্বাচন করুন",
@@ -4220,5 +4213,6 @@
   "Expand row": "সারিটি প্রসারিত করুন",
   "Chart display error": "চার্ট প্রদর্শনে ত্রুটি",
   "Stable": "স্টেবল",
-  "stable": "স্টেবল"
+  "stable": "স্টেবল",
+  "AI": "AI"
 }

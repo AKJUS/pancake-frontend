@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "Social-Login mit %chainName% wird nicht unterstützt.",
   "An unexpected error occurred while switching chains. Please try again.": "Beim Wechseln der Chain ist ein unerwarteter Fehler aufgetreten. Bitte versuchen Sie es erneut.",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "Der Social-Login funktioniert nur auf %chains%. Das Senden von Guthaben in anderen Netzwerken kann zu einem dauerhaften Verlust führen.",
-  "Prob": "Prob",
   "Switch network to claim": "Netzwerk wechseln, um einzufordern",
-  "Place Your Zero-Fee Predictions on": "Platziere deine gebührenfreien Vorhersagen auf",
-  "probable.markets!": "probable.markets!",
-  "Start now": "Jetzt starten",
   "LeverUp IFO": "LeverUp IFO",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "LeverUp ist eine Perpetual-Trading-Plattform der nächsten Generation, die auf Monad basiert – eine vollständig LP-freie Perps-DEX, die einen bis zu 1001-fachen Hebel, keine Gebühren auf Verluste und die Rückgabe von 100 % der Protokollgebühren an die Stakeholder bietet.",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "Nutzer aus eingeschränkten Gerichtsbarkeiten oder Wallets, die durch Risikoprüfungen gekennzeichnet wurden, sind möglicherweise nicht zur Teilnahme berechtigt.",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "Gesamtwert der Position (USD)",
   "Total removed value (USD)": "Gesamter entnommener Wert (USD)",
   "Slippage loss": "Slippage-Verlust",
-  "fiat": "fiat",
   "Fiat redeemable stablecoins": "In Fiat einlösbare Stablecoins",
   "Suitable for stablecoins that are fiat redeemable": "Geeignet für Stablecoins, die in Fiat einlösbar sind.",
-  "crypto": "crypto",
   "Crypto collateralized stablecoins": "Kryptogedeckte Stablecoins",
   "Suitable for stablecoins that are crypto-backed": "Geeignet für kryptogedeckte Stablecoins",
-  "lrt": "lrt",
   "Liquid restaking tokens": "Liquid Restaking Tokens",
   "Suitable for LRTS": "Geeignet für LRTs",
   "Select preset": "Voreinstellung auswählen",
@@ -4220,5 +4213,6 @@
   "Expand row": "Zeile ausklappen",
   "Chart display error": "Fehler bei der Diagrammanzeige",
   "Stable": "Stabil",
-  "stable": "stabil"
+  "stable": "stabil",
+  "AI": "KI"
 }

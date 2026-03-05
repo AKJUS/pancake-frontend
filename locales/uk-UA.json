@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "Вхід через соціальні мережі в мережі %chainName% не підтримується.",
   "An unexpected error occurred while switching chains. Please try again.": "Під час перемикання мереж сталася неочікувана помилка. Будь ласка, спробуйте ще раз.",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "Вхід через соціальні мережі працює лише в мережах %chains%. Надсилання коштів в інших мережах може призвести до їх безповоротної втрати.",
-  "Prob": "Prob",
   "Switch network to claim": "Переключіть мережу, щоб отримати",
-  "Place Your Zero-Fee Predictions on": "Робіть свої прогнози з нульовою комісією на",
-  "probable.markets!": "probable.markets!",
-  "Start now": "Почніть зараз",
   "LeverUp IFO": "LeverUp IFO",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "LeverUp — це платформа для торгівлі безстроковими контрактами нового покоління, створена на Monad — повністю безпулова DEX для безстрокових контрактів, що пропонує кредитне плече до 1001x, нульові комісії за збитки та повернення 100% комісій протоколу стейкхолдерам.",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "Користувачі з обмежених юрисдикцій або гаманці, позначені під час перевірки ризиків, можуть не мати права на участь.",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "Загальна вартість позиції (USD)",
   "Total removed value (USD)": "Загальна виведена вартість (USD)",
   "Slippage loss": "Втрата від прослизання",
-  "fiat": "фіат",
   "Fiat redeemable stablecoins": "Стейблкоїни, що обмінюються на фіат",
   "Suitable for stablecoins that are fiat redeemable": "Підходить для стейблкоїнів, які можна обміняти на фіат",
-  "crypto": "крипто",
   "Crypto collateralized stablecoins": "Стейблкоїни, забезпечені криптовалютою",
   "Suitable for stablecoins that are crypto-backed": "Підходить для стейблкоїнів, що забезпечені криптовалютою",
-  "lrt": "LRT",
   "Liquid restaking tokens": "Токени ліквідного рестейкінгу",
   "Suitable for LRTS": "Підходить для LRT",
   "Select preset": "Виберіть пресет",
@@ -4220,5 +4213,6 @@
   "Expand row": "Розгорнути рядок",
   "Chart display error": "Помилка відображення діаграми",
   "Stable": "Стейбл",
-  "stable": "стейбл"
+  "stable": "стейбл",
+  "AI": "ШІ"
 }

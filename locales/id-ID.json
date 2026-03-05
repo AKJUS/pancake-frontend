@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "Login sosial dengan %chainName% tidak didukung.",
   "An unexpected error occurred while switching chains. Please try again.": "Terjadi kesalahan tak terduga saat mengganti chain. Silakan coba lagi.",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "Login sosial hanya berfungsi di %chains%. Mengirim dana di jaringan lain dapat menyebabkan kehilangan permanen.",
-  "Prob": "Prob",
   "Switch network to claim": "Ganti jaringan untuk mengklaim",
-  "Place Your Zero-Fee Predictions on": "Pasang Prediksi Tanpa Biaya Anda di",
-  "probable.markets!": "probable.markets!",
-  "Start now": "Mulai sekarang",
   "LeverUp IFO": "LeverUp IFO",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "LeverUp adalah platform perdagangan perpetual generasi berikutnya yang dibangun di Monad — DEX perps yang sepenuhnya bebas LP yang menawarkan leverage hingga 1001x, tanpa biaya atas kerugian, dan 100% biaya protokol dikembalikan kepada para pemangku kepentingan.",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "Pengguna dari yurisdiksi yang dibatasi atau dompet yang ditandai oleh pemeriksaan risiko mungkin tidak memenuhi syarat untuk berpartisipasi.",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "Total Nilai Posisi (USD)",
   "Total removed value (USD)": "Total nilai yang dihapus (USD)",
   "Slippage loss": "Kerugian slippage",
-  "fiat": "fiat",
   "Fiat redeemable stablecoins": "Stablecoin yang dapat ditebus dengan Fiat",
   "Suitable for stablecoins that are fiat redeemable": "Cocok untuk stablecoin yang dapat ditebus dengan fiat",
-  "crypto": "kripto",
   "Crypto collateralized stablecoins": "Stablecoin yang dijamin dengan kripto",
   "Suitable for stablecoins that are crypto-backed": "Cocok untuk stablecoin yang didukung oleh kripto",
-  "lrt": "lrt",
   "Liquid restaking tokens": "Token liquid restaking",
   "Suitable for LRTS": "Cocok untuk LRTS",
   "Select preset": "Pilih prasetel",
@@ -4220,5 +4213,6 @@
   "Expand row": "Perluas baris",
   "Chart display error": "Kesalahan tampilan grafik",
   "Stable": "Stabil",
-  "stable": "stabil"
+  "stable": "stabil",
+  "AI": "AI"
 }

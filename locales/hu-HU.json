@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "A közösségi bejelentkezés a %chainName% hálózaton nem támogatott.",
   "An unexpected error occurred while switching chains. Please try again.": "Váratlan hiba történt a hálózatok közötti váltás során. Kérjük, próbálja újra.",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "A közösségi bejelentkezés csak a %chains% hálózatokon működik. Más hálózatokra történő pénzküldés végleges veszteséget okozhat.",
-  "Prob": "Prob",
   "Switch network to claim": "Válts hálózatot a begyűjtéshez",
-  "Place Your Zero-Fee Predictions on": "Adj le díjmentes jóslatokat a következőn:",
-  "probable.markets!": "probable.markets!",
-  "Start now": "Kezdés most",
   "LeverUp IFO": "LeverUp IFO",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "A LeverUp egy új generációs, határidős kereskedési platform, amely a Monad hálózaton épült – egy teljesen LP-mentes perps DEX, amely akár 1001x-es tőkeáttételt, nulla díjat a veszteségekre és a protokoll díjainak 100%-os visszatérítését kínálja az érdekelt feleknek.",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "A korlátozott joghatóságú területekről származó felhasználók, vagy a kockázatellenőrzés által megjelölt tárcák nem feltétlenül jogosultak a részvételre.",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "Teljes pozícióérték (USD)",
   "Total removed value (USD)": "Teljes eltávolított érték (USD)",
   "Slippage loss": "Slippage veszteség",
-  "fiat": "Fiat",
   "Fiat redeemable stablecoins": "Fiatra váltható stablecoinok",
   "Suitable for stablecoins that are fiat redeemable": "Fiatra váltható stablecoinokhoz alkalmas",
-  "crypto": "Kripto",
   "Crypto collateralized stablecoins": "Kriptofedezetű stablecoinok",
   "Suitable for stablecoins that are crypto-backed": "Alkalmas kriptofedezetű stablecoinokhoz",
-  "lrt": "lrt",
   "Liquid restaking tokens": "Liquid restaking tokenek",
   "Suitable for LRTS": "LRT-k számára alkalmas",
   "Select preset": "Válasszon előbeállítást",
@@ -4220,5 +4213,6 @@
   "Expand row": "Sor kibontása",
   "Chart display error": "Diagram megjelenítési hiba",
   "Stable": "Stabil",
-  "stable": "stabil"
+  "stable": "stabil",
+  "AI": "AI"
 }

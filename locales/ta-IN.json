@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "%chainName% உடன் சமூக உள்நுழைவு ஆதரிக்கப்படவில்லை.",
   "An unexpected error occurred while switching chains. Please try again.": "செயின்களை மாற்றும்போது எதிர்பாராத பிழை ஏற்பட்டது. தயவுசெய்து மீண்டும் முயற்சிக்கவும்.",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "சமூக உள்நுழைவு %chains% இல் மட்டுமே செயல்படும். மற்ற நெட்வொர்க்குகளுக்கு நிதியை அனுப்புவது நிரந்தர இழப்பை ஏற்படுத்தக்கூடும்.",
-  "Prob": "Prob",
   "Switch network to claim": "கிளைம் செய்ய நெட்வொர்க்கை மாற்றவும்",
-  "Place Your Zero-Fee Predictions on": "உங்கள் பூஜ்ஜியக் கட்டணக் கணிப்புகளை இதில் வைக்கவும்",
-  "probable.markets!": "probable.markets!",
-  "Start now": "இப்போது தொடங்குங்கள்",
   "LeverUp IFO": "LeverUp IFO",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "LeverUp என்பது Monad-இல் உருவாக்கப்பட்ட ஒரு அடுத்த தலைமுறை பெர்பெச்சுவல் டிரேடிங் தளம் — இது ஒரு முழுவதும் LP-இல்லாத பெர்பெச்சுவல் DEX ஆகும், இது 1001x வரை லெவரேஜ், இழப்புகளுக்கு பூஜ்ஜியக் கட்டணம், மற்றும் 100% புரோட்டோகால் கட்டணங்களை ஸ்டேக்ஹோல்டர்களுக்குத் திருப்பித் தருகிறது.",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "தடைசெய்யப்பட்ட அதிகார வரம்புகளில் உள்ள பயனர்கள் அல்லது இடர் சரிபார்ப்புகளால் கொடியிடப்பட்ட வாலெட்டுகள் பங்கேற்கத் தகுதி பெறாமல் போகலாம்.",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "மொத்த பொசிஷன் மதிப்பு (USD)",
   "Total removed value (USD)": "மொத்தமாக அகற்றப்பட்ட மதிப்பு (USD)",
   "Slippage loss": "ஸ்லிப்பேஜ் இழப்பு",
-  "fiat": "ஃபியட்",
   "Fiat redeemable stablecoins": "ஃபியட் மூலம் மீட்கக்கூடிய ஸ்டேபிள்காயின்கள்",
   "Suitable for stablecoins that are fiat redeemable": "ஃபியட் மூலம் மீட்கக்கூடிய ஸ்டேபிள்காயின்களுக்கு ஏற்றது",
-  "crypto": "கிரிப்டோ",
   "Crypto collateralized stablecoins": "கிரிப்டோ இணை வைக்கப்பட்ட ஸ்டேபிள்காயின்கள்",
   "Suitable for stablecoins that are crypto-backed": "கிரிப்டோ ஆதரவு பெற்ற ஸ்டேபிள்காயின்களுக்கு ஏற்றது",
-  "lrt": "lrt",
   "Liquid restaking tokens": "திரவ ரீஸ்டேக்கிங் டோக்கன்கள்",
   "Suitable for LRTS": "LRTகளுக்கு ஏற்றது",
   "Select preset": "முன்னமைவைத் தேர்ந்தெடுக்கவும்",
@@ -4220,5 +4213,6 @@
   "Expand row": "வரிசையை விரி",
   "Chart display error": "விளக்கப்படக் காட்சிப் பிழை",
   "Stable": "ஸ்டேபிள்",
-  "stable": "ஸ்டேபிள்"
+  "stable": "ஸ்டேபிள்",
+  "AI": "AI"
 }

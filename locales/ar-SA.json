@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "تسجيل الدخول الاجتماعي باستخدام %chainName% غير مدعوم.",
   "An unexpected error occurred while switching chains. Please try again.": "حدث خطأ غير متوقع أثناء تبديل الشبكات. يرجى المحاولة مرة أخرى.",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "يعمل تسجيل الدخول الاجتماعي فقط على %chains%. قد يؤدي إرسال الأموال على شبكات أخرى إلى خسارة دائمة.",
-  "Prob": "Prob",
   "Switch network to claim": "بدّل الشبكة للمطالبة",
-  "Place Your Zero-Fee Predictions on": "ضع توقعاتك بدون رسوم على",
-  "probable.markets!": "probable.markets!",
-  "Start now": "ابدأ الآن",
   "LeverUp IFO": "LeverUp IFO",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "LeverUp هي منصة تداول عقود دائمة من الجيل الجديد مبنية على Monad — وهي منصة تداول لامركزية (DEX) للعقود الدائمة لا تتطلب مزودي سيولة (fully LP-free)، وتقدم رافعة مالية تصل إلى 1001x، ورسوم صفرية على الخسائر، وتُعيد 100% من رسوم البروتوكول إلى أصحاب المصلحة.",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "قد لا يكون المستخدمون من المناطق القضائية المحظورة أو المحافظ التي تم تحديدها بواسطة أنظمة فحص المخاطر مؤهلين للمشاركة.",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "إجمالي قيمة المركز (بالدولار الأمريكي)",
   "Total removed value (USD)": "إجمالي القيمة المزالة (بالدولار الأمريكي)",
   "Slippage loss": "خسارة الانزلاق السعري",
-  "fiat": "عملات ورقية",
   "Fiat redeemable stablecoins": "العملات المستقرة القابلة للاسترداد بالعملات الورقية",
   "Suitable for stablecoins that are fiat redeemable": "مناسب للعملات المستقرة القابلة للاسترداد بالعملات الورقية",
-  "crypto": "عملات رقمية",
   "Crypto collateralized stablecoins": "عملات مستقرة مضمونة بالعملات المشفرة",
   "Suitable for stablecoins that are crypto-backed": "مناسب للعملات المستقرة المدعومة بالعملات المشفرة",
-  "lrt": "LRT",
   "Liquid restaking tokens": "رموز إعادة التخزين السائلة",
   "Suitable for LRTS": "مناسب لرموز LRTs",
   "Select preset": "حدد الإعداد المسبق",
@@ -4220,5 +4213,6 @@
   "Expand row": "توسيع الصف",
   "Chart display error": "خطأ في عرض الرسم البياني",
   "Stable": "مستقر",
-  "stable": "مستقر"
+  "stable": "مستقر",
+  "AI": "الذكاء الاصطناعي"
 }

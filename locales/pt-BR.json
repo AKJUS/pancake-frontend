@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "O login social com %chainName% não é suportado.",
   "An unexpected error occurred while switching chains. Please try again.": "Ocorreu um erro inesperado ao trocar de rede. Por favor, tente novamente.",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "O login social funciona apenas em %chains%. Enviar fundos para outras redes pode causar perda permanente.",
-  "Prob": "Prob",
   "Switch network to claim": "Mude de rede para reivindicar",
-  "Place Your Zero-Fee Predictions on": "Faça suas previsões com taxa zero em",
-  "probable.markets!": "probable.markets!",
-  "Start now": "Começar agora",
   "LeverUp IFO": "IFO LeverUp",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "LeverUp é uma plataforma de trading de perpétuos de última geração construída na Monad — uma DEX de perpétuos totalmente livre de LP que oferece alavancagem de até 1001x, taxas zero em perdas e 100% das taxas do protocolo retornadas aos stakeholders.",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "Usuários de jurisdições restritas ou carteiras sinalizadas por verificações de risco podem não ser elegíveis para participar.",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "Valor Total da Posição (USD)",
   "Total removed value (USD)": "Valor total removido (USD)",
   "Slippage loss": "Perda por slippage",
-  "fiat": "Fiat",
   "Fiat redeemable stablecoins": "Stablecoins resgatáveis em fiat",
   "Suitable for stablecoins that are fiat redeemable": "Adequado para stablecoins que são resgatáveis em fiat.",
-  "crypto": "Cripto",
   "Crypto collateralized stablecoins": "Stablecoins colateralizadas por cripto",
   "Suitable for stablecoins that are crypto-backed": "Adequado para stablecoins com lastro em cripto",
-  "lrt": "lrt",
   "Liquid restaking tokens": "Tokens de restaking líquido",
   "Suitable for LRTS": "Adequado para LRTs",
   "Select preset": "Selecionar predefinição",
@@ -4220,5 +4213,6 @@
   "Expand row": "Expandir linha",
   "Chart display error": "Erro na exibição do gráfico",
   "Stable": "Estável",
-  "stable": "estável"
+  "stable": "estável",
+  "AI": "IA"
 }

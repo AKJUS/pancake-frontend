@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "Social login met %chainName% wordt niet ondersteund.",
   "An unexpected error occurred while switching chains. Please try again.": "Er is een onverwachte fout opgetreden bij het wisselen van netwerk. Probeer het opnieuw.",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "Social login werkt alleen op %chains%. Het verzenden van tegoeden via andere netwerken kan permanent verlies veroorzaken.",
-  "Prob": "Prob",
   "Switch network to claim": "Wissel van netwerk om te claimen",
-  "Place Your Zero-Fee Predictions on": "Plaats je voorspellingen zonder kosten op",
-  "probable.markets!": "probable.markets!",
-  "Start now": "Start nu",
   "LeverUp IFO": "LeverUp IFO",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "LeverUp is een volgende generatie perpetual trading platform gebouwd op Monad — een volledig LP-vrije perps DEX met tot 1001x leverage, geen kosten bij verlies, en waarbij 100% van de protocolkosten wordt teruggegeven aan stakeholders.",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "Gebruikers uit beperkte rechtsgebieden of wallets die zijn gemarkeerd door risicocontroles komen mogelijk niet in aanmerking om deel te nemen.",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "Totale positiewaarde (USD)",
   "Total removed value (USD)": "Totaal verwijderde waarde (USD)",
   "Slippage loss": "Slippage-verlies",
-  "fiat": "fiat",
   "Fiat redeemable stablecoins": "Voor fiat inwisselbare stablecoins",
   "Suitable for stablecoins that are fiat redeemable": "Geschikt voor stablecoins die inwisselbaar zijn voor fiat",
-  "crypto": "crypto",
   "Crypto collateralized stablecoins": "Door crypto gedekte stablecoins",
   "Suitable for stablecoins that are crypto-backed": "Geschikt voor stablecoins die door crypto worden gedekt",
-  "lrt": "lrt",
   "Liquid restaking tokens": "Liquide restaking-tokens",
   "Suitable for LRTS": "Geschikt voor LRTS",
   "Select preset": "Selecteer voorinstelling",
@@ -4220,5 +4213,6 @@
   "Expand row": "Rij uitklappen",
   "Chart display error": "Grafiekweergavefout",
   "Stable": "Stabiel",
-  "stable": "stabiel"
+  "stable": "stabiel",
+  "AI": "AI"
 }

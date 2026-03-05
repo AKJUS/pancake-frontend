@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "%chainName%에서는 소셜 로그인이 지원되지 않습니다.",
   "An unexpected error occurred while switching chains. Please try again.": "체인 전환 중 예상치 못한 오류가 발생했습니다. 다시 시도해 주세요.",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "소셜 로그인은 %chains%에서만 작동합니다. 다른 네트워크로 자금을 보내면 영구적인 손실이 발생할 수 있습니다.",
-  "Prob": "Prob",
   "Switch network to claim": "클레임하려면 네트워크를 전환하세요",
-  "Place Your Zero-Fee Predictions on": "수수료 없는 예측을 다음에서 해보세요:",
-  "probable.markets!": "probable.markets!",
-  "Start now": "지금 시작하기",
   "LeverUp IFO": "LeverUp IFO",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "LeverUp은 Monad에 구축된 차세대 무기한 거래 플랫폼입니다. 완전한 LP-프리(LP-free) 무기한 계약 탈중앙화 거래소(perps DEX)로서 최대 1001배의 레버리지, 손실에 대한 수수료 제로, 프로토콜 수수료 100%를 이해관계자에게 반환합니다.",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "제한된 관할권의 사용자 또는 위험 점검을 통해 플래그된 지갑은 참여 자격이 없을 수 있습니다.",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "총 포지션 가치 (USD)",
   "Total removed value (USD)": "총 제거된 가치 (USD)",
   "Slippage loss": "슬리피지 손실",
-  "fiat": "피아트",
   "Fiat redeemable stablecoins": "피아트 상환 가능 스테이블코인",
   "Suitable for stablecoins that are fiat redeemable": "피아트로 상환 가능한 스테이블코인에 적합합니다.",
-  "crypto": "크립토",
   "Crypto collateralized stablecoins": "암호화폐 담보 스테이블코인",
   "Suitable for stablecoins that are crypto-backed": "암호화폐를 기반으로 하는 스테이블코인에 적합합니다",
-  "lrt": "lrt",
   "Liquid restaking tokens": "유동성 리스테이킹 토큰",
   "Suitable for LRTS": "LRTS에 적합합니다",
   "Select preset": "프리셋 선택",
@@ -4220,5 +4213,6 @@
   "Expand row": "행 펼치기",
   "Chart display error": "차트 표시 오류",
   "Stable": "스테이블",
-  "stable": "스테이블"
+  "stable": "스테이블",
+  "AI": "AI"
 }

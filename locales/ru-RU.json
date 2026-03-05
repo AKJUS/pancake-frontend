@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "Вход через соцсети в сети %chainName% не поддерживается.",
   "An unexpected error occurred while switching chains. Please try again.": "Произошла непредвиденная ошибка при переключении сетей. Пожалуйста, попробуйте еще раз.",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "Вход через соцсети работает только в сетях %chains%. Отправка средств в других сетях может привести к их безвозвратной потере.",
-  "Prob": "Прогнозы",
   "Switch network to claim": "Переключите сеть для клейма",
-  "Place Your Zero-Fee Predictions on": "Размещайте прогнозы с нулевой комиссией на",
-  "probable.markets!": "probable.markets!",
-  "Start now": "Начать",
   "LeverUp IFO": "IFO LeverUp",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "LeverUp — это платформа для торговли бессрочными контрактами нового поколения, построенная на Monad — DEX для перпсов без LP, предлагающая кредитное плечо до 1001x, нулевые комиссии при убытках и 100% комиссий протокола, возвращаемых стейкхолдерам.",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "Пользователи из юрисдикций с ограничениями или владельцы кошельков, помеченных в ходе проверки на риски, могут быть не допущены к участию.",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "Общая стоимость позиции (USD)",
   "Total removed value (USD)": "Общая выведенная стоимость (USD)",
   "Slippage loss": "Потери от проскальзывания",
-  "fiat": "Фиат",
   "Fiat redeemable stablecoins": "Стейблкоины, обеспеченные фиатом",
   "Suitable for stablecoins that are fiat redeemable": "Подходит для стейблкоинов, обеспеченных фиатом",
-  "crypto": "Крипто",
   "Crypto collateralized stablecoins": "Стейблкоины с криптообеспечением",
   "Suitable for stablecoins that are crypto-backed": "Подходит для стейблкоинов с криптообеспечением",
-  "lrt": "lrt",
   "Liquid restaking tokens": "Токены ликвидного рестейкинга",
   "Suitable for LRTS": "Подходит для LRT",
   "Select preset": "Выберите пресет",
@@ -4220,5 +4213,6 @@
   "Expand row": "Развернуть строку",
   "Chart display error": "Ошибка отображения графика",
   "Stable": "Стабильный",
-  "stable": "стабильный"
+  "stable": "стабильный",
+  "AI": "ИИ"
 }

@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "Conectarea socială cu %chainName% nu este acceptată.",
   "An unexpected error occurred while switching chains. Please try again.": "A apărut o eroare neașteptată la comutarea rețelelor. Vă rugăm să încercați din nou.",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "Conectarea socială funcționează numai pe %chains%. Trimiterea de fonduri pe alte rețele poate duce la pierderi permanente.",
-  "Prob": "Prob",
   "Switch network to claim": "Schimbă rețeaua pentru a revendica",
-  "Place Your Zero-Fee Predictions on": "Plasează-ți predicțiile cu comision zero pe",
-  "probable.markets!": "probable.markets!",
-  "Start now": "Începe acum",
   "LeverUp IFO": "IFO LeverUp",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "LeverUp este o platformă de tranzacționare perpetuă de nouă generație, construită pe Monad — un DEX de contracte perpetue complet fără LP, care oferă un levier de până la 1001x, comisioane zero pentru pierderi și 100% din comisioanele protocolului returnate către stakeholderi.",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "Utilizatorii din jurisdicții restricționate sau portofelele semnalate în urma verificărilor de risc este posibil să nu fie eligibili pentru a participa.",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "Valoarea totală a poziției (USD)",
   "Total removed value (USD)": "Valoarea totală eliminată (USD)",
   "Slippage loss": "Pierdere din slippage",
-  "fiat": "fiat",
   "Fiat redeemable stablecoins": "Stablecoins răscumpărabile în fiat",
   "Suitable for stablecoins that are fiat redeemable": "Potrivit pentru stablecoins care sunt răscumpărabile în fiat",
-  "crypto": "crypto",
   "Crypto collateralized stablecoins": "Stablecoins colateralizate cu crypto",
   "Suitable for stablecoins that are crypto-backed": "Potrivit pentru stablecoins care sunt garantate cu crypto",
-  "lrt": "lrt",
   "Liquid restaking tokens": "Tokenuri de restaking lichide",
   "Suitable for LRTS": "Potrivit pentru LRT-uri",
   "Select preset": "Selectați presetarea",
@@ -4220,5 +4213,6 @@
   "Expand row": "Extindeți rândul",
   "Chart display error": "Eroare de afișare a graficului",
   "Stable": "Stabil",
-  "stable": "stabil"
+  "stable": "stabil",
+  "AI": "AI"
 }

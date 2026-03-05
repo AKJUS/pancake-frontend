@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "Sosiaalinen kirjautuminen %chainName%-verkossa ei ole tuettu.",
   "An unexpected error occurred while switching chains. Please try again.": "Tapahtui odottamaton virhe verkkoa vaihdettaessa. Yritä uudelleen.",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "Sosiaalinen kirjautuminen toimii vain %chains%-verkoissa. Varojen lähettäminen muihin verkkoihin voi aiheuttaa pysyvän menetyksen.",
-  "Prob": "Prob",
   "Switch network to claim": "Vaihda verkkoa lunastaaksesi",
-  "Place Your Zero-Fee Predictions on": "Tee nollakuluennustuksesi",
-  "probable.markets!": "probable.markets!",
-  "Start now": "Aloita nyt",
   "LeverUp IFO": "LeverUp IFO",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "LeverUp on Monadille rakennettu seuraavan sukupolven perpetuaalikaupankäyntialusta – täysin LP-vapaa perps DEX, joka tarjoaa jopa 1001-kertaisen vivun, nollakulut tappioista ja 100 % protokollan maksuista palautetaan sidosryhmille.",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "Käyttäjät rajoitetuilta lainkäyttöalueilta tai riskitarkastuksissa merkityt lompakot eivät välttämättä ole oikeutettuja osallistumaan.",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "Position kokonaisarvo (USD)",
   "Total removed value (USD)": "Poistettu kokonaisarvo (USD)",
   "Slippage loss": "Slippage-tappio",
-  "fiat": "Fiat",
   "Fiat redeemable stablecoins": "Fiat-valuutaksi lunastettavat vakaavaluutat",
   "Suitable for stablecoins that are fiat redeemable": "Sopii fiat-valuutaksi lunastettaville vakaavaluutoille",
-  "crypto": "Krypto",
   "Crypto collateralized stablecoins": "Kryptovakuudelliset vakaavaluutat",
   "Suitable for stablecoins that are crypto-backed": "Sopii kryptovakuudellisille vakaavaluutoille",
-  "lrt": "lrt",
   "Liquid restaking tokens": "Likvidit uudelleensteikkaus-tokenit",
   "Suitable for LRTS": "Sopii LRT-tokeneille",
   "Select preset": "Valitse esiasetus",
@@ -4220,5 +4213,6 @@
   "Expand row": "Laajenna rivi",
   "Chart display error": "Kaavion näyttövirhe",
   "Stable": "Vakaa",
-  "stable": "vakaa"
+  "stable": "vakaa",
+  "AI": "AI"
 }

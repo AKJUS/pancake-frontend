@@ -4131,11 +4131,7 @@
   "Social login with %chainName% is not supported.": "Social inloggning med %chainName% stöds inte.",
   "An unexpected error occurred while switching chains. Please try again.": "Ett oväntat fel inträffade vid byte av nätverk. Vänligen försök igen.",
   "Social login works only on %chains%. Sending funds on other networks may cause permanent loss.": "Social inloggning fungerar endast på %chains%. Att skicka medel på andra nätverk kan orsaka permanent förlust.",
-  "Prob": "Prob",
   "Switch network to claim": "Byt nätverk för att hämta",
-  "Place Your Zero-Fee Predictions on": "Placera dina avgiftsfria förutsägelser på",
-  "probable.markets!": "probable.markets!",
-  "Start now": "Börja nu",
   "LeverUp IFO": "LeverUp IFO",
   "LeverUp is a next-generation perpetual trading platform built on Monad — a fully LP-free perps DEX offering up to 1001x leverage, zero fees on losses, and 100% of protocol fees returned to stakeholders.": "LeverUp är nästa generations eviga handelsplattform byggd på Monad — en helt LP-fri perps DEX som erbjuder upp till 1001x hävstång, noll avgifter på förluster och 100 % av protokollavgifterna som returneras till intressenter.",
   "Users from restricted jurisdictions or wallets flagged by risk checks may not be eligible to participate.": "Användare från begränsade jurisdiktioner eller plånböcker som flaggats av riskkontroller är kanske inte berättigade att delta.",
@@ -4178,13 +4174,10 @@
   "Total Position Value (USD)": "Totalt positionsvärde (USD)",
   "Total removed value (USD)": "Totalt borttaget värde (USD)",
   "Slippage loss": "Slippageförlust",
-  "fiat": "fiat",
   "Fiat redeemable stablecoins": "Fiat-inlösenbara stablecoins",
   "Suitable for stablecoins that are fiat redeemable": "Lämplig för stablecoins som är inlösenbara mot fiat",
-  "crypto": "krypto",
   "Crypto collateralized stablecoins": "Stablecoins med kryptosäkerhet",
   "Suitable for stablecoins that are crypto-backed": "Lämplig för stablecoins som har kryptosäkerhet",
-  "lrt": "lrt",
   "Liquid restaking tokens": "Likvida restaking-tokens",
   "Suitable for LRTS": "Lämplig för LRTS",
   "Select preset": "Välj förinställning",
@@ -4220,5 +4213,6 @@
   "Expand row": "Fäll ut rad",
   "Chart display error": "Diagramvisningsfel",
   "Stable": "Stabil",
-  "stable": "stabil"
+  "stable": "stabil",
+  "AI": "AI"
 }
