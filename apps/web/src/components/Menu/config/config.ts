@@ -10,6 +10,7 @@ import {
   GameIcon,
   MenuItemsType,
   MoreIcon,
+  RocketIcon,
   SwapFillIcon,
   SwapIcon,
   TradeFilledIcon,
@@ -147,6 +148,12 @@ const config: (
             supportChainIds: POOL_SUPPORTED_CHAINS,
           },
         ],
+      },
+      {
+        label: t('AI'),
+        icon: RocketIcon,
+        href: 'https://pancakeswap.ai/',
+        type: DropdownMenuItemType.EXTERNAL_LINK,
       },
       {
         label: t('Play'),

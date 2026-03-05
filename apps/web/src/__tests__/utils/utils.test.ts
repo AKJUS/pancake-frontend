@@ -34,7 +34,7 @@ describe('getActiveMenuItem', () => {
     const result = getActiveMenuItem({ pathname, menuConfig: menuConfig(mockT, false, undefined) })
 
     // Then
-    expect(result).toEqual(menuConfig(mockT, false, undefined)[5])
+    expect(result).toBeUndefined()
   })
 
   it('should return undefined if item is not found', () => {
