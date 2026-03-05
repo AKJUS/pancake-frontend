@@ -93,17 +93,17 @@ const PresetModal: React.FC<PresetModalProps> = ({ isOpen, onDismiss, selectedPr
   const presets = useMemo(
     () => [
       {
-        id: t('fiat') as PresetType,
+        id: 'fiat' as PresetType,
         title: t('Fiat redeemable stablecoins'),
         description: t('Suitable for stablecoins that are fiat redeemable'),
       },
       {
-        id: t('crypto') as PresetType,
+        id: 'crypto' as PresetType,
         title: t('Crypto collateralized stablecoins'),
         description: t('Suitable for stablecoins that are crypto-backed'),
       },
       {
-        id: t('lrt') as PresetType,
+        id: 'lrt' as PresetType,
         title: t('Liquid restaking tokens'),
         description: t('Suitable for LRTS'),
       },
@@ -164,11 +164,11 @@ export const ParamSettingSection: React.FC<ParamSettingSectionProps> = ({ onPrev
   const { t } = useTranslation()
   const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   const [selectedPreset, setSelectedPreset] = useState<PresetType>()
-  const [swapFee, setSwapFee] = useState('0.01')
   const [isAdvancedEnabled, setIsAdvancedEnabled] = useState(false)
-  const [amplificationParam, setAmplificationParam] = useState('1000')
-  const [offpegFeeMultiplier, setOffpegFeeMultiplier] = useState('10')
-  const [movingAverageTime, setMovingAverageTime] = useState('60')
+  const [swapFee, setSwapFee] = useState(UI_PRESET_DEFAULTS.fiat.swapFee)
+  const [amplificationParam, setAmplificationParam] = useState(UI_PRESET_DEFAULTS.fiat.amplificationParam)
+  const [offpegFeeMultiplier, setOffpegFeeMultiplier] = useState(UI_PRESET_DEFAULTS.fiat.offpegFeeMultiplier)
+  const [movingAverageTime, setMovingAverageTime] = useState(UI_PRESET_DEFAULTS.fiat.movingAverageTime)
   const [depositAmountA, setDepositAmountA] = useState('')
   const [depositAmountB, setDepositAmountB] = useState('')
   const { baseCurrency, quoteCurrency } = useCurrencies()
@@ -177,7 +177,7 @@ export const ParamSettingSection: React.FC<ParamSettingSectionProps> = ({ onPrev
   const { account, chainId } = useAccountActiveChain()
 
   // Get dynamic offpeg max based on selected preset
-  const offpegMax = selectedPreset ? UI_PRESET_DEFAULTS[selectedPreset].offpegMax : 50
+  const offpegMax = selectedPreset ? UI_PRESET_DEFAULTS[selectedPreset].offpegMax : UI_PRESET_DEFAULTS.fiat.offpegMax
 
   const getPresetLabel = (preset: PresetType | undefined) => {
     switch (preset) {
