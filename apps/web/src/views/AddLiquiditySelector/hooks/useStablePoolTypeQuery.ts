@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo } from 'react'
 import { useSelectIdRouteParams } from 'hooks/dynamicRoute/useSelectIdRoute'
 import { LiquidityType } from 'utils/types'
 import { useRouter } from 'next/router'
+import { isInfinityStableSupported } from '@pancakeswap/infinity-stable-sdk'
 
 export enum STABLE_POOL_TYPE {
   classic = 'classic',
@@ -11,44 +12,67 @@ export enum STABLE_POOL_TYPE {
 
 export const STABLE_POOL_OPTIONS = [
   {
-    label: 'Classic StableSwap',
+    label: 'Classic',
     value: STABLE_POOL_TYPE.classic,
   },
   {
-    label: 'Infinity StableSwap',
+    label: 'Infinity',
     value: STABLE_POOL_TYPE.infinity,
   },
 ]
 
 export const useStablePoolTypeQuery = () => {
   const router = useRouter()
-  const { protocol } = useSelectIdRouteParams()
+  const { protocol, chainId } = useSelectIdRouteParams()
   const [stablePoolTypeQuery_, setStablePoolTypeQuery] = useDynamicRouteParam('stablePoolType')
 
+  const defaultStablePoolTypes = useMemo(() => {
+    return chainId && isInfinityStableSupported(chainId)
+      ? [STABLE_POOL_TYPE.infinity, STABLE_POOL_TYPE.classic]
+      : [STABLE_POOL_TYPE.classic]
+  }, [chainId])
+
   const stablePoolTypeQuery = useMemo(() => {
-    // If there's an explicit query param, use it
-    if (stablePoolTypeQuery_) {
-      return stablePoolTypeQuery_
+    const values = (Array.isArray(stablePoolTypeQuery_) ? stablePoolTypeQuery_ : [stablePoolTypeQuery_]).filter(
+      (v): v is string => typeof v === 'string' && v.length > 0,
+    )
+    const validValues = values.filter((v): v is STABLE_POOL_TYPE =>
+      [STABLE_POOL_TYPE.classic, STABLE_POOL_TYPE.infinity].includes(v as STABLE_POOL_TYPE),
+    )
+
+    const uniqueValues = Array.from(new Set(validValues))
+
+    if (!chainId || !isInfinityStableSupported(chainId)) {
+      const classicOnly = uniqueValues.filter((v) => v !== STABLE_POOL_TYPE.infinity)
+      return classicOnly.length ? classicOnly : [STABLE_POOL_TYPE.classic]
     }
 
-    // Default to classic
-    return STABLE_POOL_TYPE.classic
-  }, [stablePoolTypeQuery_])
+    return uniqueValues.length ? uniqueValues : defaultStablePoolTypes
+  }, [chainId, defaultStablePoolTypes, stablePoolTypeQuery_])
 
   const setStablePoolType = useCallback(
-    (value: string) => {
-      if (![STABLE_POOL_TYPE.classic, STABLE_POOL_TYPE.infinity].includes(value as STABLE_POOL_TYPE)) {
-        throw new Error('setStablePoolType: Invalid stable pool type')
+    (values: string[]) => {
+      const validValues = Array.from(
+        new Set(
+          values.filter((v): v is STABLE_POOL_TYPE =>
+            [STABLE_POOL_TYPE.classic, STABLE_POOL_TYPE.infinity].includes(v as STABLE_POOL_TYPE),
+          ),
+        ),
+      )
+
+      if (!chainId || !isInfinityStableSupported(chainId)) {
+        setStablePoolTypeQuery(validValues.filter((v) => v !== STABLE_POOL_TYPE.infinity))
+        return
       }
 
-      setStablePoolTypeQuery(value)
+      setStablePoolTypeQuery(validValues)
     },
-    [setStablePoolTypeQuery],
+    [chainId, setStablePoolTypeQuery],
   )
 
   // Remove stablePoolType param if protocol is not StableSwap
   useEffect(() => {
-    if (protocol !== LiquidityType.StableSwap && stablePoolTypeQuery_) {
+    if (protocol && protocol !== LiquidityType.StableSwap && stablePoolTypeQuery_) {
       const { stablePoolType, ...restQuery } = router.query
       router.replace(
         {

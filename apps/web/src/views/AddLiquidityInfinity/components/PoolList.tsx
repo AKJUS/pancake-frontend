@@ -2,12 +2,18 @@ import { useIntersectionObserver } from '@pancakeswap/hooks'
 import { useTranslation } from '@pancakeswap/localization'
 import { UnifiedCurrency } from '@pancakeswap/swap-sdk-core'
 import { AddIcon, Button, Grid, Heading, IColumnsType, TableView, useMatchBreakpoints } from '@pancakeswap/uikit'
-import { getCurrencyAddress, PoolTypeFilter, toTokenValue } from '@pancakeswap/widgets-internal'
+import {
+  fromSelectedNodes,
+  getCurrencyAddress,
+  PoolTypeFilter,
+  toSelectedNodes,
+  toTokenValue,
+} from '@pancakeswap/widgets-internal'
 import { CurrencySelectV2 } from 'components/CurrencySelectV2'
 import { NetworkSelector } from 'components/NetworkSelector'
 import { CommonBasesType } from 'components/SearchModal/types'
 import { CHAIN_QUERY_NAME } from 'config/chains'
-import { getAddInfinityLiquidityURL, getCreateInfinityPoolPageURL } from 'config/constants/liquidity'
+import { getCreateInfinityPoolPageURL } from 'config/constants/liquidity'
 import { INFINITY_PROTOCOLS } from 'config/constants/protocols'
 import { useSelectIdRouteParams } from 'hooks/dynamicRoute/useSelectIdRoute'
 import { useCurrencyByChainId } from 'hooks/Tokens'
@@ -18,16 +24,17 @@ import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { FetchPoolsProps, PoolSortBy } from 'state/farmsV4/atom'
 import { useFetchPools } from 'state/farmsV4/hooks'
-import type { InfinityPoolInfo } from 'state/farmsV4/state/type'
+import type { InfinityPoolInfo, StablePoolInfo } from 'state/farmsV4/state/type'
 import styled from 'styled-components'
 import { getHookByAddress } from 'utils/getHookByAddress'
 import { Address, zeroAddress } from 'viem'
 import { usePoolFeatureAndType, usePoolTypeQuery } from 'views/AddLiquiditySelector/hooks/usePoolTypeQuery'
+import { STABLE_POOL_TYPE, useStablePoolTypeQuery } from 'views/AddLiquiditySelector/hooks/useStablePoolTypeQuery'
 import { Card, CardBody, CardHeader, ListView, useColumnConfig } from 'views/universalFarms/components'
 import { getPoolDetailPageLink } from 'utils/getPoolLink'
 import { usePoolTypes } from 'views/universalFarms/hooks'
 import { useOrderChainIds } from 'views/universalFarms/hooks/useMultiChains'
-import { Chain } from '@pancakeswap/chains'
+import { Chain, ChainId } from '@pancakeswap/chains'
 
 import { ALL_PROTOCOLS, Protocol } from '@pancakeswap/farms'
 import { HOOK_CATEGORY } from '@pancakeswap/infinity-sdk'
@@ -68,7 +75,7 @@ const FilterContainer = styled(Grid)``
 
 const NUMBER_OF_FARMS_VISIBLE = 10
 
-const useColumns = () => {
+const useColumns = (onSelect: (pool: InfinityPoolInfo | StablePoolInfo) => void) => {
   const { t } = useTranslation()
   const [all, feeTier, APR, TVL, vol, poolType, poolFeature] = useColumnConfig<InfinityPoolInfo>()
   return useMemo(
@@ -92,26 +99,17 @@ const useColumns = () => {
       poolFeature,
       {
         title: '',
-        render: (item: InfinityPoolInfo) => {
-          const href =
-            item.protocol === Protocol.InfinitySTABLE
-              ? `/infinityStable/add/${item.poolId}?chain=${CHAIN_QUERY_NAME[item.chainId]}&persistChain=1`
-              : getAddInfinityLiquidityURL({
-                  chainId: item.chainId,
-                  poolId: item.poolId,
-                })
-          return (
-            <NextLink href={href}>
-              <Button scale="sm">{t('select')}</Button>
-            </NextLink>
-          )
-        },
+        render: (item: InfinityPoolInfo | StablePoolInfo) => (
+          <Button scale="sm" onClick={() => onSelect(item)}>
+            {t('select')}
+          </Button>
+        ),
         dataIndex: null,
         key: 'action',
         clickable: false,
-      } as IColumnsType<InfinityPoolInfo>,
+      } as IColumnsType<InfinityPoolInfo | StablePoolInfo>,
     ],
-    [APR, TVL, all, feeTier, poolType, poolFeature, t, vol],
+    [APR, TVL, all, feeTier, onSelect, poolType, poolFeature, t, vol],
   )
 }
 
@@ -119,15 +117,25 @@ export const PoolList = () => {
   const nextRouter = useRouter()
   const { isMobile } = useMatchBreakpoints()
   const { t } = useTranslation()
-  const columns = useColumns()
+  const handleSelect = useCallback(
+    async (pool: InfinityPoolInfo | StablePoolInfo) => {
+      const link = await getPoolDetailPageLink(pool as any)
+      nextRouter.push(link)
+    },
+    [nextRouter],
+  )
+  const columns = useColumns(handleSelect)
   const { poolType, setPoolType, poolTypeQuery } = usePoolTypeQuery()
+  const { stablePoolTypeQuery, setStablePoolType } = useStablePoolTypeQuery()
 
   const {
     chainId,
+    protocol,
     currencyIdA: currencyIdAFromQuery,
     currencyIdB: currencyIdBFromQuery,
     updateParams,
   } = useSelectIdRouteParams()
+  const isStableMode = protocol === LiquidityType.StableSwap
   const selectedTokenA = useCurrencyByChainId(currencyIdAFromQuery, chainId)
   const selectedTokenB = useCurrencyByChainId(currencyIdBFromQuery, chainId)
   const currencyIdA = getCurrencyAddress(selectedTokenA)
@@ -136,6 +144,37 @@ export const PoolList = () => {
   const [cursorVisible, setCursorVisible] = useState(NUMBER_OF_FARMS_VISIBLE)
   const [nextPage, setNextPage] = useState(1)
   const poolTypeData = usePoolTypes()
+  const stablePoolTypeData = useMemo(
+    () => [
+      {
+        key: '0',
+        label: t('Pool Type'),
+        data: 'stableSwapPoolType',
+        children: [
+          {
+            key: '0-0',
+            label: t('Classic'),
+            data: STABLE_POOL_TYPE.classic,
+          },
+          {
+            key: '0-1',
+            label: t('Infinity'),
+            data: STABLE_POOL_TYPE.infinity,
+          },
+        ],
+      },
+    ],
+    [t],
+  )
+  const stablePoolTypeSelectedValues = useMemo(() => {
+    const allChildrenSelected =
+      stablePoolTypeQuery.includes(STABLE_POOL_TYPE.classic) && stablePoolTypeQuery.includes(STABLE_POOL_TYPE.infinity)
+    return allChildrenSelected ? ['stableSwapPoolType', ...stablePoolTypeQuery] : stablePoolTypeQuery
+  }, [stablePoolTypeQuery])
+  const stablePoolType = useMemo(
+    () => fromSelectedNodes(stablePoolTypeData, stablePoolTypeSelectedValues),
+    [stablePoolTypeData, stablePoolTypeSelectedValues],
+  )
 
   const [clOnly, binOnly, stableOnly] = useMemo(() => {
     const queries = (Array.isArray(poolTypeQuery) ? poolTypeQuery : [poolTypeQuery]).filter(
@@ -157,15 +196,28 @@ export const PoolList = () => {
     if (!chainId) {
       return {}
     }
-    let protocols = [...INFINITY_PROTOCOLS, Protocol.InfinitySTABLE]
-    if (clOnly) {
-      protocols = [Protocol.InfinityCLAMM]
-    }
-    if (binOnly) {
-      protocols = [Protocol.InfinityBIN]
-    }
-    if (stableOnly) {
-      protocols = [Protocol.InfinitySTABLE]
+
+    let protocols = isStableMode
+      ? [Protocol.STABLE, Protocol.InfinitySTABLE]
+      : [...INFINITY_PROTOCOLS, Protocol.InfinitySTABLE]
+    if (isStableMode) {
+      protocols = []
+      if (stablePoolTypeQuery.includes(STABLE_POOL_TYPE.infinity)) {
+        protocols.push(Protocol.InfinitySTABLE)
+      }
+      if (stablePoolTypeQuery.includes(STABLE_POOL_TYPE.classic)) {
+        protocols.push(Protocol.STABLE)
+      }
+    } else {
+      if (clOnly) {
+        protocols = [Protocol.InfinityCLAMM]
+      }
+      if (binOnly) {
+        protocols = [Protocol.InfinityBIN]
+      }
+      if (stableOnly) {
+        protocols = [Protocol.InfinitySTABLE]
+      }
     }
     return {
       tokens: [toTokenValue({ chainId, address: currencyIdA }), toTokenValue({ chainId, address: currencyIdB })],
@@ -174,7 +226,7 @@ export const PoolList = () => {
       protocols,
       pageNo: nextPage,
     } as FetchPoolsProps
-  }, [binOnly, chainId, clOnly, currencyIdA, currencyIdB, nextPage, stableOnly])
+  }, [binOnly, chainId, clOnly, currencyIdA, currencyIdB, isStableMode, nextPage, stableOnly, stablePoolTypeQuery])
 
   const { isLoading, data: poolList, pageNo, resetExtendPools, hasNextPage } = useFetchPools(fetchQueries, !!chainId)
 
@@ -217,10 +269,42 @@ export const PoolList = () => {
 
   const handleRowClick = useCallback(
     async (pool: InfinityPoolInfo) => {
+      const poolProtocol = pool.protocol as Protocol | string
+      if (poolProtocol === Protocol.STABLE) {
+        const baseToken = getCurrencyAddress((pool as any).token0)
+        const quoteToken = getCurrencyAddress((pool as any).token1)
+        const queryParams = new URLSearchParams({
+          chain: CHAIN_QUERY_NAME[(pool as any).chainId],
+          persistChain: '1',
+        })
+        nextRouter.push(`/stable/add/${baseToken}/${quoteToken}?${queryParams.toString()}`)
+        return
+      }
+      if (pool.protocol === Protocol.InfinitySTABLE) {
+        const infinityStableHookAddress = pool.hookAddress ?? pool.poolId
+        nextRouter.push(
+          `/infinityStable/add/${infinityStableHookAddress}?chain=${CHAIN_QUERY_NAME[pool.chainId]}&persistChain=1`,
+        )
+        return
+      }
       const link = await getPoolDetailPageLink(pool)
       nextRouter.push(link)
     },
     [nextRouter],
+  )
+
+  const handleStablePoolTypeChange = useCallback(
+    (e) => {
+      if (!e.value || Object.keys(e.value).length === 0) {
+        setStablePoolType([])
+        return
+      }
+      const values = toSelectedNodes(stablePoolTypeData, e.value)
+        .map((node) => node.data)
+        .filter((v): v is string => v === STABLE_POOL_TYPE.classic || v === STABLE_POOL_TYPE.infinity)
+      setStablePoolType(values)
+    },
+    [setStablePoolType, stablePoolTypeData],
   )
 
   const getRowKey = useCallback((item: InfinityPoolInfo) => {
@@ -319,21 +403,40 @@ export const PoolList = () => {
       }),
     [chainId, currencyIdA, currencyIdB],
   )
+  const createInfinityStablePoolUrl = useMemo(() => {
+    if (!chainId || !currencyIdA || !currencyIdB) {
+      return '/liquidity/create'
+    }
+    const chainName = CHAIN_QUERY_NAME[chainId]
+    return `/liquidity/create/${chainName}/stableSwap/${currencyIdA}/${currencyIdB}?chain=${chainName}&persistChain=1`
+  }, [chainId, currencyIdA, currencyIdB])
 
   return (
     <>
       <PoolsHead>
-        <Heading as="h3">{t('Add Infinity Liquidity')}</Heading>
-        <NextLink href={createInfinityPoolUrl}>
-          <Button variant="secondary" scale="md">
-            {t('Create Infinity Pool')}
-          </Button>
-        </NextLink>
+        <Heading as="h3">{isStableMode ? t('Add Stable Liquidity') : t('Add Infinity Liquidity')}</Heading>
+        {isStableMode && chainId === ChainId.BSC ? (
+          <NextLink href={createInfinityStablePoolUrl}>
+            <Button variant="secondary" scale="md">
+              {t('Create Infinity Stable Pool')}
+            </Button>
+          </NextLink>
+        ) : !isStableMode ? (
+          <NextLink href={createInfinityPoolUrl}>
+            <Button variant="secondary" scale="md">
+              {t('Create Infinity Pool')}
+            </Button>
+          </NextLink>
+        ) : null}
       </PoolsHead>
       <Card marginTop={['16px', '24px']}>
         <CardHeader>
           <FilterContainer gridGap={24} gridTemplateColumns={['1fr', '1fr', '1fr', '1fr 1fr 1fr']}>
-            <NetworkSelector version={LiquidityType.Infinity} chainId={chainId} onChange={handleNetworkChange} />
+            <NetworkSelector
+              version={isStableMode ? LiquidityType.StableSwap : LiquidityType.Infinity}
+              chainId={chainId}
+              onChange={handleNetworkChange}
+            />
             <TokenFilterContainer>
               <CurrencySelectV2
                 id="add-liquidity-select-tokenA"
@@ -357,7 +460,11 @@ export const PoolList = () => {
                 showNative
               />
             </TokenFilterContainer>
-            <PoolTypeFilter data={poolTypeData} value={poolType} onChange={(e) => setPoolType(e.value)} />
+            {isStableMode ? (
+              <PoolTypeFilter data={stablePoolTypeData} value={stablePoolType} onChange={handleStablePoolTypeChange} />
+            ) : (
+              <PoolTypeFilter data={poolTypeData} value={poolType} onChange={(e) => setPoolType(e.value)} />
+            )}
           </FilterContainer>
         </CardHeader>
         <CardBody>
