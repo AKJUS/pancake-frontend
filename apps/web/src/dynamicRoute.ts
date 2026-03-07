@@ -84,8 +84,20 @@ export const zTokenId = z.number().int().positive()
 export const zMintId = z.string().regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/)
 export const zPositionProtocol = z.enum([Protocol.InfinityCLAMM, Protocol.InfinityBIN])
 export const zPositionAction = z.enum(['increase', 'decrease'])
-export const zProtocolInfinityBin = z.literal(Protocol.InfinityBIN)
-export const zProtocolInfinityClamm = z.literal(Protocol.InfinityCLAMM)
+export const zProtocolInfinityBin = z
+  .string()
+  .regex(
+    new RegExp(`^${Protocol.InfinityBIN}$`, 'i'),
+    `Invalid protocol: expected ${Protocol.InfinityBIN} (case-insensitive)`,
+  )
+  .transform(() => Protocol.InfinityBIN)
+export const zProtocolInfinityClamm = z
+  .string()
+  .regex(
+    new RegExp(`^${Protocol.InfinityCLAMM}$`, 'i'),
+    `Invalid protocol: expected ${Protocol.InfinityCLAMM} (case-insensitive)`,
+  )
+  .transform(() => Protocol.InfinityCLAMM)
 export const zInfinityBinPositionIdTuple = z
   .tuple([zProtocolInfinityBin, zInfinityPoolId])
   .or(z.tuple([zProtocolInfinityBin, zInfinityPoolId, zPositionAction]))
