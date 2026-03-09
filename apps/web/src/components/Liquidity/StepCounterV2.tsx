@@ -88,7 +88,8 @@ export const StepCounterV2 = ({
         setLocalValue(value ?? '') // reset local value to match parent
       }, 0)
     }
-  }, [localValue, useLocalValue, value])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useLocalValue, value])
 
   return (
     <StepCounterCard error={error} padding="0" {...props}>

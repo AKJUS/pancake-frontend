@@ -149,19 +149,14 @@ export const useClDepositAmounts = () => {
       if (!amount0 || amount0.equalTo(0) || startPriceFraction.equalTo(0)) return [undefined, undefined]
 
       if (isDeposit1Enabled && sqrtPriceX96) {
-        const liquidity = maxLiquidityForAmount0Imprecise(
-          sqrtPriceX96,
-          TickMath.getSqrtRatioAtTick(upperTick),
-          amount0.quotient,
-        )
+        const sqrtLowerX96 = TickMath.getSqrtRatioAtTick(lowerTick)
+        const sqrtUpperX96 = TickMath.getSqrtRatioAtTick(upperTick)
 
-        const amount1Raw = SqrtPriceMath.getAmount1Delta(
-          TickMath.getSqrtRatioAtTick(lowerTick),
-          sqrtPriceX96,
-          liquidity,
-          false,
-        )
-
+        if (sqrtPriceX96 === sqrtUpperX96) {
+          return [undefined, undefined]
+        }
+        const liquidity = maxLiquidityForAmount0Imprecise(sqrtPriceX96, sqrtUpperX96, amount0.quotient)
+        const amount1Raw = SqrtPriceMath.getAmount1Delta(sqrtLowerX96, sqrtPriceX96, liquidity, false)
         amount1 = c1 ? CurrencyAmount.fromRawAmount(c1, amount1Raw) : undefined
       } else {
         amount1 = c1 ? CurrencyAmount.fromRawAmount(c1, 0n) : undefined
@@ -174,15 +169,14 @@ export const useClDepositAmounts = () => {
       if (!amount1 || amount1.equalTo(0) || startPriceFraction.equalTo(0)) return [undefined, undefined]
 
       if (isDeposit0Enabled && sqrtPriceX96) {
-        const liquidity = maxLiquidityForAmount1(TickMath.getSqrtRatioAtTick(lowerTick), sqrtPriceX96, amount1.quotient)
+        const sqrtLowerX96 = TickMath.getSqrtRatioAtTick(lowerTick)
+        const sqrtUpperX96 = TickMath.getSqrtRatioAtTick(upperTick)
 
-        const rawAmount0 = SqrtPriceMath.getAmount0Delta(
-          sqrtPriceX96,
-          TickMath.getSqrtRatioAtTick(upperTick),
-          liquidity,
-          true,
-        )
-
+        if (sqrtPriceX96 === sqrtLowerX96) {
+          return [undefined, undefined]
+        }
+        const liquidity = maxLiquidityForAmount1(sqrtLowerX96, sqrtPriceX96, amount1.quotient)
+        const rawAmount0 = SqrtPriceMath.getAmount0Delta(sqrtPriceX96, sqrtUpperX96, liquidity, true)
         amount0 = c0 ? CurrencyAmount.fromRawAmount(c0, rawAmount0) : undefined
       } else {
         amount0 = c0 ? CurrencyAmount.fromRawAmount(c0, 0n) : undefined
