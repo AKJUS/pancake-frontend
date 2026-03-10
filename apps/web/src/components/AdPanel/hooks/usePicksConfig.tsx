@@ -10,7 +10,9 @@ const picksConfigAtom = atom(async () => {
   const url = showPreviewVersion ? urlPreview : `https://proofs.pancakeswap.com/picks/today.json?t=${time}`
   try {
     const response = await fetch(url)
+    if (!response.ok) return null
     const json = await response.json()
+    if (!json || !Array.isArray(json.configs)) return null
     return json as PicksConfig
   } catch (ex) {
     return null
