@@ -6,6 +6,7 @@ import { NextLinkFromReactRouter } from '@pancakeswap/widgets-internal'
 import BigNumber from 'bignumber.js'
 import { getChainId } from 'config/chains'
 import { ASSET_CDN } from 'config/constants/endpoints'
+import { useIncentraInfo } from 'hooks/useIncentra'
 import { useEffect, useMemo } from 'react'
 import { usePoolApr, usePoolInfo } from 'state/farmsV4/hooks'
 import { ChainIdAddressKey } from 'state/farmsV4/state/type'
@@ -27,7 +28,8 @@ const usePicksData = (poolId: `0x{string}`, chain: string) => {
     return pool ? `${pool.chainId}:${pool.lpAddress}` : null
   }, [pool])
 
-  const { lpApr, cakeApr, merklApr, incentraApr } = usePoolApr(key, pool, true)
+  const { lpApr, cakeApr, merklApr } = usePoolApr(key, pool, true)
+  const { incentraApr } = useIncentraInfo(pool?.lpAddress)
 
   const numerator = useMemo(() => {
     if (!pool || !cakeApr) return BIG_ZERO // Default value if pool or cakeApr is missing
