@@ -43,7 +43,13 @@ export function useNativeBalances(account?: Address, chainId?: ChainId): Currenc
     }
   }, [latestBlockNumber, account, native?.chainId, refetch])
 
-  return useMemo(() => CurrencyAmount.fromRawAmount(native, results?.value ?? BigInt(0)), [results, native])
+  return useMemo(() => {
+    try {
+      return CurrencyAmount.fromRawAmount(native, results?.value ?? BigInt(0))
+    } catch {
+      return CurrencyAmount.fromRawAmount(native, BigInt(0))
+    }
+  }, [results, native])
 }
 
 /**
