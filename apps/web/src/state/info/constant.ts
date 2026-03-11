@@ -5,7 +5,7 @@ import { ChainId, isTestnetChainId, NonEVMChainId, UnifiedChainId } from '@panca
 import { STABLE_SUPPORTED_CHAIN_IDS } from '@pancakeswap/stable-swap-sdk'
 import { mapValues } from '@pancakeswap/utils/fns'
 import { BSC_TOKEN_WHITELIST, ETH_TOKEN_BLACKLIST, ETH_TOKEN_WHITELIST, TOKEN_BLACKLIST } from 'config/constants/info'
-import { arbitrum, base, bsc, bscTestnet, linea, mainnet, opBNB, zksync } from 'wagmi/chains'
+import { arbitrum, base, bsc, bscTestnet, mainnet, opBNB, zksync } from 'wagmi/chains'
 import { CHAINS, SOLANA_CHAIN } from 'config/chains'
 
 export type MultiChainName =
@@ -19,19 +19,7 @@ export type MultiChainName =
   | 'OPBNB'
   | 'SOLANA'
   | 'MONAD'
-export type MultiChainNameExtend = MultiChainName | 'BSC_TESTNET' | 'ZKSYNC_TESTNET'
-
-export const multiChainName: Record<number | string, MultiChainNameExtend> = {
-  [ChainId.BSC]: 'BSC',
-  [ChainId.ETHEREUM]: 'ETH',
-  [ChainId.BSC_TESTNET]: 'BSC_TESTNET',
-  [ChainId.ZKSYNC]: 'ZKSYNC',
-  [ChainId.LINEA]: 'LINEA',
-  [ChainId.BASE]: 'BASE',
-  [ChainId.OPBNB]: 'OPBNB',
-  [ChainId.ARBITRUM_ONE]: 'ARB',
-  [ChainId.MONAD_MAINNET]: 'MONAD',
-}
+export type MultiChainNameExtend = MultiChainName | 'BSC_TESTNET' | 'LINEA_TESTNET'
 
 export const multiChainShortName: Record<number, string> = {}
 
@@ -57,10 +45,14 @@ export const multiChainId: Record<MultiChainNameExtend, UnifiedChainId> = {
   BASE: ChainId.BASE,
   OPBNB: ChainId.OPBNB,
   SOLANA: NonEVMChainId.SOLANA,
-  BSC_TESTNET: ChainId.BSC_TESTNET,
-  ZKSYNC_TESTNET: ChainId.ZKSYNC_TESTNET,
   MONAD: ChainId.MONAD_MAINNET,
+  BSC_TESTNET: ChainId.BSC_TESTNET,
+  LINEA_TESTNET: ChainId.LINEA_TESTNET,
 }
+
+export const multiChainName: Record<UnifiedChainId, MultiChainNameExtend> = Object.fromEntries(
+  Object.entries(multiChainId).map(([name, id]) => [id, name]),
+) as Record<UnifiedChainId, MultiChainNameExtend>
 
 export const multiChainPaths = {
   [ChainId.BSC_TESTNET]: '/bsc-testnet',
@@ -97,25 +89,18 @@ export const STABLESWAP_SUBGRAPHS_START_BLOCK = {
   ARB: 169319653,
 }
 
-export const multiChainScan: Record<MultiChainName, string> = {
+export const multiChainScan: Record<MultiChainNameExtend, string> = {
   BSC_TESTNET: bscTestnet.blockExplorers.default.name,
   BSC: bsc.blockExplorers.default.name,
   ETH: mainnet.blockExplorers.default.name,
-  ZKSYNC: zksync.blockExplorers.default.name,
+  ZKSYNC: zksync.blockExplorers.native?.name || zksync.blockExplorers.default.name,
   ARB: arbitrum.blockExplorers.default.name,
-  LINEA: linea.blockExplorers.default.name,
+  LINEA: 'LineaScan',
+  LINEA_TESTNET: 'LineaScan',
   BASE: base.blockExplorers.default.name,
   OPBNB: opBNB.blockExplorers.default.name,
   SOLANA: SOLANA_CHAIN.blockExplorers.default.name,
   MONAD: CHAINS.find((c) => c.id === ChainId.MONAD_MAINNET)?.blockExplorers?.default.name || '',
-}
-
-/** Override Explorer Names if default for chain is "Etherscan" */
-export const multiChainScanName: Partial<Record<ChainId, string>> = {
-  [ChainId.ZKSYNC]: 'ZKSync Explorer',
-  [ChainId.ZKSYNC_TESTNET]: 'ZKSync Explorer',
-  [ChainId.LINEA]: 'LineaScan',
-  [ChainId.LINEA_TESTNET]: 'LineaScan',
 }
 
 export const multiChainTokenBlackList: Record<MultiChainName, string[]> = mapValues(

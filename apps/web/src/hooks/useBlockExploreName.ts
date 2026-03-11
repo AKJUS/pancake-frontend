@@ -1,10 +1,10 @@
 import { ChainId, NonEVMChainId } from '@pancakeswap/chains'
 import { useAtomValue } from 'jotai'
 import { solanaExplorerAtom } from '@pancakeswap/utils/user'
-import { multiChainScanName } from 'state/info/constant'
 import { bsc } from 'wagmi/chains'
 import { chains } from 'utils/wagmi'
 import { useCallback } from 'react'
+import { getBlockExploreName, getSolExplorerLink } from 'utils'
 
 export function useBlockExploreName(chainIdOverride?: number) {
   const solanaExplorer = useAtomValue(solanaExplorerAtom)
@@ -14,26 +14,7 @@ export function useBlockExploreName(chainIdOverride?: number) {
     return solanaExplorer.name || 'Solscan'
   }
 
-  const chain = chains.find((c) => c.id === chainId)
-
-  return multiChainScanName[chain?.id || -1] || chain?.blockExplorers?.default.name || bsc.blockExplorers.default.name
-}
-
-function getSolExplorerLink(
-  data: string | number | undefined | null,
-  type: 'transaction' | 'token' | 'address' | 'block' | 'countdown' | 'nft',
-  explorerHost: string,
-) {
-  switch (type) {
-    case 'transaction':
-      return `${explorerHost}/tx/${data}`
-    case 'token':
-      return `${explorerHost}/token/${data}`
-    case 'address':
-      return `${explorerHost}/address/${data}`
-    default:
-      throw new Error(`Unsupported Solana explorer type: ${type}`)
-  }
+  return getBlockExploreName(chainId)
 }
 
 export function useBlockExploreLink() {
@@ -48,25 +29,28 @@ export function useBlockExploreLink() {
       const chainId = chainIdOverride || ChainId.BSC
 
       if (chainId === NonEVMChainId.SOLANA) {
+        if (!data) return solanaExplorer.host
         return getSolExplorerLink(data, type, solanaExplorer.host)
       }
 
-      const chain = chains.find((c) => c.id === chainId)
-      if (!chain || !data) return bsc.blockExplorers.default.url
+      const baseUrl = chains.find((c) => c.id === chainId)?.blockExplorers?.default?.url
+      if (!baseUrl) return bsc.blockExplorers.default.url
+      const url = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
+      if (!data) return url
 
       switch (type) {
         case 'transaction':
-          return `${chain.blockExplorers?.default.url}/tx/${data}`
+          return `${url}/tx/${data}`
         case 'token':
-          return `${chain.blockExplorers?.default.url}/token/${data}`
+          return `${url}/token/${data}`
         case 'block':
-          return `${chain.blockExplorers?.default.url}/block/${data}`
+          return `${url}/block/${data}`
         case 'countdown':
-          return `${chain.blockExplorers?.default.url}/block/countdown/${data}`
+          return `${url}/block/countdown/${data}`
         case 'nft':
-          return `${chain.blockExplorers?.default.url}/nft/${data}`
+          return `${url}/nft/${data}`
         default:
-          return `${chain.blockExplorers?.default.url}/address/${data}`
+          return `${url}/address/${data}`
       }
     },
     [solanaExplorer],

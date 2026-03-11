@@ -22,10 +22,10 @@ import { CHAIN_QUERY_NAME } from 'config/chains'
 // import { useActiveChainId } from 'hooks/useActiveChainId'
 import useTheme from 'hooks/useTheme'
 import { useEffect, useMemo, useState } from 'react'
-import { ChainLinkSupportChains, multiChainId, multiChainScan } from 'state/info/constant'
+import { ChainLinkSupportChains, multiChainId } from 'state/info/constant'
 import { useChainIdByQuery, useChainNameByQuery, useMultiChainPath, useStableSwapPath } from 'state/info/hooks'
 import { styled } from 'styled-components'
-import { getBlockExploreLink } from 'utils'
+import { getBlockExploreLink, getBlockExploreName } from 'utils'
 import { formatAmount } from 'utils/formatInfoNumbers'
 
 import { getTokenSymbolAlias } from 'utils/getTokenAlias'
@@ -172,15 +172,15 @@ const PoolPage: React.FC<{ address: string }> = ({ address }) => {
               </Flex>
             </Breadcrumbs>
 
-            <Flex justifyContent={[null, null, 'flex-end']} mt={['8px', '8px', 0]}>
+            <Flex justifyContent={[null, null, 'flex-end']} mt={['8px', '8px', 0]} alignItems="center">
               <ScanLink
                 useBscCoinFallback={ChainLinkSupportChains.includes(multiChainId[chainName])}
                 href={getBlockExploreLink(address, 'address', multiChainId[chainName])}
                 mr="8px"
               >
-                {t('View on %site%', { site: multiChainScan[chainName] })}
+                {t('View on %site%', { site: getBlockExploreName(multiChainId[chainName]) })}
               </ScanLink>
-              <CopyButton text={address} tooltipMessage={t('Token address copied')} />
+              <CopyButton text={address} tooltipMessage={t('Pair address copied')} />
               {/* <SaveIcon fill={watchlistPools.includes(address)} onClick={() => addPoolToWatchlist(address)} /> */}
             </Flex>
           </Flex>

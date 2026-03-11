@@ -13,7 +13,6 @@ import {
   monadTestnet,
   scrollSepolia as scrollSepolia_,
   zksync,
-  zksyncSepoliaTestnet,
 } from 'viem/chains'
 
 const scrollSepolia = {
@@ -114,7 +113,6 @@ export const CHAINS = [
   bscTestnet,
   goerli,
   zksync,
-  zksyncSepoliaTestnet,
   arbitrum,
   arbitrumGoerli,
   linea,

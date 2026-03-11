@@ -108,7 +108,15 @@ export const CHAINS: [Chain, ...Chain[]] = [
   mainnet,
   goerli,
   sepolia,
-  zksync,
+  {
+    ...zksync,
+    blockExplorers: zksync.blockExplorers?.native
+      ? {
+          ...zksync.blockExplorers,
+          default: zksync.blockExplorers.native,
+        }
+      : zksync.blockExplorers,
+  },
   arbitrum,
   arbitrumGoerli,
   arbitrumSepolia,

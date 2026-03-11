@@ -11,6 +11,7 @@ import { VercelToolbar } from 'components/VercelToolbar'
 import { useAccountEventListener } from 'hooks/useAccountEventListener'
 import useEagerConnect from 'hooks/useEagerConnect'
 import useLockedEndNotification from 'hooks/useLockedEndNotification'
+import { useInitSolanaExplorer } from 'hooks/useInitSolanaExplorer'
 import useSentryUser from 'hooks/useSentryUser'
 import useThemeCookie from 'hooks/useThemeCookie'
 import useUserAgent from 'hooks/useUserAgent'
@@ -80,6 +81,7 @@ function GlobalHooks() {
   useWalletConnectRouterSync()
   useEmbeddedSmartAccountConnectorV2()
   useGlobalLinkHandler()
+  useInitSolanaExplorer()
   return null
 }
 

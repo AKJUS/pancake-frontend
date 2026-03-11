@@ -101,7 +101,6 @@ const TwapAndLimitSwapInner = ({ limit }: { limit?: boolean }) => {
                 swapType={limit ? SwapType.LIMIT : SwapType.TWAP}
                 style={{ marginBottom: 16 }}
                 withToolkit
-                outputChainId={outputChainId}
               />
               <TWAPPanel limit={limit} />
               <Flex flexDirection={!isDesktop ? 'column-reverse' : 'column'}>

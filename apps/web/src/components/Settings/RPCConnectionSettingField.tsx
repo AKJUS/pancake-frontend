@@ -68,6 +68,7 @@ export function RPCConnectionSettingField() {
           placeholder="https://"
           py="4px"
           px="12px"
+          title={!isCustom ? rpcNodeUrl : undefined}
           disabled={!isCustom || isLoading}
           value={!isCustom ? rpcNodeUrl : customUrl}
           onBlur={() => handleSwitchRpc(customUrl)}

@@ -194,7 +194,7 @@ export const PoolInfo = () => {
                               <Text>{poolSymbol}</Text>
                             </FlexGap>
 
-                            <FlexGap gap="4px">
+                            <FlexGap gap="4px" alignItems="center">
                               <Link
                                 target="_blank"
                                 href={getBlockExploreLink(
@@ -211,7 +211,7 @@ export const PoolInfo = () => {
                                     ? poolInfo.stableSwapAddress ?? ''
                                     : poolInfo.lpAddress ?? ''
                                 }
-                                tooltipMessage={t('Token address copied')}
+                                tooltipMessage={t('Pair address copied')}
                                 width="16px"
                                 height="16px"
                               />

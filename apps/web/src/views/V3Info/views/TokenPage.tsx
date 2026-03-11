@@ -26,7 +26,7 @@ import { useActiveChainId } from 'hooks/useActiveChainId'
 import useTheme from 'hooks/useTheme'
 import dynamic from 'next/dynamic'
 import React, { useEffect, useMemo, useState } from 'react'
-import { getBlockExploreLink } from 'utils'
+import { getBlockExploreLink, getBlockExploreName } from 'utils'
 import { formatAmount } from 'utils/formatInfoNumbers'
 
 import { chainNames } from '@pancakeswap/chains'
@@ -34,7 +34,7 @@ import isUndefinedOrNull from '@pancakeswap/utils/isUndefinedOrNull'
 import truncateHash from '@pancakeswap/utils/truncateHash'
 import { tokenInfoV3PageDataAtom } from 'edge/tokenInfoPageDataAtom'
 import { useAtomValue } from 'jotai'
-import { ChainLinkSupportChains, multiChainId, multiChainScan } from 'state/info/constant'
+import { ChainLinkSupportChains, multiChainId } from 'state/info/constant'
 import { useChainNameByQuery, useMultiChainPath, useStableSwapPath } from 'state/info/hooks'
 import { PoolDataForView } from 'state/info/types'
 import { styled } from 'styled-components'
@@ -190,7 +190,7 @@ const TokenPage: React.FC<{ address: string; chain?: string }> = ({ address, cha
                 useBscCoinFallback={ChainLinkSupportChains.includes(multiChainId[chainName])}
                 href={getBlockExploreLink(address, 'address', multiChainId[chainName])}
               >
-                {t('View on %site%', { site: multiChainScan[chainName] })}
+                {t('View on %site%', { site: getBlockExploreName(multiChainId[chainName]) })}
               </ScanLink>
               {cmcLink && (
                 <StyledCMCLink href={cmcLink} rel="noopener noreferrer nofollow" target="_blank" title="CoinMarketCap">

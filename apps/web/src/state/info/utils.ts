@@ -1,4 +1,4 @@
-import { ChainId } from '@pancakeswap/chains'
+import { ChainId, UnifiedChainId } from '@pancakeswap/chains'
 
 import { CHAIN_QUERY_NAME } from 'config/chains'
 
@@ -51,6 +51,6 @@ export function transformPoolData(item: ApiPoolData): PoolDataForView {
   }
 }
 
-export function getMultiChainName(chainId?: ChainId) {
+export function getMultiChainName(chainId?: UnifiedChainId) {
   return multiChainName[chainId || ChainId.BSC]
 }

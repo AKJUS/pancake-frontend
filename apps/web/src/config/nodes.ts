@@ -15,7 +15,6 @@ import {
   scrollSepolia,
   sepolia,
   zksync,
-  zksyncSepoliaTestnet,
 } from 'wagmi/chains'
 
 const MONAD_RPC_URLS = [
@@ -65,7 +64,6 @@ export const SERVER_NODES = {
     ...zksync.rpcUrls.default.http,
     getNodeRealUrl(ChainId.ZKSYNC, process.env.SERVER_NODE_REAL_API_ETH) || '',
   ].filter(Boolean),
-  [ChainId.ZKSYNC_TESTNET]: zksyncSepoliaTestnet.rpcUrls.default.http,
   [ChainId.LINEA]: linea.rpcUrls.default.http,
   [ChainId.LINEA_TESTNET]: [
     'https://rpc.goerli.linea.build',
@@ -136,7 +134,6 @@ export const PUBLIC_NODES: Partial<Record<ChainId, readonly string[]>> = {
     ...zksync.rpcUrls.default.http,
     getNodeRealUrl(ChainId.ZKSYNC, process.env.NEXT_PUBLIC_NODE_REAL_API_ETH) || '',
   ].filter(Boolean) as readonly string[],
-  [ChainId.ZKSYNC_TESTNET]: zksyncSepoliaTestnet.rpcUrls.default.http,
   [ChainId.LINEA]: linea.rpcUrls.default.http,
   [ChainId.LINEA_TESTNET]: [
     'https://rpc.goerli.linea.build',

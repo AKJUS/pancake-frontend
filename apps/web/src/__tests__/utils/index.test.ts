@@ -1,12 +1,15 @@
 /* eslint-disable address/addr-type */
 import { Token, Percent, CurrencyAmount } from '@pancakeswap/sdk'
 import { ChainId } from '@pancakeswap/chains'
-import { getBlockExploreLink, safeGetAddress, calculateGasMargin } from 'utils'
+import { getBlockExploreLink, safeGetAddress, calculateGasMargin, getBlockExploreName } from 'utils'
 import { calculateSlippageAmount, basisPointsToPercent } from 'utils/exchange'
 import { ADDRESS_ZERO } from '@pancakeswap/v3-sdk'
+import { bsc } from 'wagmi/chains'
+import { CHAINS } from 'config/chains'
+import { multiChainName, multiChainScan } from 'state/info/constant'
 
 describe('utils', () => {
-  describe('#getBscScanLink', () => {
+  describe('#getBlockExploreLink', () => {
     it('correct for tx', () => {
       expect(getBlockExploreLink('abc', 'transaction', ChainId.BSC)).toEqual('https://bscscan.com/tx/abc')
     })
@@ -20,6 +23,9 @@ describe('utils', () => {
       expect(getBlockExploreLink('abc', 'address', ChainId.BSC_TESTNET)).toEqual(
         'https://testnet.bscscan.com/address/abc',
       )
+    })
+    it('zksync points to native explorer', () => {
+      expect(getBlockExploreLink('0x123', 'transaction', ChainId.ZKSYNC)).toEqual('https://explorer.zksync.io/tx/0x123')
     })
   })
 
@@ -75,6 +81,34 @@ describe('utils', () => {
       expect(basisPointsToPercent(100).equalTo(new Percent(1n, 100n))).toBeTruthy()
       expect(basisPointsToPercent(500).equalTo(new Percent(5n, 100n))).toBeTruthy()
       expect(basisPointsToPercent(50).equalTo(new Percent(5n, 1000n))).toBeTruthy()
+    })
+  })
+
+  describe('#getBlockExploreName', () => {
+    it('returns default BSC explorer if no chainId is provided', () => {
+      expect(getBlockExploreName()).toEqual(bsc.blockExplorers.default.name)
+    })
+
+    it('returns the correct explorer from CHAINS', () => {
+      const chain = CHAINS.find((c) => c.id === ChainId.BSC)
+      expect(getBlockExploreName(ChainId.BSC)).toEqual(chain?.blockExplorers?.default.name)
+    })
+
+    it('returns the correct explorer from CHAINS #2', () => {
+      const chain = CHAINS.find((c) => c.id === ChainId.ZKSYNC)
+      expect(getBlockExploreName(ChainId.ZKSYNC)).toEqual(chain?.blockExplorers?.default.name)
+    })
+
+    it('returns the correct multiChainScan name if present', () => {
+      const chain = CHAINS[0]
+      const multiName = multiChainScan[multiChainName[chain.id]]
+      if (multiName) {
+        expect(getBlockExploreName(chain.id)).toEqual(multiName)
+      }
+    })
+
+    it('falls back to default BSC explorer for unknown chainId', () => {
+      expect(getBlockExploreName(-1)).toEqual(bsc.blockExplorers.default.name)
     })
   })
 })

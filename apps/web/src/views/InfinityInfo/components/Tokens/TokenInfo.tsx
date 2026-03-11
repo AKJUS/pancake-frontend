@@ -27,14 +27,14 @@ import useTheme from 'hooks/useTheme'
 import dynamic from 'next/dynamic'
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import { getBlockExploreLink, safeGetAddress, isAddressEqual } from 'utils'
+import { getBlockExploreLink, safeGetAddress, isAddressEqual, getBlockExploreName } from 'utils'
 import { formatAmount } from 'utils/formatInfoNumbers'
 
 import { CAKE, USDT } from '@pancakeswap/tokens'
 import isUndefinedOrNull from '@pancakeswap/utils/isUndefinedOrNull'
 import truncateHash from '@pancakeswap/utils/truncateHash'
 import { getSelectInfinityLiquidityURL } from 'config/constants/liquidity'
-import { ChainLinkSupportChains, multiChainId, multiChainScan } from 'state/info/constant'
+import { ChainLinkSupportChains, multiChainId } from 'state/info/constant'
 import {
   useChainNameByQuery,
   useMultiChainPath,
@@ -218,7 +218,7 @@ const TokenInfo: React.FC<{ address: string }> = ({ address }) => {
                     useBscCoinFallback={ChainLinkSupportChains.includes(multiChainId[chainName])}
                     href={getBlockExploreLink(address, 'address', multiChainId[chainName])}
                   >
-                    {t('View on %site%', { site: multiChainScan[chainName] })}
+                    {t('View on %site%', { site: getBlockExploreName(multiChainId[chainName]) })}
                   </ScanLink>
                   {cmcLink && (
                     <StyledCMCLink

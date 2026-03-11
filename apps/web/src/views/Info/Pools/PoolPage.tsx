@@ -27,7 +27,7 @@ import { CHAIN_QUERY_NAME } from 'config/chains'
 import { useStableSwapAPR } from 'hooks/useStableSwapAPR'
 import { NextSeo } from 'next-seo'
 import { useMemo, useState } from 'react'
-import { ChainLinkSupportChains, checkIsStableSwap, multiChainId, multiChainScan } from 'state/info/constant'
+import { ChainLinkSupportChains, checkIsStableSwap, multiChainId } from 'state/info/constant'
 import {
   useChainIdByQuery,
   useChainNameByQuery,
@@ -39,7 +39,7 @@ import {
   useStableSwapPath,
 } from 'state/info/hooks'
 import { styled } from 'styled-components'
-import { getBlockExploreLink } from 'utils'
+import { getBlockExploreLink, getBlockExploreName } from 'utils'
 import { formatAmount } from 'utils/formatInfoNumbers'
 import { getTokenSymbolAlias } from 'utils/getTokenAlias'
 import { CurrencyLogo, DoubleCurrencyLogo } from 'views/Info/components/CurrencyLogo'
@@ -88,7 +88,6 @@ const PoolPage: React.FC<React.PropsWithChildren<{ address: string }>> = ({ addr
   const [showWeeklyData, setShowWeeklyData] = useState(0)
   const { tooltip, tooltipVisible, targetRef } = useTooltip(
     t(`Based on last 7 days' performance. Does not account for impermanent loss`),
-    {},
   )
 
   const poolData = usePoolDataQuery(routeAddress)
@@ -154,15 +153,15 @@ const PoolPage: React.FC<React.PropsWithChildren<{ address: string }>> = ({ addr
                 <Text mr="8px">{poolSymbol}</Text>
               </Flex>
             </Breadcrumbs>
-            <Flex justifyContent={[null, null, 'flex-end']} mt={['8px', '8px', 0]}>
+            <Flex justifyContent={[null, null, 'flex-end']} mt={['8px', '8px', 0]} alignItems="center">
               <ScanLink
                 useBscCoinFallback={ChainLinkSupportChains.includes(multiChainId[chainName])}
                 mr="8px"
                 href={getBlockExploreLink(routeAddress, 'address', multiChainId[chainName])}
               >
-                {t('View on %site%', { site: multiChainScan[chainName] })}
+                {t('View on %site%', { site: getBlockExploreName(multiChainId[chainName]) })}
               </ScanLink>
-              <CopyButton ml="4px" text={routeAddress} tooltipMessage={t('Token address copied')} />
+              <CopyButton text={routeAddress} tooltipMessage={t('Pair address copied')} />
             </Flex>
           </Flex>
           <Flex flexDirection="column">

@@ -17,7 +17,6 @@ import { useAtom } from 'jotai'
 import { useRouter } from 'next/router'
 import { useCallback, useMemo } from 'react'
 import { styled } from 'styled-components'
-import { isEvm } from '@pancakeswap/chains'
 import { SWAP_CHART_UNSUPPORTED_CHAINS } from 'config/constants/supportChains'
 import { chartDisplayAtom } from './atoms'
 
@@ -74,12 +73,10 @@ export const SwapSelection = ({
   swapType,
   withToolkit = false,
   style,
-  outputChainId,
 }: {
   swapType: SwapType
   withToolkit?: boolean
   style?: React.CSSProperties
-  outputChainId?: number
 }) => {
   const { t } = useTranslation()
   const router = useRouter()
@@ -121,9 +118,9 @@ export const SwapSelection = ({
 
   const [isChartDisplayed, setIsChartDisplayed] = useAtom(chartDisplayAtom)
 
-  const toggleChartDisplayed = () => {
+  const toggleChartDisplayed = useCallback(() => {
     setIsChartDisplayed((currentIsChartDisplayed) => !currentIsChartDisplayed)
-  }
+  }, [setIsChartDisplayed])
 
   const { theme } = useTheme()
   const tSwapProps = useMemo(() => {
@@ -177,9 +174,7 @@ export const SwapSelection = ({
 
       {withToolkit && !SWAP_CHART_UNSUPPORTED_CHAINS.includes(chainId) && (
         <ColoredIconButton
-          onClick={() => {
-            toggleChartDisplayed()
-          }}
+          onClick={toggleChartDisplayed}
           variant="text"
           scale="sm"
           data-dd-action-name="Price chart button"

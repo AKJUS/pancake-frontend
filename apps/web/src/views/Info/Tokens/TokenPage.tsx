@@ -27,7 +27,7 @@ import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 import { tokenInfoV2PageDataAtom } from 'edge/tokenInfoPageDataAtom'
 import { useAtomValue } from 'jotai'
-import { ChainLinkSupportChains, checkIsStableSwap, multiChainId, multiChainScan } from 'state/info/constant'
+import { ChainLinkSupportChains, checkIsStableSwap, multiChainId } from 'state/info/constant'
 import {
   useChainIdByQuery,
   useChainNameByQuery,
@@ -37,7 +37,7 @@ import {
 } from 'state/info/hooks'
 import { useRouter } from 'next/router'
 import { styled } from 'styled-components'
-import { getBlockExploreLink } from 'utils'
+import { getBlockExploreLink, getBlockExploreName } from 'utils'
 import { formatAmount } from 'utils/formatInfoNumbers'
 import { getTokenNameAlias, getTokenSymbolAlias } from 'utils/getTokenAlias'
 import { CurrencyLogo } from 'views/Info/components/CurrencyLogo'
@@ -127,7 +127,7 @@ const TokenPage: React.FC<React.PropsWithChildren<{ routeAddress: string }>> = (
               useBscCoinFallback={ChainLinkSupportChains.includes(multiChainId[chainName])}
               href={getBlockExploreLink(address, 'address', multiChainId[chainName])}
             >
-              {t('View on %site%', { site: multiChainScan[chainName] })}
+              {t('View on %site%', { site: getBlockExploreName(multiChainId[chainName]) })}
             </ScanLink>
             {cmcLink && (
               <StyledCMCLink href={cmcLink} rel="noopener noreferrer nofollow" target="_blank" title="CoinMarketCap">

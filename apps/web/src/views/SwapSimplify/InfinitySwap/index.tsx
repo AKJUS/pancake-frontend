@@ -91,7 +91,7 @@ export const InfinitySwapForm = memo(() => {
   return (
     <SwapUIV2.SwapFormWrapper>
       <SwapUIV2.SwapTabAndInputPanelWrapper>
-        <SwapSelection swapType={SwapType.MARKET} outputChainId={outputChainId} withToolkit />
+        <SwapSelection swapType={SwapType.MARKET} withToolkit />
         <FormMain
           tradeLoading={!tradeLoaded}
           inputAmount={bestOrder?.trade?.inputAmount}

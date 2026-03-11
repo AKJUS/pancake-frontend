@@ -83,7 +83,7 @@ export const PCSLimitOrdersView = () => {
           <Box width="100%">
             <LimitOrderFormWrapper>
               <SwapUIV2.SwapTabAndInputPanelWrapper>
-                <SwapSelection swapType={SwapType.LIMIT} withToolkit outputChainId={outputCurrency?.chainId} />
+                <SwapSelection swapType={SwapType.LIMIT} withToolkit />
                 <Suspense fallback={<CardFallback height="332px" />}>
                   <LimitOrderForm />
                 </Suspense>
