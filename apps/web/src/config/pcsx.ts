@@ -1,3 +1,4 @@
 import { ChainId } from '@pancakeswap/chains'
 
-export const SUPPORTED_CHAINS = [ChainId.ARBITRUM_ONE, ChainId.ETHEREUM, ChainId.BSC]
+// changes support pcsx
+export const SUPPORTED_CHAINS = [ChainId.ARBITRUM_ONE, ChainId.ETHEREUM, ChainId.BSC, ChainId.BASE]
