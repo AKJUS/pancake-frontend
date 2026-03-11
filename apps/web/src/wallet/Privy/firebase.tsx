@@ -11,6 +11,7 @@ import {
 } from 'firebase/auth'
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { nanoid } from 'nanoid'
+import Cookie from 'js-cookie'
 import { usePrivySocialLoginAtom, useSocialLoginProviderAtom } from './atom'
 import { loginWithTelegramViaScript } from './telegramLogin'
 
@@ -25,6 +26,7 @@ interface AuthContextType {
   loginWithX: () => Promise<void>
   loginWithDiscord: () => Promise<void>
   loginWithTelegram: () => Promise<void>
+  loginWithCustomToken: (customToken: string) => Promise<boolean>
   signOutAndClearUserStates: () => void
 }
 
@@ -39,7 +41,6 @@ interface AuthProviderProps {
 export function FirebaseAuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setLoading] = useState(false)
   const [token, setToken] = useState<string | undefined>()
-  const [discordPopup, setDiscordPopup] = useState<Window | null>(null)
   const [, setPrivySocialLogin] = usePrivySocialLoginAtom()
   const [, setSocialProvider] = useSocialLoginProviderAtom()
 
@@ -148,23 +149,22 @@ export function FirebaseAuthProvider({ children }: AuthProviderProps) {
   const loginWithDiscord = useCallback(async () => {
     try {
       setPrivySocialLogin(true)
-      setSocialProvider('discord')
       setLoading(true)
+      setSocialProvider('discord')
 
-      // Open Discord OAuth page
-      const redirectUri = `${window.location.origin}/api/auth/discord-callback`
-      const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID
       const state = nanoid(21)
-      localStorage.setItem('discordAuthState', state)
-      const popup = window.open(
-        `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-          redirectUri,
-        )}&response_type=code&scope=identify&state=${state}`,
-        '_blank',
-        'width=500,height=600',
-      )
-
-      setDiscordPopup(popup)
+      Cookie.set('discordAuthState', state, {
+        sameSite: 'Lax',
+        secure: window.location.protocol === 'https:',
+        path: '/',
+      })
+      const from = window.location.pathname + window.location.search + window.location.hash
+      localStorage.setItem('discordAuthFrom', from)
+      const redirectUri = `${window.location.origin}/auth/discord`
+      const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID
+      window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+        redirectUri,
+      )}&response_type=code&scope=identify&state=${state}`
     } catch (err) {
       console.error(err)
     } finally {
@@ -253,71 +253,6 @@ export function FirebaseAuthProvider({ children }: AuthProviderProps) {
     }
   }, [])
 
-  // Social login handler (Discord & Telegram)
-  useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return
-      if (event.data?.customToken) {
-        if (event.data.state) {
-          // TODO: validate on lambda level
-          const expectedState = localStorage.getItem('discordAuthState')
-          if (event.data.state !== expectedState) {
-            console.error('Discord OAuth state mismatch, potential CSRF attack')
-            return
-          }
-          localStorage.removeItem('discordAuthState')
-        }
-        await loginWithCustomToken(event.data.customToken)
-      }
-    }
-
-    // If postMessage is received
-    window.addEventListener('message', handleMessage)
-
-    // fallback: If postMessage is not received, actively take from localStorage
-    const checkLocalStorage = setInterval(() => {
-      // Check for Discord token
-      const discordToken = localStorage.getItem('discordAuthToken')
-      if (discordToken) {
-        const expectedState = localStorage.getItem('discordAuthState')
-        const state = localStorage.getItem('discordAuthCallbackState')
-        localStorage.removeItem('discordAuthState')
-        localStorage.removeItem('discordAuthToken')
-        localStorage.removeItem('discordAuthCallbackState')
-        if (state !== expectedState) {
-          console.error('Discord OAuth state mismatch, potential CSRF attack')
-          return
-        }
-        clearInterval(checkLocalStorage)
-        setSocialProvider('discord')
-        loginWithCustomToken(discordToken)
-      }
-
-      // Check for Telegram token
-      const telegramToken = localStorage.getItem('telegramAuthToken')
-      if (telegramToken) {
-        clearInterval(checkLocalStorage)
-        localStorage.removeItem('telegramAuthToken')
-        setSocialProvider('telegram')
-        loginWithCustomToken(telegramToken)
-      }
-    }, 1000)
-
-    return () => {
-      window.removeEventListener('message', handleMessage)
-      clearInterval(checkLocalStorage)
-    }
-  }, [setSocialProvider, loginWithCustomToken])
-
-  // Clean up Discord popup window
-  useEffect(() => {
-    return () => {
-      if (discordPopup && !discordPopup.closed) {
-        discordPopup.close()
-      }
-    }
-  }, [discordPopup])
-
   const signOutFirebase = useCallback(async () => {
     const auth = getAuth(firebaseApp)
     try {
@@ -343,6 +278,7 @@ export function FirebaseAuthProvider({ children }: AuthProviderProps) {
       loginWithX,
       loginWithDiscord,
       loginWithTelegram,
+      loginWithCustomToken,
       signOutAndClearUserStates,
     }),
     [
@@ -350,6 +286,7 @@ export function FirebaseAuthProvider({ children }: AuthProviderProps) {
       isLoading,
       loginWithDiscord,
       loginWithGoogle,
+      loginWithCustomToken,
       loginWithTelegram,
       loginWithX,
       signOutAndClearUserStates,
