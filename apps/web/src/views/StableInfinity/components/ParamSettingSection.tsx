@@ -32,6 +32,7 @@ import { type ERC20Token } from '@pancakeswap/sdk'
 import { useCurrencyBalances } from 'state/wallet/hooks'
 import { maxAmountSpend } from 'utils/maxAmountSpend'
 import ConnectWalletButton from 'components/ConnectWalletButton'
+import { useRouter } from 'next/router'
 
 import { isEvm } from '@pancakeswap/chains'
 import {
@@ -162,6 +163,7 @@ interface ParamSettingSectionProps {
 
 export const ParamSettingSection: React.FC<ParamSettingSectionProps> = ({ onPreviewPool, attemptingTxn }) => {
   const { t } = useTranslation()
+  const router = useRouter()
   const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   const [selectedPreset, setSelectedPreset] = useState<PresetType>()
   const [isAdvancedEnabled, setIsAdvancedEnabled] = useState(false)
@@ -255,8 +257,13 @@ export const ParamSettingSection: React.FC<ParamSettingSectionProps> = ({ onPrev
   // Get factory address for approvals
   const factoryAddress = useMemo(() => {
     if (!chainId || !isEvm(chainId)) return undefined
-    return InfinityStablePoolFactory.getFactoryAddress(chainId)
-  }, [chainId])
+    try {
+      return InfinityStablePoolFactory.getFactoryAddress(chainId)
+    } catch {
+      router.push('/liquidity/select/')
+      return undefined
+    }
+  }, [chainId, router])
 
   // Approval hooks for both tokens
   const { approvalState: approvalA, approveCallback: approveACallback } = useApproveCallbackFromAmount({
@@ -310,7 +317,7 @@ export const ParamSettingSection: React.FC<ParamSettingSectionProps> = ({ onPrev
   const insufficientBalanceError = validateSufficientBalance()
 
   // Handle number-only input with optional decimal place limit
-  const handleNumberInput = (value: string, allowDecimal = false, maxDecimals?: number) => {
+  const handleNumberInput = useCallback((value: string, allowDecimal = false, maxDecimals?: number) => {
     // Allow empty string
     if (value === '') return ''
 
@@ -329,10 +336,10 @@ export const ParamSettingSection: React.FC<ParamSettingSectionProps> = ({ onPrev
     }
 
     return value
-  }
+  }, [])
 
   // Auto-correct value to min/max range on blur
-  const handleRangeCorrection = (value: string, min: number, max: number, maxDecimals?: number): string => {
+  const handleRangeCorrection = useCallback((value: string, min: number, max: number, maxDecimals?: number): string => {
     if (value === '') {
       // Format min value to avoid scientific notation if maxDecimals is specified
       if (maxDecimals !== undefined) {
@@ -363,60 +370,72 @@ export const ParamSettingSection: React.FC<ParamSettingSectionProps> = ({ onPrev
     }
 
     return String(corrected)
-  }
+  }, [])
 
   // Handlers for A parameter
-  const handleAmplificationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = handleNumberInput(e.target.value)
-    if (newValue !== null) {
-      setAmplificationParam(newValue)
-    }
-  }
+  const handleAmplificationChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = handleNumberInput(e.target.value)
+      if (newValue !== null) {
+        setAmplificationParam(newValue)
+      }
+    },
+    [handleNumberInput],
+  )
 
-  const handleAmplificationBlur = () => {
+  const handleAmplificationBlur = useCallback(() => {
     const corrected = handleRangeCorrection(amplificationParam, 1, 20000)
     setAmplificationParam(corrected)
-  }
+  }, [amplificationParam, handleRangeCorrection])
 
   // Handlers for offpeg fee multiplier
-  const handleOffpegChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = handleNumberInput(e.target.value, true) // Allow decimal
-    if (newValue !== null) {
-      setOffpegFeeMultiplier(newValue)
-    }
-  }
+  const handleOffpegChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = handleNumberInput(e.target.value, true) // Allow decimal
+      if (newValue !== null) {
+        setOffpegFeeMultiplier(newValue)
+      }
+    },
+    [handleNumberInput],
+  )
 
   const handleOffpegBlur = useCallback(() => {
     const corrected = handleRangeCorrection(offpegFeeMultiplier, 0, offpegMax)
     setOffpegFeeMultiplier(corrected)
-  }, [offpegFeeMultiplier, offpegMax])
+  }, [handleRangeCorrection, offpegFeeMultiplier, offpegMax])
 
   // Handlers for moving average time
-  const handleMovingAverageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = handleNumberInput(e.target.value)
-    if (newValue !== null) {
-      setMovingAverageTime(newValue)
-    }
-  }
+  const handleMovingAverageChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = handleNumberInput(e.target.value)
+      if (newValue !== null) {
+        setMovingAverageTime(newValue)
+      }
+    },
+    [handleNumberInput],
+  )
 
-  const handleMovingAverageBlur = () => {
+  const handleMovingAverageBlur = useCallback(() => {
     const corrected = handleRangeCorrection(movingAverageTime, 60, 3600)
     setMovingAverageTime(corrected)
-  }
+  }, [movingAverageTime, handleRangeCorrection])
 
   // Handlers for swap fee (0% to 1%, max 8 decimal places)
-  const handleSwapFeeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = handleNumberInput(e.target.value, true, 8) // Allow decimal, max 8 decimals
+  const handleSwapFeeChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = handleNumberInput(e.target.value, true, 8) // Allow decimal, max 8 decimals
 
-    if (newValue !== null) {
-      setSwapFee(newValue)
-    }
-  }
+      if (newValue !== null) {
+        setSwapFee(newValue)
+      }
+    },
+    [handleNumberInput],
+  )
 
-  const handleSwapFeeBlur = () => {
+  const handleSwapFeeBlur = useCallback(() => {
     const corrected = handleRangeCorrection(swapFee, 0, 1, 8) // Max 8 decimal places
     setSwapFee(corrected)
-  }
+  }, [swapFee, handleRangeCorrection])
 
   // Handler to sync both deposit amounts (enforces 1:1 ratio)
   const handleDepositAmountChange = useCallback((value: string) => {
