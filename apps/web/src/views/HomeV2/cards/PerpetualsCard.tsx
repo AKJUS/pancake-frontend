@@ -3,6 +3,7 @@ import { Flex, Text, TriangleDownIcon, TriangleUpIcon, useMatchBreakpoints } fro
 import { HomePageToken } from 'edge/home/types'
 import React from 'react'
 import styled from 'styled-components'
+import { CurrencyLogo } from '@pancakeswap/widgets-internal'
 import { CardRowLayout } from './component/CardRowLayout'
 import { CardSection } from './component/CardSection'
 import { HomepageCardBadge } from './component/HomepageCardBadge'
@@ -88,14 +89,12 @@ export const PerpetualCard: React.FC<PerpetualCardProps> = ({ tokens }) => {
           key={token.id}
           left={
             <>
-              <img
+              <CurrencyLogo
                 style={{
                   borderRadius: '50%',
                 }}
-                src={token.icon}
-                alt={token.symbol}
-                width={getIconSize(isMobile)}
-                height={getIconSize(isMobile)}
+                currency={{ address: token.id, chainId: token.chainId, isToken: true }}
+                size={`${getIconSize(isMobile)}`}
               />
               <Flex flexDirection="column" ml="12px">
                 <HomepageSymbol isMobile={isMobile} isTablet={isTablet}>

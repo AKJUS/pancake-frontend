@@ -6,6 +6,7 @@ import { CurrencyLogo } from '@pancakeswap/widgets-internal'
 import BlockiesSvg from 'blockies-react-svg'
 import { HomePageToken, HomePageUser } from 'edge/home/types'
 import styled from 'styled-components'
+import { ChainId } from '@pancakeswap/chains'
 import { CardRowLayout } from './component/CardRowLayout'
 import { CardSection } from './component/CardSection'
 import { HomepageCardBadge } from './component/HomepageCardBadge'
@@ -90,7 +91,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ token, winner })
             <CurrencyLogo
               style={getImageStyle(isMobile)}
               currency={{
-                chainId: 56,
+                chainId: ChainId.BSC,
                 address: ZERO_ADDRESS,
                 isNative: true,
               }}

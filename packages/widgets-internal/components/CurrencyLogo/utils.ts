@@ -1,4 +1,4 @@
-import { ChainId } from "@pancakeswap/chains";
+import { ChainId, NonEVMChainId } from "@pancakeswap/chains";
 import { Currency, NATIVE, Token } from "@pancakeswap/sdk";
 import { bscTokens, ethereumTokens } from "@pancakeswap/tokens";
 import memoize from "lodash/memoize";
@@ -50,6 +50,7 @@ export const chainName: { [key: number]: string } = {
   [ChainId.OPBNB]: "opbnb",
   [ChainId.MONAD_MAINNET]: "monad",
   [ChainId.MONAD_TESTNET]: "monad-testnet",
+  [NonEVMChainId.SOLANA]: "solana",
 };
 
 // TODO: move to utils or token-list

@@ -3,12 +3,12 @@ import { Box, Flex, Text, useMatchBreakpoints } from '@pancakeswap/uikit'
 import { useRouter } from 'next/router'
 import { HomePagePoolInfo } from 'edge/home/types'
 import styled from 'styled-components'
-import { getNetworkFullName } from 'views/BuyCrypto/constants'
+import { chainFullNames } from '@pancakeswap/chains'
 import { CardRowLayout } from './component/CardRowLayout'
 import { CardSection } from './component/CardSection'
 import { HomepageCardBadge } from './component/HomepageCardBadge'
 import { HomepageSymbol } from './component/HomepageSymbol'
-import { MultipleCurrencyLogos } from './component/MultipleCurrencyLogos'
+import { TokenPairLogoWithChain } from './component/MultipleCurrencyLogos'
 
 const getMarginLeft = (isMobile?: boolean, isTablet?: boolean) => {
   if (isMobile) return '12px'
@@ -57,20 +57,23 @@ export const EarnTradingFeesCard = ({ pairs }: { pairs: HomePagePoolInfo[] }) =>
               onClick={() => {
                 router.push(pair.link)
               }}
-              key={`${pair.token0}-${pair.token1}`}
+              key={`${pair.chainId}-${pair.token0.id}-${pair.token1.id}`}
               left={
                 <Flex alignItems="center">
-                  <MultipleCurrencyLogos
+                  <TokenPairLogoWithChain
+                    primaryToken={{
+                      address: pair.token0.id,
+                      symbol: pair.token0.symbol,
+                      chainId: pair.chainId,
+                      isToken: true,
+                    }}
+                    secondaryToken={{
+                      address: pair.token1.id,
+                      symbol: pair.token1.symbol,
+                      chainId: pair.chainId,
+                      isToken: true,
+                    }}
                     isFirstSmall
-                    tokens={[
-                      {
-                        logo: pair.token0.icon,
-                      },
-                      {
-                        logo: pair.token1.icon,
-                      },
-                    ]}
-                    chainId={pair.chainId}
                   />
 
                   {/* Pass isMobile, isTablet to VerticalLayout */}
@@ -80,7 +83,7 @@ export const EarnTradingFeesCard = ({ pairs }: { pairs: HomePagePoolInfo[] }) =>
                     </HomepageSymbol>
                     {/* Pass isMobile, isTablet to ChainText */}
                     <ChainText isMobile={isMobile} isTablet={isTablet}>
-                      {getNetworkFullName(pair.chainId)}
+                      {chainFullNames[pair.chainId]}
                     </ChainText>
                   </VerticalLayout>
                 </Flex>
