@@ -52,7 +52,11 @@ const TokenRow = ({ token, isLast }: { token: HomePageToken; isLast?: boolean })
         </>
       }
     >
-      <HomepageCardBadge text={`$${formatNumber(token.price)}`} priceChange={token.percent} />
+      {/* Cap at 2 decimal places — token prices are under $1M so 2 decimals gives sufficient precision for a fiat display */}
+      <HomepageCardBadge
+        text={`$${formatNumber(token.price, { maxDecimalDisplayDigits: 2 })}`}
+        priceChange={token.percent}
+      />
     </CardRowLayout>
   )
 }
