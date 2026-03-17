@@ -13,3 +13,4 @@ export type { WalletModalV2Props as LegacyWalletModalProps } from './components/
 export type { WalletConfigV2 as LegacyWalletConfig } from './types'
 export { WalletIds as LegacyWalletIds } from './components/LegacyWalletModal/legacyWalletIds'
 export * from './error'
+export { isTokenPocketInstalled, isTokenPocketApp } from './config/installed'

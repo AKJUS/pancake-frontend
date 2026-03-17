@@ -62,6 +62,14 @@ export const isTokenPocketInstalled = () => {
   return Boolean(safeGetWindow()?.ethereum?.isTokenPocket) || Boolean(safeGetWindow()?.tokenpocket)
 }
 
+export const isTokenPocketApp = () => {
+  const w = safeGetWindow() as any
+  if (!w) return false
+  // The mobile app DApp browser sets a custom UA containing "TokenPocket".
+  // The browser extension runs in a normal browser and never modifies the UA.
+  return Boolean(w.ethereum?.isTokenPocket) && /TokenPocket/i.test(navigator.userAgent)
+}
+
 export const isSafePalInstalled = () => {
   return Boolean(safeGetWindow()?.ethereum?.isSafePal)
 }
