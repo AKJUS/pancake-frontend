@@ -101,48 +101,51 @@ export const FlipButton = memo(function FlipButton({
 
   const onFlip = useCallback(async () => {
     setIsSwitching(true)
-    onSwitchTokens()
 
-    if (replaceBrowser) {
-      // If cross-chain swap, switch network to new Input Currency's chain
+    try {
+      onSwitchTokens()
 
-      if (outputChainId && activeChainId !== outputChainId && !isLoading) {
-        const result = await switchNetwork(outputChainId, {
-          replaceUrl: false,
-          from: 'switch',
-        })
-        if (result) {
-          router.replace(
-            {
-              query: {
-                ...router.query,
-                ...(outputCurrencyId && { inputCurrency: outputCurrencyId }),
-                ...(outputChainId && { chain: CHAIN_QUERY_NAME[outputChainId] }),
-                ...(inputCurrencyId && { outputCurrency: inputCurrencyId }),
-                ...(inputChainId && { chainOut: CHAIN_QUERY_NAME[inputChainId] }),
+      if (replaceBrowser) {
+        // If cross-chain swap, switch network to new Input Currency's chain
+        if (outputChainId && activeChainId !== outputChainId && !isLoading) {
+          const result = await switchNetwork(outputChainId, {
+            replaceUrl: false,
+            from: 'switch',
+          })
+          if (result) {
+            router.replace(
+              {
+                query: {
+                  ...router.query,
+                  ...(outputCurrencyId && { inputCurrency: outputCurrencyId }),
+                  ...(outputChainId && { chain: CHAIN_QUERY_NAME[outputChainId] }),
+                  ...(inputCurrencyId && { outputCurrency: inputCurrencyId }),
+                  ...(inputChainId && { chainOut: CHAIN_QUERY_NAME[inputChainId] }),
+                },
               },
-            },
-            undefined,
-            {
-              shallow: true,
-            },
-          )
+              undefined,
+              {
+                shallow: true,
+              },
+            )
+          }
+          return
         }
-        return
-      }
 
-      replaceBrowserHistoryMultiple({
-        inputCurrency: outputCurrencyId,
-        outputCurrency: inputCurrencyId,
-        ...(inputChainId &&
-          outputChainId &&
-          inputChainId !== outputChainId && {
-            chainOut: CHAIN_QUERY_NAME[inputChainId],
-            chain: CHAIN_QUERY_NAME[outputChainId],
-          }),
-      })
+        replaceBrowserHistoryMultiple({
+          inputCurrency: outputCurrencyId,
+          outputCurrency: inputCurrencyId,
+          ...(inputChainId &&
+            outputChainId &&
+            inputChainId !== outputChainId && {
+              chainOut: CHAIN_QUERY_NAME[inputChainId],
+              chain: CHAIN_QUERY_NAME[outputChainId],
+            }),
+        })
+      }
+    } finally {
+      setIsSwitching(false)
     }
-    setIsSwitching(false)
   }, [
     onSwitchTokens,
     inputCurrencyId,

@@ -76,7 +76,20 @@ export const isCyberWalletInstalled = () => {
 
 export const isPhantomWalletInstalled = () => {
   return Boolean(
-    // safeGetWindow()?.ethereum?.isPhantom  // evm not we supported now
-    safeGetWindow()?.phantom?.solana?.isPhantom,
+    safeGetWindow()?.phantom?.solana?.isPhantom ||
+      safeGetWindow()?.phantom?.ethereum?.isPhantom ||
+      safeGetWindow()?.ethereum?.isPhantom ||
+      // @ts-ignore
+      safeGetWindow()?.ethereum?.providers?.some((provider) => provider?.isPhantom),
+  )
+}
+
+export const isBitgetWalletInstalled = () => {
+  return Boolean(
+    safeGetWindow()?.bitkeep?.ethereum ||
+      safeGetWindow()?.ethereum?.isBitKeep ||
+      safeGetWindow()?.ethereum?.isBitgetWallet ||
+      // @ts-ignore
+      safeGetWindow()?.ethereum?.providers?.some((provider) => provider?.isBitKeep || provider?.isBitgetWallet),
   )
 }

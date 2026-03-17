@@ -33,9 +33,9 @@ export const WalletSelect: React.FC<WalletSelectProps> = ({
     return wallets.filter(
       (wallet) =>
         !(
-          topWallets.includes(wallet) ||
-          previouslyUsedWallets?.[0]?.includes(wallet) ||
-          previouslyUsedWallets?.[1]?.includes(wallet)
+          topWallets.some((topWallet) => topWallet.id === wallet.id) ||
+          previouslyUsedWallets?.[0]?.some((previousWallet) => previousWallet.id === wallet.id) ||
+          previouslyUsedWallets?.[1]?.some((previousWallet) => previousWallet.id === wallet.id)
         ),
     )
   }, [wallets, topWallets, previouslyUsedWallets])

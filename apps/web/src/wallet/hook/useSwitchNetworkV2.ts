@@ -1,6 +1,7 @@
 import { chainFullNames, getChainName, isEvm } from '@pancakeswap/chains'
 import { useTranslation } from '@pancakeswap/localization'
 import { useToast } from '@pancakeswap/uikit'
+import { EvmConnectorNames, isPhantomEvmChainSupported } from '@pancakeswap/ui-wallets'
 import { CHAIN_QUERY_NAME } from 'config/chains'
 import { useActiveChainIdRef } from 'hooks/useAccountActiveChain'
 import useAuth from 'hooks/useAuth'
@@ -80,6 +81,9 @@ export const useSwitchNetworkV2 = () => {
       if (!isEvm(chainId)) {
         return true
       }
+      if (wagmiConnector?.id === EvmConnectorNames.Phantom && !isPhantomEvmChainSupported(chainId)) {
+        return false
+      }
       return isConnected
         ? !!switchChainAsync &&
             !(
@@ -89,7 +93,7 @@ export const useSwitchNetworkV2 = () => {
             )
         : true
     },
-    [switchChainAsync, isConnected],
+    [switchChainAsync, isConnected, wagmiConnector?.id],
   )
 
   return { switchNetwork: switchChain, canSwitch, isLoading: switching, canSwitchToChain }
@@ -168,6 +172,15 @@ const useProcessSwitchChainRequest = () => {
       try {
         setSwitching(true)
         if (isEvm(requestChainId)) {
+          if (connector?.id === EvmConnectorNames.Phantom && !isPhantomEvmChainSupported(requestChainId)) {
+            toastError(
+              t('Unsupported network'),
+              t('Phantom EVM currently supports Ethereum, Base, and Monad only, current chainId is %chainId%', {
+                chainId: requestChainId,
+              }),
+            )
+            return false
+          }
           // from = wagmi -> no need call switch again
           if (from !== 'wagmi') {
             let shouldSwitch = true
@@ -250,7 +263,7 @@ const useProcessSwitchChainRequest = () => {
         }, 60)
       }
     },
-    [router, switchNetworkWagmiAsync, setSwitching, updateAccountState, logout, connector],
+    [connector, logout, router, setSwitching, switchNetworkWagmiAsync, t, toastError, updateAccountState],
   )
 
   const handleRequestChainIdChange = useCallback(

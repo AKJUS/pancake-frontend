@@ -21,6 +21,8 @@ export enum WalletIds {
   Fewcha = 'fewcha',
   TrustWallet = 'trustWallet',
   SafePal = 'safePal',
+  Phantom = 'phantom',
+  BitGet = 'bitget',
   Rise = 'rise',
   Msafe = 'msafe',
 }

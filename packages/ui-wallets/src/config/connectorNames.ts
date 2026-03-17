@@ -16,6 +16,8 @@ import {
 export enum EvmConnectorNames {
   MetaMask = 'metaMask',
   Injected = 'injected',
+  Phantom = 'phantom',
+  Bitget = 'bitget',
   WalletConnect = 'walletConnect',
   WalletConnectV1 = 'walletConnectLegacy',
   BinanceW3W = 'BinanceW3WSDK',

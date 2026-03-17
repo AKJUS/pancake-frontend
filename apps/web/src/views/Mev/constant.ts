@@ -17,6 +17,7 @@ export const walletPretendToMetamask = [
   'isApexWallet',
   'isAvalanche',
   'isBitKeep',
+  'isBitgetWallet',
   'isBlockWallet',
   'isKuCoinWallet',
   'isMathWallet',

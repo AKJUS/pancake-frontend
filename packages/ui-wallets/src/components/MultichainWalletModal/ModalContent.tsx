@@ -14,6 +14,7 @@ import { WalletSelect } from '../WalletSelect/WalletSelect'
 import { MultichainWalletModalProps } from './types'
 import { WalletToggle } from '../WalletToggle'
 import { StyledMobileContainer } from './styled'
+import { getAvailableWalletNetworks } from '../../config/supportedEvmChains'
 
 export type ModalContentProps = Pick<
   MultichainWalletModalProps,
@@ -61,34 +62,60 @@ export const ModalContent: React.FC<ModalContentProps> = ({
   const solanaOnly = walletFilter === 'solanaOnly' && walletFilterChecked
   const evmOnly = walletFilter === 'evmOnly' && walletFilterChecked
 
+  const getDisplayWallet = useCallback(
+    (wallet: WalletConfigV3) => {
+      const networks = getAvailableWalletNetworks(wallet, chainId)
+
+      if (networks.length === wallet.networks.length) {
+        return wallet
+      }
+
+      return {
+        ...wallet,
+        networks,
+      }
+    },
+    [chainId],
+  )
+
   const wallets: WalletConfigV3[] = useMemo(
     () =>
-      wallets_?.filter((w) => {
+      wallets_?.map(getDisplayWallet).filter((w) => {
+        if (w.networks.length === 0) return false
         if (solanaOnly && !w.networks.includes(WalletAdaptedNetwork.Solana)) return false
         if (evmOnly && !w.networks.includes(WalletAdaptedNetwork.EVM)) return false
         return w.installed !== false || (!w.installed && (w.guide || w.downloadLink || w.qrCode))
       }) ?? [],
-    [wallets_, evmOnly, solanaOnly],
+    [wallets_, evmOnly, getDisplayWallet, solanaOnly],
   )
 
   const topWallets: WalletConfigV3[] = useMemo(
     () =>
-      topWallets_?.filter((w) => {
+      topWallets_?.map(getDisplayWallet).filter((w) => {
+        if (w.networks.length === 0) return false
         if (solanaOnly && !w.networks.includes(WalletAdaptedNetwork.Solana)) return false
         if (evmOnly && !w.networks.includes(WalletAdaptedNetwork.EVM)) return false
         return !('install' in w) || w.installed !== false || (!w.installed && (w.guide || w.downloadLink || w.qrCode))
       }) ?? [],
-    [topWallets_, evmOnly, solanaOnly],
+    [topWallets_, evmOnly, getDisplayWallet, solanaOnly],
   )
 
   const previouslyUsedWallets = useMemo(
     () =>
       previouslyUsedWallets_.map((wallets) => {
-        if (solanaOnly) return wallets.filter((wallet) => wallet.networks.includes(WalletAdaptedNetwork.Solana))
-        if (evmOnly) return wallets.filter((wallet) => wallet.networks.includes(WalletAdaptedNetwork.EVM))
-        return wallets
+        const normalizedWallets = wallets.map(getDisplayWallet).filter((wallet) => wallet.networks.length > 0)
+
+        if (solanaOnly) {
+          return normalizedWallets.filter((wallet) => wallet.networks.includes(WalletAdaptedNetwork.Solana))
+        }
+
+        if (evmOnly) {
+          return normalizedWallets.filter((wallet) => wallet.networks.includes(WalletAdaptedNetwork.EVM))
+        }
+
+        return normalizedWallets
       }) as [WalletConfigV3[], WalletConfigV3[]],
-    [previouslyUsedWallets_, evmOnly, solanaOnly],
+    [previouslyUsedWallets_, evmOnly, getDisplayWallet, solanaOnly],
   )
 
   const selected = useSelectedWallet()

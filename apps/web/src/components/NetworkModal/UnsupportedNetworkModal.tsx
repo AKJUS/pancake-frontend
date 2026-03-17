@@ -1,6 +1,7 @@
 import { Button, Grid, Message, MessageText, Modal, Text } from '@pancakeswap/uikit'
 import { useTranslation } from '@pancakeswap/localization'
 import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
+import { EvmConnectorNames, isPhantomEvmChainSupported } from '@pancakeswap/ui-wallets'
 import Image from 'next/image'
 import useAuth from 'hooks/useAuth'
 import { useRouter } from 'next/router'
@@ -14,12 +15,12 @@ import Dots from '../Loader/Dots'
 
 // Where chain is not supported or page not supported
 export function UnsupportedNetworkModal({ pageSupportedChains }: { pageSupportedChains: number[] }) {
-  const { switchNetwork, isLoading, canSwitch } = useSwitchNetwork()
+  const { switchNetwork, isLoading, canSwitchToChain } = useSwitchNetwork()
   const chainId =
     pageSupportedChains.find((x) => x === ChainId.BSC) ||
     pageSupportedChains.find((x) => !isTestnetChainId(x)) ||
     ChainId.BSC
-  const { isConnected } = useAccount()
+  const { connector, isConnected } = useAccount()
   const { logout } = useAuth()
   const { t } = useTranslation()
   const { pathname } = useRouter()
@@ -40,6 +41,9 @@ export function UnsupportedNetworkModal({ pageSupportedChains }: { pageSupported
     [pageSupportedChains],
   )
 
+  const isPhantomUnsupportedChain = connector?.id === EvmConnectorNames.Phantom && !isPhantomEvmChainSupported(chainId)
+  const canSwitch = canSwitchToChain(chainId)
+
   return (
     <Modal title={t('Check your network')} hideCloseButton headerBackground="gradientCardHeader">
       <Grid style={{ gap: '16px' }} maxWidth={['100%', null, '336px']}>
@@ -57,7 +61,13 @@ export function UnsupportedNetworkModal({ pageSupportedChains }: { pageSupported
           />
         </div>
         <Message variant="warning">
-          <MessageText>{t('Please switch your network to continue.')}</MessageText>
+          <MessageText>
+            {isPhantomUnsupportedChain
+              ? t('Phantom EVM currently supports Ethereum, Base, and Monad only, current chainId is %chainId%', {
+                  chainId,
+                })
+              : t('Please switch your network to continue.')}
+          </MessageText>
         </Message>
         {canSwitch ? (
           <Button
@@ -79,7 +89,11 @@ export function UnsupportedNetworkModal({ pageSupportedChains }: { pageSupported
           </Button>
         ) : (
           <Message variant="danger">
-            <MessageText>{t('Unable to switch network. Please try it on your wallet')}</MessageText>
+            <MessageText>
+              {isPhantomUnsupportedChain
+                ? t('Switch to Ethereum, Base, or Monad, or use another wallet.')
+                : t('Unable to switch network. Please try it on your wallet')}
+            </MessageText>
           </Message>
         )}
         {isConnected && (

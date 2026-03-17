@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react'
 import { useAccount, useWalletClient } from 'wagmi'
-import { Address, createWalletClient, custom } from 'viem'
+import { Address, createWalletClient, custom, getAddress } from 'viem'
 import { eip5792Actions } from 'viem/experimental'
 import { useTranslation } from '@pancakeswap/localization'
 import { useToast } from '@pancakeswap/uikit'
@@ -14,6 +14,10 @@ import { activeBridgeOrderMetadataAtom } from 'views/Swap/Bridge/CrossChainConfi
 import { useSetAtom } from 'jotai'
 
 import { useTransactionAdder } from 'state/transactions/hooks'
+import { useQuery } from '@tanstack/react-query'
+import { isAddressEqual } from 'utils'
+import { ConnectorNames } from 'config/wallet'
+import { publicClient as getPublicClient } from 'utils/viem'
 import { BatchCall, getBatchedTransaction as getBatchedTransactionHelper } from '../batchHelper'
 import { eip5792UserRejectUpgradeError, userRejectedError } from '../useSendSwapTransaction'
 import useSwapRecordTransaction from '../useSwapRecordTransaction'
@@ -21,6 +25,31 @@ import { ConfirmAction, ConfirmStepContext } from './step.type'
 
 interface UseBatchSwapTransactionArgs extends ConfirmStepContext {
   actions: { [k in ConfirmModalState]: ConfirmAction }
+}
+
+// https://github.com/MetaMask/smart-accounts-kit/blob/main/packages/delegation-deployments/src/contractAddresses.ts#L74
+// @eslint-disable-next-line
+const METAMASK_EIP7702_STATELESS_DELEGATION_IMPL = '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B'
+
+const useCurrentSmartAccountDelegation = () => {
+  const { chainId } = useActiveChainId()
+  const { address } = useAccount()
+  return useQuery({
+    queryKey: ['useCurrentSmartAccountDelegation', chainId, address],
+    queryFn: async () => {
+      if (!address || !chainId) return null
+      const client = getPublicClient({ chainId })
+      const code = await client.getCode({ address })
+      if (!code || code === '0x') return null
+      const normalizedCode = code.toLowerCase()
+      // EIP-7702 format: 0x + ef0100 + 20-byte delegation address + optional extra bytes.
+      if (normalizedCode.startsWith('0xef0100') && normalizedCode.length >= 48) {
+        return getAddress(`0x${normalizedCode.slice(8, 48)}`) as Address
+      }
+      return null
+    },
+    enabled: !!address && !!chainId,
+  })
 }
 
 export const useBatchSwapTransaction = ({
@@ -39,6 +68,11 @@ export const useBatchSwapTransaction = ({
   const eip5792Status = useEIP5792Status()
   const { toastError } = useToast()
   const { t } = useTranslation()
+  const {
+    data: currentSmartAccountDelegation,
+    isLoading: isLoadingSmartAccountDelegation,
+    isFetching: isFetchingSmartAccountDelegation,
+  } = useCurrentSmartAccountDelegation()
   const setActiveBridgeOrderMetadata = useSetAtom(activeBridgeOrderMetadataAtom)
 
   const addSwapTransaction = useSwapRecordTransaction(chainId, account)
@@ -49,16 +83,7 @@ export const useBatchSwapTransaction = ({
   const getBatchedTransaction = useCallback(
     (steps: ConfirmModalState[]) =>
       getBatchedTransactionHelper(steps, actions, chainId as number, amountToApprove, spender, order),
-    [
-      actions,
-      amountToApprove,
-      amountToApprove?.currency.address,
-      amountToApprove?.currency.isToken,
-      amountToApprove?.quotient,
-      chainId,
-      order,
-      spender,
-    ],
+    [actions, amountToApprove, chainId, order, spender],
   )
 
   const sendBatchedTransaction = useCallback(
@@ -112,6 +137,25 @@ export const useBatchSwapTransaction = ({
       if (chainId === EvmChainId.BASE) {
         return false
       }
+      if (
+        connector?.id !== ConnectorNames.MetaMask &&
+        account &&
+        chainId &&
+        (isLoadingSmartAccountDelegation || isFetchingSmartAccountDelegation)
+      ) {
+        // Avoid an initial race window before delegation state is known.
+        return false
+      }
+      if (
+        connector?.id !== ConnectorNames.MetaMask &&
+        isAddressEqual(currentSmartAccountDelegation, METAMASK_EIP7702_STATELESS_DELEGATION_IMPL)
+      ) {
+        // Need reinitialize the delegation code, temporarily disable batching.
+        return false
+      }
+      if (connector?.id === ConnectorNames.Bitget) {
+        return false
+      }
       if (eip5792Status === 'unsupported' || steps.length <= 1) {
         return false
       }
@@ -123,7 +167,18 @@ export const useBatchSwapTransaction = ({
 
       return true
     },
-    [eip5792Status, getBatchedTransaction, walletClient?.transport, spender, chainId],
+    [
+      eip5792Status,
+      getBatchedTransaction,
+      walletClient?.transport,
+      spender,
+      chainId,
+      currentSmartAccountDelegation,
+      connector?.id,
+      account,
+      isLoadingSmartAccountDelegation,
+      isFetchingSmartAccountDelegation,
+    ],
   )
 
   const callSwapBatched = useCallback(

@@ -1,5 +1,6 @@
 import { ChainId } from '@pancakeswap/chains'
 import { useTranslation } from '@pancakeswap/localization'
+import { EvmConnectorNames, isPhantomEvmChainSupported } from '@pancakeswap/ui-wallets'
 import { ArrowForwardIcon, Button, FlexGap, Grid, Message, MessageText, Modal, Text } from '@pancakeswap/uikit'
 import { ChainLogo } from 'components/Logo/ChainLogo'
 import { CHAIN_QUERY_NAME } from 'config/chains'
@@ -21,14 +22,16 @@ const getChain = (chainId: number | undefined) => {
 
 // Where page network is not equal to wallet network
 export function WrongNetworkModal({ currentChain, onDismiss }: { currentChain: Chain; onDismiss: () => void }) {
-  const { switchNetwork, isLoading, canSwitch } = useSwitchNetwork()
+  const { switchNetwork, isLoading, canSwitchToChain } = useSwitchNetwork()
   const { logout } = useAuth()
-  const { isConnected, chain, chainId: walletChainId } = useAccount()
+  const { connector, isConnected, chain, chainId: walletChainId } = useAccount()
   const chainId = currentChain.id || ChainId.BSC
   const { t } = useTranslation()
   const router = useRouter()
 
   const switchText = t('Switch to %network%', { network: currentChain.name })
+  const isPhantomUnsupportedChain = connector?.id === EvmConnectorNames.Phantom && !isPhantomEvmChainSupported(chainId)
+  const canSwitch = canSwitchToChain(chainId)
 
   const handleSwitchNetwork = useCallback(() => {
     if (canSwitch) {
@@ -78,7 +81,13 @@ export function WrongNetworkModal({ currentChain, onDismiss }: { currentChain: C
                 {chain?.id && <ChainLogo chainId={chain?.id} />} <ArrowForwardIcon color="#D67E0A" />
                 <ChainLogo chainId={chainId} />
               </FlexGap>
-              <span>{t('Switch network to continue.')}</span>
+              <span>
+                {isPhantomUnsupportedChain
+                  ? t('Phantom EVM currently supports Ethereum, Base, and Monad only, current chainId is %chainId%', {
+                      chainId,
+                    })
+                  : t('Switch network to continue.')}
+              </span>
             </FlexGap>
           </MessageText>
         </Message>
@@ -88,7 +97,11 @@ export function WrongNetworkModal({ currentChain, onDismiss }: { currentChain: C
           </Button>
         ) : (
           <Message variant="danger">
-            <MessageText>{t('Unable to switch network. Please try it on your wallet')}</MessageText>
+            <MessageText>
+              {isPhantomUnsupportedChain
+                ? t('Switch to Ethereum, Base, or Monad, or use another wallet.')
+                : t('Unable to switch network. Please try it on your wallet')}
+            </MessageText>
           </Message>
         )}
         {isConnected && (

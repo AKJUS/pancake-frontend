@@ -46,7 +46,7 @@ export enum WalletIds {
   Msafe = 'msafe',
 
   // Solana Only Wallets
-  Phantom = 'phantom', // Not support BNB Chain/ Arbitrum yet, mark as Solana only now
+  Phantom = 'phantom',
   Solflare = 'solflare',
   Slope = 'slope',
   Glow = 'glow',
@@ -67,6 +67,7 @@ type WalletConfigBase = {
   qrCode?: (cb?: () => void) => Promise<string>
   isNotExtension?: boolean
   MEVSupported?: boolean
+  supportedEvmChainIds?: number[]
 }
 
 export type WalletConfigV2<T = unknown> = WalletConfigBase & {

@@ -18,6 +18,8 @@ export interface ExtendEthereum extends WindowProvider {
   isBraveWallet?: true
   isRabby?: true
   isPhantom?: true
+  isBitKeep?: true
+  isBitgetWallet?: true
 }
 
 declare global {
@@ -28,6 +30,9 @@ declare global {
     ethereum?: ExtendEthereum
     isBinance?: boolean
     binancew3w?: boolean
+    bitkeep?: {
+      ethereum?: ExtendEthereum
+    }
     BinanceChain?: {
       bnbSign?: (address: string, message: string) => Promise<{ publicKey: string; signature: string }>
       switchNetwork?: (networkId: string) => Promise<string>

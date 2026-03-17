@@ -1,6 +1,7 @@
 import { useTranslation } from '@pancakeswap/localization'
 import {
   EvmConnectorNames,
+  isPhantomEvmChainSupported,
   WalletAdaptedNetwork,
   WalletConfigV3,
   WalletConnectorNotFoundError,
@@ -33,6 +34,11 @@ const useAuth = () => {
       const { connectorId, title, networks } = wallet
 
       if (!networks.includes(WalletAdaptedNetwork.EVM)) return
+      if (connectorId === EvmConnectorNames.Phantom && chainId && !isPhantomEvmChainSupported(chainId)) {
+        throw new WalletSwitchChainError(
+          t('Phantom EVM currently supports Ethereum, Base, and Monad only, current chainId is %chainId%', { chainId }),
+        )
+      }
 
       let eipConnector: any
 

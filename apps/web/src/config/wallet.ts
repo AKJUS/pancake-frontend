@@ -1,6 +1,6 @@
 import { isCyberWallet } from '@cyberlab/cyber-app-sdk'
-import { ChainId, NonEVMChainId } from '@pancakeswap/chains'
-import { LegacyWalletConfig, LegacyWalletIds } from '@pancakeswap/ui-wallets'
+import { ChainId } from '@pancakeswap/chains'
+import { LegacyWalletConfig, LegacyWalletIds, PHANTOM_SUPPORTED_EVM_CHAIN_IDS } from '@pancakeswap/ui-wallets'
 import { WalletFilledIcon } from '@pancakeswap/uikit'
 import safeGetWindow from '@pancakeswap/utils/safeGetWindow'
 import { getTrustWalletProvider } from '@pancakeswap/wagmi/connectors/trustWallet'
@@ -13,6 +13,8 @@ import { ASSET_CDN } from './constants/endpoints'
 export enum ConnectorNames {
   MetaMask = 'metaMask',
   Injected = 'injected',
+  Phantom = 'phantom',
+  Bitget = 'bitget',
   WalletConnect = 'walletConnect',
   WalletConnectV1 = 'walletConnectLegacy',
   // BSC = 'bsc',
@@ -80,6 +82,38 @@ const isMetamaskInstalled = () => {
   }
 
   return false
+}
+
+const PHANTOM_ICON =
+  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDgiIGhlaWdodD0iMTA4IiB2aWV3Qm94PSIwIDAgMTA4IDEwOCIgZmlsbD0ibm9uZSI+CjxyZWN0IHdpZHRoPSIxMDgiIGhlaWdodD0iMTA4IiByeD0iMjYiIGZpbGw9IiNBQjlGRjIiLz4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik00Ni41MjY3IDY5LjkyMjlDNDIuMDA1NCA3Ni44NTA5IDM0LjQyOTIgODUuNjE4MiAyNC4zNDggODUuNjE4MkMxOS41ODI0IDg1LjYxODIgMTUgODMuNjU2MyAxNSA3NS4xMzQyQzE1IDUzLjQzMDUgNDQuNjMyNiAxOS44MzI3IDcyLjEyNjggMTkuODMyN0M4Ny43NjggMTkuODMyNyA5NCAzMC42ODQ2IDk0IDQzLjAwNzlDOTQgNTguODI1OCA4My43MzU1IDc2LjkxMjIgNzMuNTMyMSA3Ni45MTIyQzcwLjI5MzkgNzYuOTEyMiA2OC43MDUzIDc1LjEzNDIgNjguNzA1MyA3Mi4zMTRDNjguNzA1MyA3MS41NzgzIDY4LjgyNzUgNzAuNzgxMiA2OS4wNzE5IDY5LjkyMjlDNjUuNTg5MyA3NS44Njk5IDU4Ljg2ODUgODEuMzg3OCA1Mi41NzU0IDgxLjM4NzhDNDcuOTkzIDgxLjM4NzggNDUuNjcxMyA3OC41MDYzIDQ1LjY3MTMgNzQuNDU5OEM0NS42NzEzIDcyLjk4ODQgNDUuOTc2OCA3MS40NTU2IDQ2LjUyNjcgNjkuOTIyOVpNODMuNjc2MSA0Mi41Nzk0QzgzLjY3NjEgNDYuMTcwNCA4MS41NTc1IDQ3Ljk2NTggNzkuMTg3NSA0Ny45NjU4Qzc2Ljc4MTYgNDcuOTY1OCA3NC42OTg5IDQ2LjE3MDQgNzQuNjk4OSA0Mi41Nzk0Qzc0LjY5ODkgMzguOTg4NSA3Ni43ODE2IDM3LjE5MzEgNzkuMTg3NSAzNy4xOTMxQzgxLjU1NzUgMzcuMTkzMSA4My42NzYxIDM4Ljk4ODUgODMuNjc2MSA0Mi41Nzk0Wk03MC4yMTAzIDQyLjU3OTVDNzAuMjEwMyA0Ni4xNzA0IDY4LjA5MTYgNDcuOTY1OCA2NS43MjE2IDQ3Ljk2NThDNjMuMzE1NyA0Ny45NjU4IDYxLjIzMyA0Ni4xNzA0IDYxLjIzMyA0Mi41Nzk1QzYxLjIzMyAzOC45ODg1IDYzLjMxNTcgMzcuMTkzMSA2NS43MjE2IDM3LjE5MzFDNjguMDkxNiAzNy4xOTMxIDcwLjIxMDMgMzguOTg4NSA3MC4yMTAzIDQyLjU3OTVaIiBmaWxsPSIjRkZGREY4Ii8+Cjwvc3ZnPg=='
+
+const isPhantomEvmInstalled = () => {
+  try {
+    return Boolean(
+      safeGetWindow()?.phantom?.ethereum?.isPhantom ||
+        safeGetWindow()?.ethereum?.isPhantom ||
+        (safeGetWindow()?.ethereum as ExtendEthereum | undefined)?.providers?.some((provider) => provider?.isPhantom),
+    )
+  } catch (error) {
+    console.error('Error checking Phantom Wallet:', error)
+    return false
+  }
+}
+
+const isBitgetWalletInstalled = () => {
+  try {
+    return Boolean(
+      safeGetWindow()?.bitkeep?.ethereum ||
+        safeGetWindow()?.ethereum?.isBitKeep ||
+        safeGetWindow()?.ethereum?.isBitgetWallet ||
+        (safeGetWindow()?.ethereum as ExtendEthereum | undefined)?.providers?.some(
+          (provider) => provider?.isBitKeep || provider?.isBitgetWallet,
+        ),
+    )
+  } catch (error) {
+    console.error('Error checking Bitget Wallet:', error)
+    return false
+  }
 }
 
 function isBinanceWeb3WalletInstalled() {
@@ -226,6 +260,37 @@ export const walletsConfig = <config extends Config = Config, context = unknown>
       MEVSupported: true,
     },
     {
+      id: LegacyWalletIds.Phantom,
+      title: 'Phantom',
+      icon: PHANTOM_ICON,
+      connectorId: ConnectorNames.Phantom,
+      supportedEvmChainIds: [...PHANTOM_SUPPORTED_EVM_CHAIN_IDS],
+      get installed() {
+        return isPhantomEvmInstalled()
+      },
+      downloadLink: 'https://phantom.com/',
+      guide: {
+        desktop: 'https://phantom.com/',
+        mobile: 'https://phantom.com/',
+      },
+      qrCode,
+    },
+    {
+      id: LegacyWalletIds.BitGet,
+      title: 'Bitget Wallet',
+      icon: `${ASSET_CDN}/web/wallets/bitget.png`,
+      connectorId: ConnectorNames.Bitget,
+      get installed() {
+        return isBitgetWalletInstalled()
+      },
+      downloadLink: 'https://web3.bitget.com/',
+      guide: {
+        desktop: 'https://web3.bitget.com/',
+        mobile: 'https://web3.bitget.com/',
+      },
+      qrCode,
+    },
+    {
       id: LegacyWalletIds.Math,
       title: 'MathWallet',
       icon: `${ASSET_CDN}/web/wallets/mathwallet.png`,
@@ -316,7 +381,13 @@ export const createWallets = <config extends Config = Config, context = unknown>
   const currentInjectedWithinConfig =
     injectedIsMetamask ||
     injectedIsTrust ||
-    config.some((c) => c.installed && ConnectorNames.Injected === c.connectorId)
+    config.some(
+      (c) =>
+        c.installed &&
+        [ConnectorNames.Injected, ConnectorNames.Phantom, ConnectorNames.Bitget].includes(
+          c.connectorId as ConnectorNames,
+        ),
+    )
 
   return !hasInjected || currentInjectedWithinConfig
     ? config

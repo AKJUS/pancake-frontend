@@ -2,6 +2,7 @@ export { MultichainWalletModal } from './components/MultichainWalletModal/Multic
 export type { MultichainWalletModalProps } from './components/MultichainWalletModal/types'
 export { type WalletConfigV3, WalletAdaptedNetwork } from './types'
 export { EvmConnectorNames, type SolanaConnectorNames } from './config/connectorNames'
+export { PHANTOM_SUPPORTED_EVM_CHAIN_IDS, isPhantomEvmChainSupported } from './config/supportedEvmChains'
 export { SolanaProvider, SolanaProviderLocalStorageKey } from './components/SolanaProvider'
 export { selectedWalletAtom } from './state/atom'
 

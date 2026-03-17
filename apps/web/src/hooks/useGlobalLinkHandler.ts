@@ -10,7 +10,12 @@ const getIsAndroid = () => {
 const isInWalletBrowser = () => {
   if (typeof window === 'undefined') return false
 
-  return window.ethereum !== undefined || window.solana !== undefined || window.phantom !== undefined
+  return (
+    window.ethereum !== undefined ||
+    window.solana !== undefined ||
+    window.phantom !== undefined ||
+    window.bitkeep !== undefined
+  )
 }
 
 const isInternalLink = (href) => {
@@ -38,7 +43,7 @@ const isInternalLink = (href) => {
 /**
  * Prevents target="_blank" links from opening in default browser on Android wallet dApps.
  * Keeps navigation within the wallet's in-app browser by detecting wallet injected objects
- * (window.ethereum, window.solana, window.phantom) and redirecting internal links to same window.
+ * (window.ethereum, window.solana, window.phantom, window.bitkeep) and redirecting internal links to same window.
  * Only affects Android devices with wallet browsers accessing internal domains.
  */
 export const useGlobalLinkHandler = () => {

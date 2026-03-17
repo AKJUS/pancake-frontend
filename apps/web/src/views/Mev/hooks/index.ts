@@ -23,6 +23,7 @@ const WalletProviders = [
   'isBackpack',
   'isBifrost',
   'isBitKeep',
+  'isBitgetWallet',
   'isBitski',
   'isBlockWallet',
   'isBraveWallet',
