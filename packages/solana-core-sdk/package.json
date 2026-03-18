@@ -1,16 +1,29 @@
 {
   "name": "@pancakeswap/solana-core-sdk",
   "version": "0.2.0",
-  "description": "An SDK for building applications fork from Raydium.",
-  "private": true,
+  "description": "Core Solana SDK utilities for PancakeSwap, forked from Raydium SDK V2.",
+  "private": false,
   "license": "GPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
-    "./dist",
-    "./src"
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/pancakeswap/pancake-frontend.git",
@@ -20,6 +33,7 @@
     "pancakeswap",
     "solana"
   ],
+  "sideEffects": false,
   "lint-staged": {
     "{src,test,misc}/**/*.ts": [
       "pnpm lint"

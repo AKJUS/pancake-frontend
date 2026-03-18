@@ -26,6 +26,12 @@ npm install @pancakeswap/solana-core-sdk
 yarn add @pancakeswap/solana-core-sdk
 ```
 
+## Fork Provenance
+
+This package is derived from [raydium-io/raydium-sdk-V2](https://github.com/raydium-io/raydium-sdk-V2).
+
+PancakeSwap maintains this package inside the `pancake-frontend` monorepo and publishes it as `@pancakeswap/solana-core-sdk` for reuse across PancakeSwap Solana integrations and related tooling.
+
 ## License
 
 This project is a fork of [raydium-io/raydium-sdk-V2](https://github.com/raydium-io/raydium-sdk-V2), originally licensed under the GNU General Public License v3.0.
