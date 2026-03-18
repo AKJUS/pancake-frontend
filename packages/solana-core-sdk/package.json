@@ -1,6 +1,6 @@
 {
   "name": "@pancakeswap/solana-core-sdk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Core Solana SDK utilities for PancakeSwap, forked from Raydium SDK V2.",
   "private": false,
   "license": "GPL-3.0",

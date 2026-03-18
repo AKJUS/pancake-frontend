@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+### Patch Changes
+
+- 0d19ec4: Prepare `@pancakeswap/solana-core-sdk` for public npm publication by enabling public access, tightening published package contents, and clarifying fork provenance and license information.
+
 ## 0.2.0
 
 ### Minor Changes

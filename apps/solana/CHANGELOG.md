@@ -1,5 +1,12 @@
 # solana-frontend
 
+## 0.0.11
+
+### Patch Changes
+
+- Updated dependencies [0d19ec4]
+  - @pancakeswap/solana-core-sdk@0.2.1
+
 ## 0.0.10
 
 ### Patch Changes
