@@ -1,11 +1,13 @@
 import { useTranslation } from '@pancakeswap/localization'
 import { Box, Button, Flex, Text, getPortalRoot, useMatchBreakpoints } from '@pancakeswap/uikit'
 import { sdk } from '@farcaster/miniapp-sdk'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { QRCodeSVG } from 'qrcode.react'
 import React, { createContext, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { styled } from 'styled-components'
 import { ASSET_CDN } from 'config/constants/endpoints'
+import { baseMiniAppAutoConnectRetryAtom, baseMiniAppAutoConnectStatusAtom } from 'state/wallet/atom'
 
 const QRCodeWrapper = styled(Box)`
   padding: 0px;
@@ -59,6 +61,8 @@ const BaseMiniAppProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   const { t } = useTranslation()
   const { isMobile } = useMatchBreakpoints()
   const isDev = process.env.NODE_ENV !== 'production'
+  const autoConnectStatus = useAtomValue(baseMiniAppAutoConnectStatusAtom)
+  const retryBaseWallet = useSetAtom(baseMiniAppAutoConnectRetryAtom)
   const [isInMiniApp, setIsInMiniApp] = useState<boolean | null>(isDev ? true : null)
   const contextValue = useMemo(() => ({ isInMiniApp }), [isInMiniApp])
   const portal = useMemo(() => (typeof window === 'undefined' ? null : getPortalRoot()), [])
@@ -116,6 +120,54 @@ const BaseMiniAppProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   return (
     <BaseMiniAppContext.Provider value={contextValue}>
       {isInMiniApp !== false ? children : null}
+      {isInMiniApp === true && autoConnectStatus === 'failed' ? (
+        portal ? (
+          createPortal(
+            <Overlay>
+              <Card>
+                <Flex flexDirection="column" alignItems="center" justifyContent="center">
+                  <Text fontSize="20px" bold mb="8px">
+                    {t('Unable to connect Base wallet')}
+                  </Text>
+                  <Text color="textSubtle" textAlign="center" mb="16px">
+                    {t('Retry connecting your Base wallet to continue using Cakepad.')}
+                  </Text>
+                  <Flex width="100%" flexDirection="column" style={{ gap: '12px' }}>
+                    <Button width="100%" onClick={() => retryBaseWallet((count) => count + 1)}>
+                      {t('Retry Base Wallet')}
+                    </Button>
+                    <Button as="a" variant="secondary" href={MINI_APP_QR_URL} width="100%">
+                      {t('Reopen Cakepad')}
+                    </Button>
+                  </Flex>
+                </Flex>
+              </Card>
+            </Overlay>,
+            portal,
+          )
+        ) : (
+          <Overlay>
+            <Card>
+              <Flex flexDirection="column" alignItems="center" justifyContent="center">
+                <Text fontSize="20px" bold mb="8px">
+                  {t('Unable to connect Base wallet')}
+                </Text>
+                <Text color="textSubtle" textAlign="center" mb="16px">
+                  {t('Retry connecting your Base wallet to continue using Cakepad.')}
+                </Text>
+                <Flex width="100%" flexDirection="column" style={{ gap: '12px' }}>
+                  <Button width="100%" onClick={() => retryBaseWallet((count) => count + 1)}>
+                    {t('Retry Base Wallet')}
+                  </Button>
+                  <Button as="a" variant="secondary" href={MINI_APP_QR_URL} width="100%">
+                    {t('Reopen Cakepad')}
+                  </Button>
+                </Flex>
+              </Flex>
+            </Card>
+          </Overlay>
+        )
+      ) : null}
       {isInMiniApp === false ? (
         portal ? (
           createPortal(
