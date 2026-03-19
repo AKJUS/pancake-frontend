@@ -3,6 +3,10 @@ import { useEffect, useRef } from 'react'
 import { useAccount, useConnect } from 'wagmi'
 import { farcasterMiniAppConnector } from 'utils/wagmi'
 
+const CHECK_DELAY_MS = 300
+const CHECK_ATTEMPTS = 10
+const CONNECT_ATTEMPTS = 5
+
 export const useBaseMiniAppAutoConnect = () => {
   const { address, connector, isConnected } = useAccount()
   const { connectAsync, isPending } = useConnect()
@@ -32,18 +36,18 @@ export const useBaseMiniAppAutoConnect = () => {
         } catch (error) {
           console.warn('[wallet] Base miniapp ready() failed', error)
         }
-        await new Promise((resolve) => setTimeout(resolve, 100))
+        await new Promise((resolve) => setTimeout(resolve, CHECK_DELAY_MS))
 
         const checkIsInMiniApp = async (attemptsLeft: number): Promise<boolean> => {
           const result = await sdk.isInMiniApp()
           if (cancelled || result || attemptsLeft <= 1) {
             return result
           }
-          await new Promise((resolve) => setTimeout(resolve, 100))
+          await new Promise((resolve) => setTimeout(resolve, CHECK_DELAY_MS))
           return checkIsInMiniApp(attemptsLeft - 1)
         }
 
-        const isInMiniApp = await checkIsInMiniApp(3)
+        const isInMiniApp = await checkIsInMiniApp(CHECK_ATTEMPTS)
         if (cancelled) return
         if (!isInMiniApp) {
           checkedRef.current = true
@@ -52,18 +56,18 @@ export const useBaseMiniAppAutoConnect = () => {
 
         const tryConnect = async (attemptsLeft: number): Promise<void> => {
           try {
-            await new Promise((resolve) => setTimeout(resolve, 100))
+            await new Promise((resolve) => setTimeout(resolve, CHECK_DELAY_MS))
             await connectAsync({ connector: farcasterMiniAppConnector })
           } catch (error) {
             if (cancelled || attemptsLeft <= 1) {
               throw error
             }
-            await new Promise((resolve) => setTimeout(resolve, 100))
+            await new Promise((resolve) => setTimeout(resolve, CHECK_DELAY_MS))
             await tryConnect(attemptsLeft - 1)
           }
         }
 
-        await tryConnect(3)
+        await tryConnect(CONNECT_ATTEMPTS)
         checkedRef.current = true
       } catch (error) {
         if (!cancelled) {
