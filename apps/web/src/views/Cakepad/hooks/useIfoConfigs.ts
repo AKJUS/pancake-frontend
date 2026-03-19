@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { ChainId } from '@pancakeswap/chains'
 import { Token } from '@pancakeswap/swap-sdk-core'
 import { CurrencyConfig, IFOConfig } from '../ifov2.types'
 import { CAKEPAD_CONFIGS_URL } from '../config'
@@ -38,9 +39,13 @@ function transformJsonToConfig(jsonConfig: any): IFOConfig {
   return config as IFOConfig
 }
 
-export const useIfoConfigs = () => {
+interface UseIfoConfigsOptions {
+  chainId?: ChainId
+}
+
+export const useIfoConfigs = ({ chainId }: UseIfoConfigsOptions = {}) => {
   return useQuery<IFOConfig[]>({
-    queryKey: ['cakepad-ifo-configs'],
+    queryKey: ['cakepad-ifo-configs', chainId ?? 'all'],
     queryFn: async () => {
       const timestampedUrl = CAKEPAD_CONFIGS_URL
         ? `${CAKEPAD_CONFIGS_URL}${CAKEPAD_CONFIGS_URL.includes('?') ? '&' : '?'}t=${Date.now()}`
@@ -50,7 +55,9 @@ export const useIfoConfigs = () => {
         throw new Error(`Failed to fetch IFO config: ${response.status}`)
       }
       const jsonData = await response.json()
-      return jsonData.map(transformJsonToConfig)
+      const configs = jsonData.map(transformJsonToConfig)
+
+      return chainId ? configs.filter((config) => config.chainId === chainId) : configs
     },
     refetchOnMount: true,
     staleTime: 5_000,

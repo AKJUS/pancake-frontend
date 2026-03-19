@@ -7,14 +7,13 @@ import { useIfoConfigs } from './hooks/useIfoConfigs'
 
 const HistoryIfos: React.FC = () => {
   const router = useRouter()
-  const { data: ifoConfigs } = useIfoConfigs()
+  const isCakepadBaseRoute = isCakepadBaseExperience({ pathname: router.pathname, chain: router.query.chain })
+  const { data: filteredIfoConfigs } = useIfoConfigs({ chainId: isCakepadBaseRoute ? ChainId.BASE : undefined })
 
-  if (!ifoConfigs) {
+  if (!filteredIfoConfigs) {
     return null
   }
 
-  const isCakepadBaseRoute = isCakepadBaseExperience({ pathname: router.pathname, chain: router.query.chain })
-  const filteredIfoConfigs = isCakepadBaseRoute ? ifoConfigs.filter((ifo) => ifo.chainId === ChainId.BASE) : ifoConfigs
   if (!filteredIfoConfigs.length) {
     return null
   }

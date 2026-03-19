@@ -16,13 +16,13 @@ import { isCakepadBaseExperience } from 'views/Cakepad/config/routes'
 
 const View = () => {
   const router = useRouter()
-  const { data: ifoConfigs, isLoading } = useIfoConfigs()
   const isBaseExperience = isCakepadBaseExperience({ pathname: router.pathname, chain: router.query.chain })
+  const baseChainId = isBaseExperience ? ChainId.BASE : undefined
+  const { data: ifoConfigs, isLoading } = useIfoConfigs({ chainId: baseChainId })
 
-  useCheckAndSwitchChain(isBaseExperience ? ChainId.BASE : undefined)
+  useCheckAndSwitchChain(baseChainId)
 
-  const baseIfoConfigs = ifoConfigs?.filter((ifo) => ifo.chainId === ChainId.BASE)
-  const showEmptyState = isBaseExperience && !isLoading && (!baseIfoConfigs || baseIfoConfigs.length === 0)
+  const showEmptyState = isBaseExperience && !isLoading && (!ifoConfigs || ifoConfigs.length === 0)
 
   const content = (
     <>

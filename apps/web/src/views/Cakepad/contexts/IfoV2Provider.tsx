@@ -20,7 +20,9 @@ export const IfoV2Provider: React.FC<ProviderProps> = ({ id, children }) => {
   const router = useRouter()
   const { query } = router
   const { data: signer } = useWalletClient()
-  const { data: ifoConfigs } = useIfoConfigs()
+  const isCakepadBaseRoute = isCakepadBaseExperience({ pathname: router.pathname, chain: query.chain })
+  const baseChainId = isCakepadBaseRoute ? ChainId.BASE : undefined
+  const { data: ifoConfigs } = useIfoConfigs({ chainId: baseChainId })
 
   // Preload submitting animation
   useAtomValue(ifoLoadingAnimationAtom)
@@ -29,8 +31,7 @@ export const IfoV2Provider: React.FC<ProviderProps> = ({ id, children }) => {
     return null
   }
 
-  const isCakepadBaseRoute = isCakepadBaseExperience({ pathname: router.pathname, chain: query.chain })
-  const filteredIfoConfigs = isCakepadBaseRoute ? ifoConfigs.filter((ifo) => ifo.chainId === ChainId.BASE) : ifoConfigs
+  const filteredIfoConfigs = ifoConfigs
   if (!filteredIfoConfigs.length) {
     return null
   }

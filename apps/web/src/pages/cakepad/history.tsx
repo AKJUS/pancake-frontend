@@ -10,14 +10,30 @@ import { useCheckAndSwitchChain } from 'hooks/useCheckAndSwitchChain'
 import BaseMiniAppProvider from 'components/BaseMiniAppProvider'
 import { useIsBaseMiniApp } from 'hooks/useIsBaseMiniApp'
 import { isCakepadBaseExperience } from 'views/Cakepad/config/routes'
+import Hero from 'views/Cakepad/components/Hero'
+import NoIfoState from 'views/Cakepad/components/NoIfoState'
 
 const View = () => {
-  useIfoConfigs()
   const router = useRouter()
   const isBaseExperience = isCakepadBaseExperience({ pathname: router.pathname, chain: router.query.chain })
-  useCheckAndSwitchChain(isBaseExperience ? ChainId.BASE : undefined)
+  const baseChainId = isBaseExperience ? ChainId.BASE : undefined
+  const { data: ifoConfigs, isLoading } = useIfoConfigs({ chainId: baseChainId })
+  useCheckAndSwitchChain(baseChainId)
 
-  const content = isBaseExperience ? <BaseHistoryContent /> : <DefaultHistoryContent />
+  const showEmptyState = isBaseExperience && !isLoading && (!ifoConfigs || ifoConfigs.length === 0)
+  const content = isBaseExperience ? (
+    showEmptyState ? (
+      <>
+        <PageMeta />
+        <Hero chainId={ChainId.BASE} />
+        <NoIfoState />
+      </>
+    ) : (
+      <BaseHistoryContent />
+    )
+  ) : (
+    <DefaultHistoryContent />
+  )
 
   return isBaseExperience ? <BaseMiniAppProvider>{content}</BaseMiniAppProvider> : content
 }
