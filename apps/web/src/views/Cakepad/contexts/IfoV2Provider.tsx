@@ -7,7 +7,7 @@ import { getIFOContract } from '../hooks/ifo/useIFOContract'
 import { ifoLoadingAnimationAtom } from '../atoms'
 import { useIfoConfigs } from '../hooks/useIfoConfigs'
 import { DEFAULT_CAKEPAD_IFO_ID } from '../config'
-import { CAKEPAD_BASE_URL } from '../config/routes'
+import { isCakepadBaseExperience } from '../config/routes'
 import { SyncIfoContext } from './SyncIfoContext'
 import { IfoV2Context } from './IfoV2Context'
 
@@ -29,7 +29,7 @@ export const IfoV2Provider: React.FC<ProviderProps> = ({ id, children }) => {
     return null
   }
 
-  const isCakepadBaseRoute = router.pathname.startsWith(CAKEPAD_BASE_URL)
+  const isCakepadBaseRoute = isCakepadBaseExperience({ pathname: router.pathname, chain: query.chain })
   const filteredIfoConfigs = isCakepadBaseRoute ? ifoConfigs.filter((ifo) => ifo.chainId === ChainId.BASE) : ifoConfigs
   if (!filteredIfoConfigs.length) {
     return null

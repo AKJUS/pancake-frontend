@@ -40,8 +40,6 @@ const getPathList = memoize((t: ContextApi['t']): PathList => {
       '/ifo': { title: t('Initial Farm Offering'), image: `${ASSET_CDN}/web/og/ifo.jpg` },
       '/cakepad': { title: t('CAKE.PAD'), image: `${ASSET_CDN}/web/og/ifo.jpg` },
       '/cakepad/history': { title: t('CAKE.PAD History'), image: `${ASSET_CDN}/web/og/ifo.jpg` },
-      '/cakepad-base': { title: t('CAKE.PAD'), image: `${ASSET_CDN}/web/og/ifo.jpg` },
-      '/cakepad-base/history': { title: t('CAKE.PAD History'), image: `${ASSET_CDN}/web/og/ifo.jpg` },
       '/teams': { basePath: true, title: t('Leaderboard'), image: `${ASSET_CDN}/web/og/teams.jpg` },
       '/voting': { basePath: true, title: t('Voting'), image: `${ASSET_CDN}/web/og/voting.jpg` },
       '/voting/proposal': { title: t('Proposals'), image: `${ASSET_CDN}/web/og/voting.jpg` },

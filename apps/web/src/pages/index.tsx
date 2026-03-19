@@ -1,10 +1,10 @@
 import { useRouter } from 'next/router'
 import { Suspense, useEffect, useState } from 'react'
 import { HomeV2 } from 'views/HomeV2'
+import { withCakepadBaseChainQuery } from 'views/Cakepad/config/routes'
 
 const CAKEPAD_HOST = 'cakepad.pancakeswap.finance'
 const CAKEPAD_ROUTE = '/cakepad'
-const CAKEPAD_BASE_ROUTE = '/cakepad-base'
 
 const IndexPage = () => {
   const router = useRouter()
@@ -27,11 +27,11 @@ const IndexPage = () => {
         const isInMiniApp = await sdk.isInMiniApp()
 
         if (!cancelled) {
-          router.replace(isInMiniApp ? CAKEPAD_BASE_ROUTE : CAKEPAD_ROUTE)
+          router.replace(withCakepadBaseChainQuery(CAKEPAD_ROUTE, isInMiniApp))
         }
       } catch {
         if (!cancelled) {
-          router.replace(CAKEPAD_ROUTE)
+          router.replace(withCakepadBaseChainQuery(CAKEPAD_ROUTE, true))
         }
       }
     }

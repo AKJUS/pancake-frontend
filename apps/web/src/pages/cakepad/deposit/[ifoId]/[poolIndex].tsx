@@ -8,33 +8,40 @@ import useIfo from 'views/Cakepad/hooks/useIfo'
 import { IfoDeposit } from 'views/Cakepad/components/IfoDeposit'
 import { IFO_SUPPORT_CHAINS } from 'config/cakepad.config'
 import { useCheckAndSwitchChain } from 'hooks/useCheckAndSwitchChain'
+import { ChainId } from '@pancakeswap/chains'
+import BaseMiniAppProvider from 'components/BaseMiniAppProvider'
+import { isCakepadBaseExperience } from 'views/Cakepad/config/routes'
 
-const IfoDepositPageContent: React.FC<{ pid: number }> = ({ pid }) => {
+const IfoDepositPageContent: React.FC<{ pid: number; isBaseExperience: boolean }> = ({ pid, isBaseExperience }) => {
   const { config } = useIfo()
-  useCheckAndSwitchChain(config?.chainId)
+  useCheckAndSwitchChain(isBaseExperience ? ChainId.BASE : config?.chainId)
 
   const steps = <></>
   return (
     <>
-      <Hero />
+      <Hero chainId={isBaseExperience ? ChainId.BASE : undefined} />
       <IfoContainer ifoSteps={steps} ifoSection={<IfoDeposit pid={pid} />} ifoFaqs={config?.faqs} />
     </>
   )
 }
 
 const IfoDepositPage: NextPageWithLayout = () => {
-  const { query } = useRouter()
+  const router = useRouter()
+  const { query } = router
   const { ifoId, poolIndex } = query
+  const isBaseExperience = isCakepadBaseExperience({ pathname: router.pathname, chain: query.chain })
 
   if (typeof ifoId !== 'string' || typeof poolIndex !== 'string') {
     return null
   }
 
-  return (
+  const content = (
     <IfoV2Provider id={ifoId}>
-      <IfoDepositPageContent pid={Number(poolIndex)} />
+      <IfoDepositPageContent pid={Number(poolIndex)} isBaseExperience={isBaseExperience} />
     </IfoV2Provider>
   )
+
+  return isBaseExperience ? <BaseMiniAppProvider>{content}</BaseMiniAppProvider> : content
 }
 
 IfoDepositPage.chains = IFO_SUPPORT_CHAINS

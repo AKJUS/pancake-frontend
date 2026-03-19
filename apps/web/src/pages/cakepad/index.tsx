@@ -7,19 +7,41 @@ import { PageMeta } from 'components/Layout/Page'
 import { useIfoConfigs } from 'views/Cakepad/hooks/useIfoConfigs'
 import { IFO_SUPPORT_CHAINS } from 'config/cakepad.config'
 import { IfoV2Provider } from 'views/Cakepad/contexts/IfoV2Provider'
+import { useRouter } from 'next/router'
+import { ChainId } from '@pancakeswap/chains'
+import { useCheckAndSwitchChain } from 'hooks/useCheckAndSwitchChain'
+import BaseMiniAppProvider from 'components/BaseMiniAppProvider'
+import NoIfoState from 'views/Cakepad/components/NoIfoState'
+import { isCakepadBaseExperience } from 'views/Cakepad/config/routes'
 
 const View = () => {
-  useIfoConfigs()
+  const router = useRouter()
+  const { data: ifoConfigs, isLoading } = useIfoConfigs()
+  const isBaseExperience = isCakepadBaseExperience({ pathname: router.pathname, chain: router.query.chain })
 
-  return (
+  useCheckAndSwitchChain(isBaseExperience ? ChainId.BASE : undefined)
+
+  const baseIfoConfigs = ifoConfigs?.filter((ifo) => ifo.chainId === ChainId.BASE)
+  const showEmptyState = isBaseExperience && !isLoading && (!baseIfoConfigs || baseIfoConfigs.length === 0)
+
+  const content = (
     <>
       <PageMeta />
-      <IfoV2Provider>
-        <Hero />
-        <IFO />
-      </IfoV2Provider>
+      {showEmptyState ? (
+        <>
+          <Hero chainId={ChainId.BASE} />
+          <NoIfoState />
+        </>
+      ) : (
+        <IfoV2Provider>
+          <Hero chainId={isBaseExperience ? ChainId.BASE : undefined} />
+          <IFO />
+        </IfoV2Provider>
+      )}
     </>
   )
+
+  return isBaseExperience ? <BaseMiniAppProvider>{content}</BaseMiniAppProvider> : content
 }
 
 const CurrentIfoPage: NextPageWithLayout = dynamic(() => Promise.resolve(View), {

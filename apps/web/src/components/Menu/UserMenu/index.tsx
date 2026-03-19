@@ -34,7 +34,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ConnectWalletButton from 'components/ConnectWalletButton'
 import SolanaConnectButton from 'wallet/components/SolanaConnectButton'
 import { useCurrentWalletIcon } from 'state/wallet/hooks'
-import { CAKEPAD_BASE_URL } from 'views/Cakepad/config/routes'
+import { isCakepadBaseExperience } from 'views/Cakepad/config/routes'
 import { MenuTabProvider, useMenuTab, WalletView } from './providers/MenuTabProvider'
 
 const UserMenuItems = ({ onReceiveClick, onDismiss }: { onReceiveClick: () => void; onDismiss: () => void }) => {
@@ -110,9 +110,9 @@ const UserMenu = () => {
   const { t } = useTranslation()
   const { chainId, account: evmAccount, solanaAccount, isWrongNetwork } = useAccountActiveChain()
   const { connector } = useAccount()
-  const { pathname } = useRouter()
+  const router = useRouter()
   const { ready, authenticated, user } = usePrivy()
-  const isCakepadBaseRoute = pathname.startsWith(CAKEPAD_BASE_URL)
+  const isCakepadBaseRoute = isCakepadBaseExperience({ pathname: router.pathname, chain: router.query.chain })
 
   // Use new Privy wallet address hook to prevent flickering
   const { address: privyAddress, isLoading: isPrivyAddressLoading, hasSetupFailed } = usePrivyWalletAddress()

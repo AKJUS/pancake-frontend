@@ -6,7 +6,7 @@ import { useRouter } from 'next/router'
 import ConnectWalletButton from 'components/ConnectWalletButton'
 import { useStablecoinPriceAmount } from 'hooks/useStablecoinPrice'
 import { logGTMIfoConnectWalletEvent } from 'utils/customGTMEventTracking'
-import { CAKEPAD_BASE_DEPOSIT_URL, CAKEPAD_BASE_URL, CAKEPAD_DEPOSIT_URL } from 'views/Cakepad/config/routes'
+import { CAKEPAD_DEPOSIT_URL, isCakepadBaseExperience } from 'views/Cakepad/config/routes'
 import { formatAmount } from '@pancakeswap/utils/formatFractions'
 import { BigNumber as BN } from 'bignumber.js'
 import type { IFOStatus } from '../../hooks/ifo/useIFOStatus'
@@ -45,9 +45,7 @@ const PoolAction: React.FC<{ pid: number }> = ({ pid }) => {
   const { address: account } = useAccount()
 
   const stakedAmountBN = BN(stakedAmount?.quotient.toString() ?? '')
-  const cakepadDepositUrl = router.pathname.startsWith(CAKEPAD_BASE_URL)
-    ? CAKEPAD_BASE_DEPOSIT_URL
-    : CAKEPAD_DEPOSIT_URL
+  const isBaseExperience = isCakepadBaseExperience({ pathname: router.pathname, chain: router.query.chain })
 
   const amountInDollar = useStablecoinPriceAmount(
     stakeCurrency ?? undefined,
@@ -63,10 +61,10 @@ const PoolAction: React.FC<{ pid: number }> = ({ pid }) => {
 
   const handleDepositClick = () => {
     if (ifoId) {
-      const { ifo, ...restQuery } = router.query
+      const { ifo: _ifo, ...restQuery } = router.query
       router.push({
-        pathname: `${cakepadDepositUrl}/[ifoId]/[poolIndex]`,
-        query: { ifoId, poolIndex: pid, ...restQuery },
+        pathname: `${CAKEPAD_DEPOSIT_URL}/[ifoId]/[poolIndex]`,
+        query: { ifoId, poolIndex: pid, ...restQuery, ...(isBaseExperience ? { chain: 'base' } : {}) },
       })
     }
   }

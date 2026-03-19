@@ -20,6 +20,7 @@ import { CHAIN_QUERY_NAME } from 'config/chains'
 import { SUPPORT_FARMS, SUPPORT_ONLY_BSC } from 'config/constants/supportChains'
 import { getPerpetualUrl } from 'utils/getPerpetualUrl'
 import { EVM_CHAIN_IDS } from 'utils/wagmi'
+import { CAKEPAD_HISTORY_URL, CAKEPAD_URL } from 'views/Cakepad/config/routes'
 
 export type ConfigMenuDropDownItemsType = DropdownMenuItems & {
   hideSubNav?: boolean
@@ -188,29 +189,17 @@ const config: (
           },
           {
             label: t('CAKE.PAD'),
-            href:
-              typeof window !== 'undefined' && window.location.pathname.startsWith('/cakepad-base')
-                ? '/cakepad-base'
-                : '/cakepad',
+            href: CAKEPAD_URL,
             image: '/images/ifos/ifo-bunny.png',
             overrideSubNavItems: [
               {
                 label: t('Latest'),
-                href:
-                  typeof window !== 'undefined' && window.location.pathname.startsWith('/cakepad-base')
-                    ? '/cakepad-base'
-                    : '/cakepad',
-                matchHrefs:
-                  typeof window !== 'undefined' && window.location.pathname.startsWith('/cakepad-base')
-                    ? ['/cakepad-base/deposit']
-                    : ['/cakepad/deposit'],
+                href: CAKEPAD_URL,
+                matchHrefs: ['/cakepad/deposit'],
               },
               {
                 label: t('Finished'),
-                href:
-                  typeof window !== 'undefined' && window.location.pathname.startsWith('/cakepad-base')
-                    ? '/cakepad-base/history'
-                    : '/cakepad/history',
+                href: CAKEPAD_HISTORY_URL,
               },
             ],
           },

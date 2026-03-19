@@ -20,7 +20,7 @@ import { useWebNotifications } from 'hooks/useWebNotifications'
 import { useRouter } from 'next/router'
 import { Suspense, lazy, useCallback, useMemo } from 'react'
 import { styled } from 'styled-components'
-import { CAKEPAD_BASE_URL } from 'views/Cakepad/config/routes'
+import { isCakepadBaseExperience } from 'views/Cakepad/config/routes'
 import GlobalSettings from './GlobalSettings'
 import UserMenu from './UserMenu'
 import { UseMenuItemsParams, useMenuItems } from './hooks/useMenuItems'
@@ -49,10 +49,11 @@ const Menu = (props) => {
   const { isDark, setTheme } = useTheme()
   const cakePrice = useCakePrice()
   const { currentLanguage, t } = useTranslation()
-  const { pathname } = useRouter()
+  const router = useRouter()
+  const { pathname, query } = router
   const perpUrl = usePerpUrl({ chainId, isDark, languageCode: currentLanguage.code })
   const [perpConfirmed] = useUserNotUsCitizenAcknowledgement(IdType.PERPETUALS)
-  const isCakepadBaseRoute = pathname.startsWith(CAKEPAD_BASE_URL)
+  const isCakepadBaseRoute = isCakepadBaseExperience({ pathname, chain: query.chain })
 
   const [onPerpConfirmModalPresent] = useModal(
     <USCitizenConfirmModal title={t('PancakeSwap Perpetuals')} id={IdType.PERPETUALS} href={perpUrl} />,
@@ -149,7 +150,7 @@ function filterItemsProps(items: ReturnType<typeof useMenuItems>) {
     return {
       ...item,
       items: item.items?.map((subItem) => {
-        const { matchHrefs, overrideSubNavItems, ...rest } = subItem
+        const { matchHrefs: _matchHrefs, overrideSubNavItems: _overrideSubNavItems, ...rest } = subItem
         return rest
       }),
     }
@@ -192,8 +193,8 @@ const StaticLogo: React.FC = () => (
 
 export const SharedComponentWithOutMenu: React.FC<React.PropsWithChildren> = ({ children }) => {
   const { enabled } = useWebNotifications()
-  const { pathname } = useRouter()
-  const isCakepadBaseRoute = pathname.startsWith(CAKEPAD_BASE_URL)
+  const router = useRouter()
+  const isCakepadBaseRoute = isCakepadBaseExperience({ pathname: router.pathname, chain: router.query.chain })
   return (
     <>
       <SharedComponentWithOutMenuWrapper>

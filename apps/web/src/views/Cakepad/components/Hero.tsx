@@ -8,7 +8,7 @@ import { styled } from 'styled-components'
 import { ASSET_CDN } from 'config/constants/endpoints'
 import { getChainName } from '@pancakeswap/chains'
 import { IfoV2Context } from '../contexts/IfoV2Context'
-import { CAKEPAD_BASE_URL, CAKEPAD_URL } from '../config/routes'
+import { CAKEPAD_URL, isCakepadBaseExperience, withCakepadBaseChainQuery } from '../config/routes'
 
 const StyledHero = styled(Box)`
   position: relative;
@@ -79,8 +79,8 @@ const Hero: React.FC<HeroProps> = ({ chainId }) => {
   const { t } = useTranslation()
   const { isMobile } = useMatchBreakpoints()
   const ifoContext = useContext(IfoV2Context)
-  const isCakepadBase = router.pathname.startsWith(CAKEPAD_BASE_URL)
-  const cakepadBaseUrl = isCakepadBase ? CAKEPAD_BASE_URL : CAKEPAD_URL
+  const isCakepadBase = isCakepadBaseExperience({ pathname: router.pathname, chain: router.query.chain })
+  const cakepadBaseUrl = withCakepadBaseChainQuery(CAKEPAD_URL, isCakepadBase)
   const resolvedChainId = chainId ?? ifoContext?.chainId
 
   const handleClick = () => {

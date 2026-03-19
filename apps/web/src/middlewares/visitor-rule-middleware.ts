@@ -8,6 +8,13 @@ export const visitorRedirectMiddleware: MiddlewareFactory = (next: NextMiddlewar
     const visited = request.cookies.get('visited')
     const isCakepadHost = request.nextUrl.hostname === CAKEPAD_HOST
 
+    if (isCakepadHost && request.nextUrl.pathname === '/') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/cakepad'
+      url.searchParams.set('chain', 'base')
+      return NextResponse.rewrite(url)
+    }
+
     if (visited) {
       if (!isCakepadHost && request.nextUrl.pathname === '/') {
         return NextResponse.redirect(new URL('/swap', request.url))

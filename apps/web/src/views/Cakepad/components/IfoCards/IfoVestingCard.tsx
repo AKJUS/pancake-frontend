@@ -5,7 +5,7 @@ import useTheme from 'hooks/useTheme'
 import NextLink from 'next/link'
 import { useRouter } from 'next/router'
 import { styled } from 'styled-components'
-import { CAKEPAD_BASE_HISTORY_URL, CAKEPAD_BASE_URL, CAKEPAD_HISTORY_URL } from 'views/Cakepad/config/routes'
+import { CAKEPAD_HISTORY_URL, isCakepadBaseExperience, withCakepadBaseChainQuery } from 'views/Cakepad/config/routes'
 import useIfo from '../../hooks/useIfo'
 import { useIFOClaimCallback } from '../../hooks/ifo/useIFOClaimCallback'
 import { useVestingInfo } from '../../hooks/ifo/useVestingInfo'
@@ -34,7 +34,6 @@ export const IfoVestingCard: React.FC = () => {
   const router = useRouter()
   const { config, info, pools, users } = useIfo()
   const name = t(config.tgeTitle.i18nText)
-  const id = config?.id
   const [userStatus0, userStatus1] = users
   const { claim, isPending } = useIFOClaimCallback()
   const vesting = useVestingInfo()
@@ -65,9 +64,10 @@ export const IfoVestingCard: React.FC = () => {
 
   const claimedPercent = claimedAll ? progress : 0
   const availablePercent = claimedAll ? 0 : progress
-  const cakepadHistoryUrl = router.pathname.startsWith(CAKEPAD_BASE_URL)
-    ? CAKEPAD_BASE_HISTORY_URL
-    : CAKEPAD_HISTORY_URL
+  const cakepadHistoryUrl = withCakepadBaseChainQuery(
+    CAKEPAD_HISTORY_URL,
+    isCakepadBaseExperience({ pathname: router.pathname, chain: router.query.chain }),
+  )
 
   const handleClaim = async () => {
     if (userStatus0?.claimableAmount?.greaterThan(0) && pools[0]) {
