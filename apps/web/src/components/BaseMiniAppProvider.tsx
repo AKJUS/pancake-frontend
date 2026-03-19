@@ -53,7 +53,7 @@ const Card = styled(Box)`
 
 const CHECK_DELAY_MS = 100
 const CHECK_ATTEMPTS = 3
-const MINI_APP_QR_URL = 'https://base.app/app/https://pancakeswap.finance/cakepad-base'
+const MINI_APP_QR_URL = 'https://base.app/app/https://cakepad.pancakeswap.finance/cakepad-base'
 
 export const BaseMiniAppContext = createContext<{ isInMiniApp: boolean | null } | null>(null)
 

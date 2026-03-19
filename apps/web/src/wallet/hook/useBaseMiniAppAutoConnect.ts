@@ -27,11 +27,6 @@ export const useBaseMiniAppAutoConnect = () => {
   useEffect(() => {
     if (typeof window === 'undefined') return undefined
     if (checkedRef.current || inFlightRef.current) return undefined
-    if (!window.location.pathname.startsWith('/cakepad-base')) {
-      checkedRef.current = true
-      setStatus('idle')
-      return undefined
-    }
     if (address || connector || isConnected) {
       checkedRef.current = true
       setStatus('connected')
@@ -65,7 +60,7 @@ export const useBaseMiniAppAutoConnect = () => {
         if (cancelled) return
         if (!isInMiniApp) {
           checkedRef.current = true
-          setStatus('failed')
+          setStatus('idle')
           return
         }
 
