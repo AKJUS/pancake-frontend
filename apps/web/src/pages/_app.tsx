@@ -109,7 +109,7 @@ function MyApp(props: AppProps<{ initialReduxState: any; dehydratedState: any }>
       action: {
         type: 'launch_frame',
         name: 'Cakepad (CAKE.PAD)',
-        url: 'https://pancakeswap.finance/cakepad-base',
+        url: 'https://cakepad.pancakeswap.finance/cakepad-base',
         splashImageUrl: 'https://pancakeswap.finance/logo.png',
         splashBackgroundColor: '#0f1220',
       },
