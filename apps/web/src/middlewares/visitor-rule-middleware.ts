@@ -1,12 +1,15 @@
 import { NextFetchEvent, NextResponse } from 'next/server'
 import { ExtendedNextReq, MiddlewareFactory, NextMiddleware } from './types'
 
+const CAKEPAD_HOST = 'cakepad.pancakeswap.finance'
+
 export const visitorRedirectMiddleware: MiddlewareFactory = (next: NextMiddleware) => {
   return async (request: ExtendedNextReq, _next: NextFetchEvent) => {
     const visited = request.cookies.get('visited')
+    const isCakepadHost = request.nextUrl.hostname === CAKEPAD_HOST
 
     if (visited) {
-      if (request.nextUrl.pathname === '/') {
+      if (!isCakepadHost && request.nextUrl.pathname === '/') {
         return NextResponse.redirect(new URL('/swap', request.url))
       }
     } else {
