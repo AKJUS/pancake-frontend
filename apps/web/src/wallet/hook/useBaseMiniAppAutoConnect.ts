@@ -1,3 +1,6 @@
+import { ChainId } from '@pancakeswap/chains'
+import { useActiveChainId } from 'hooks/useAccountActiveChain'
+import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
 import { useSetAtom, useAtomValue } from 'jotai'
 import { useEffect, useRef } from 'react'
 import { baseMiniAppAutoConnectRetryAtom, baseMiniAppAutoConnectStatusAtom } from 'state/wallet/atom'
@@ -10,16 +13,20 @@ const CONNECT_ATTEMPTS = 5
 
 export const useBaseMiniAppAutoConnect = () => {
   const { address, connector, isConnected } = useAccount()
+  const { chainId } = useActiveChainId()
   const { connectAsync, isPending } = useConnect()
+  const { switchNetwork, canSwitch, isLoading: isSwitching } = useSwitchNetwork()
   const retryCount = useAtomValue(baseMiniAppAutoConnectRetryAtom)
   const setStatus = useSetAtom(baseMiniAppAutoConnectStatusAtom)
   const walletEnv = useWalletEnv()
   const checkedRef = useRef(false)
   const inFlightRef = useRef(false)
+  const switchAttemptedRef = useRef(false)
 
   useEffect(() => {
     checkedRef.current = false
     inFlightRef.current = false
+    switchAttemptedRef.current = false
   }, [retryCount])
 
   useEffect(() => {
@@ -76,4 +83,24 @@ export const useBaseMiniAppAutoConnect = () => {
       cancelled = true
     }
   }, [address, connector, connectAsync, isConnected, isPending, retryCount, setStatus, walletEnv])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+    if (walletEnv !== WalletEnv.BaseMiniApp) return undefined
+    if (!address || !connector || !isConnected) return undefined
+    if (chainId === ChainId.BASE) {
+      switchAttemptedRef.current = false
+      return undefined
+    }
+    if (!canSwitch || isSwitching || switchAttemptedRef.current) return undefined
+
+    switchAttemptedRef.current = true
+
+    switchNetwork(ChainId.BASE, { from: 'switch' }).catch((error) => {
+      switchAttemptedRef.current = false
+      console.warn('[wallet] Base miniapp switch-to-base failed', error)
+    })
+
+    return undefined
+  }, [address, canSwitch, chainId, connector, isConnected, isSwitching, switchNetwork, walletEnv])
 }
