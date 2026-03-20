@@ -12,7 +12,6 @@ import { safeGetAddress } from 'utils'
 import { Connector, useAccount, useSwitchChain } from 'wagmi'
 import { accountActiveChainAtom } from 'wallet/atoms/accountStateAtoms'
 import { SwitchChainRequest, switchChainUpdatingAtom } from 'wallet/atoms/switchChainRequestAtom'
-import { SOLANA_SUPPORTED_PATH } from 'wallet/network.switch.config'
 import { normalizeChainId } from 'wallet/util/normalizeChainId'
 import { PrivySwitchChainError } from 'wallet/util/PrivySwitchChainError'
 
@@ -236,10 +235,6 @@ const useProcessSwitchChainRequest = () => {
         }
 
         // Solana
-        if (!SOLANA_SUPPORTED_PATH.some((p) => path.startsWith(p))) {
-          window.open('https://solana.pancakeswap.finance', '_self')
-          return true
-        }
         updateAccountState((prev) => ({
           ...prev,
           chainId: requestChainId,

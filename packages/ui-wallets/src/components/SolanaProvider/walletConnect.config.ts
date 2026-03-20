@@ -9,7 +9,7 @@ export const walletConnectConfig: WalletConnectWalletAdapterConfig = {
     metadata: {
       name: 'PancakeSwap',
       description: 'Trade, earn, and own crypto on the all-in-one multichain DEX',
-      url: 'https://solana.pancakeswap.finance/swap',
+      url: 'https://pancakeswap.finance/swap?chain=sol',
       icons: ['https://pancakeswap.finance/favicon.ico'],
     },
   },

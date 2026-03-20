@@ -31,7 +31,7 @@ const getAdsConfigs = (t: ContextApi['t'], isMobile: boolean): AdsCampaignConfig
         ],
         btn: {
           text: t('Add LP Now'),
-          link: 'https://solana.pancakeswap.finance/liquidity-pools',
+          link: 'https://pancakeswap.finance/liquidity/pools?network=8000001001',
           mt: '32px',
         },
       },
