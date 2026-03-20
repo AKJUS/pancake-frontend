@@ -66,15 +66,8 @@ const NetworkSelect = ({ switchNetwork, chainId, isWrongNetwork, onDismiss }: Ne
   const [showTestnet] = useUserShowTestnet()
   const { theme } = useTheme()
   const { isMobile } = useMatchBreakpoints()
-  const router = useRouter()
-  const chainSpecificBehavior: Record<number, ChainSpecificBehavior> = useMemo(
+  const chainSpecificBehavior: Partial<Record<UnifiedChainId, ChainSpecificBehavior>> = useMemo(
     () => ({
-      [NonEVMChainId.SOLANA]: {
-        onClick: () => {
-          switchNetwork(NonEVMChainId.SOLANA)
-          onDismiss()
-        },
-      },
       [NonEVMChainId.APTOS]: {
         onClick: () => {
           window.open('https://aptos.pancakeswap.finance', '_self')
@@ -82,7 +75,7 @@ const NetworkSelect = ({ switchNetwork, chainId, isWrongNetwork, onDismiss }: Ne
         },
       },
     }),
-    [router, onDismiss, switchNetwork],
+    [onDismiss],
   )
   const networks = useMemo(() => getSortedChains(chainId, showTestnet), [chainId, showTestnet])
 
@@ -99,8 +92,8 @@ const NetworkSelect = ({ switchNetwork, chainId, isWrongNetwork, onDismiss }: Ne
 
       <Box maxHeight="70vh" overflow="auto" padding="16px 0">
         {networks.map((net) =>
-          net.isEVM ? (
-            // EVM item: switch in-wallet
+          !chainSpecificBehavior[net.id] ? (
+            // in-wallet network switch
             <UserMenuItem
               key={net.id}
               style={{ justifyContent: 'flex-start', cursor: 'pointer', padding: '0px 24px' }}
@@ -121,10 +114,10 @@ const NetworkSelect = ({ switchNetwork, chainId, isWrongNetwork, onDismiss }: Ne
               </Text>
             </UserMenuItem>
           ) : (
-            // non-EVM item: external link
+            // chain-specific behavior: external or custom handling
             <UserMenuItem
               key={`non-evm-${net.id}`}
-              onClick={chainSpecificBehavior[net.id as ChainId]?.onClick}
+              onClick={chainSpecificBehavior[net.id]?.onClick}
               style={{ justifyContent: 'flex-start', cursor: 'pointer', padding: '0px 24px' }}
             >
               <ChainLogo chainId={net.id} />
