@@ -1,11 +1,16 @@
 import { useRouter } from 'next/router'
-import { WalletEnv, useWalletEnv } from 'wallet/hook/useWalletEnv'
-import { isCakepadBaseExperience, isCakepadRoute } from '../config/routes'
+import { useWalletEnv } from 'wallet/hook/useWalletEnv'
+import { isCakepadBaseExperience } from '../config/routes'
 
 export const useCakepadBaseExperience = () => {
   const router = useRouter()
   const walletEnv = useWalletEnv()
-  const isRouteBasedBaseExperience = isCakepadBaseExperience({ pathname: router.pathname, chain: router.query.chain })
+  const host = typeof window === 'undefined' ? undefined : window.location.hostname
 
-  return isRouteBasedBaseExperience || (isCakepadRoute(router.pathname) && walletEnv === WalletEnv.BaseMiniApp)
+  return isCakepadBaseExperience({
+    pathname: router.pathname,
+    chain: router.query.chain,
+    host,
+    walletEnv,
+  })
 }
