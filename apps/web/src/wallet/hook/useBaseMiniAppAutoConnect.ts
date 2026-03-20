@@ -5,7 +5,7 @@ import { useSetAtom, useAtomValue } from 'jotai'
 import { useEffect, useRef } from 'react'
 import { baseMiniAppAutoConnectRetryAtom, baseMiniAppAutoConnectStatusAtom } from 'state/wallet/atom'
 import { useAccount, useConnect } from 'wagmi'
-import { farcasterMiniAppConnector } from 'utils/wagmi'
+import { baseAccountConnector } from 'utils/wagmi'
 import { WalletEnv, useWalletEnv } from './useWalletEnv'
 
 const CONNECT_DELAY_MS = 500
@@ -53,7 +53,7 @@ export const useBaseMiniAppAutoConnect = () => {
         const tryConnect = async (attemptsLeft: number): Promise<void> => {
           try {
             await new Promise((resolve) => setTimeout(resolve, CONNECT_DELAY_MS))
-            await connectAsync({ connector: farcasterMiniAppConnector })
+            await connectAsync({ connector: baseAccountConnector })
           } catch (error) {
             if (cancelled || attemptsLeft <= 1) {
               throw error

@@ -1,6 +1,5 @@
 import { getWagmiConnectorV2 } from '@binance/w3w-wagmi-connector-v2'
 import { cyberWalletConnector as createCyberWalletConnector, isCyberWallet } from '@cyberlab/cyber-app-sdk'
-import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector'
 import { ChainId, Chains } from '@pancakeswap/chains'
 import { blocto } from '@pancakeswap/wagmi/connectors/blocto'
 import { EvmConnectorNames } from '@pancakeswap/ui-wallets'
@@ -10,7 +9,7 @@ import memoize from 'lodash/memoize'
 import { Transport } from 'viem'
 import { createConfig, http } from 'wagmi'
 import { mainnet } from 'wagmi/chains'
-import { coinbaseWallet, injected, safe, walletConnect } from 'wagmi/connectors'
+import { baseAccount, coinbaseWallet, injected, safe, walletConnect } from 'wagmi/connectors'
 import { ASSET_CDN } from 'config/constants/endpoints'
 import { getBitgetEvmProvider, getPhantomEvmProvider } from 'wallet/evmInjectedProviders'
 import { customMetaMaskConnector } from 'wallet/metamaskConnector'
@@ -23,7 +22,10 @@ export const injectedConnector = injected({
   shimDisconnect: false,
 })
 
-export const farcasterMiniAppConnector = farcasterMiniApp()
+export const baseAccountConnector = baseAccount({
+  appName: 'PancakeSwap',
+  appLogoUrl: 'https://pancakeswap.com/logo.png',
+})
 
 export const coinbaseConnector = coinbaseWallet({
   appName: 'PancakeSwap',
@@ -128,7 +130,7 @@ export const CONNECTOR_MAP = {
 }
 
 export const CONNECTORS = [
-  farcasterMiniAppConnector,
+  baseAccountConnector,
   customMetaMaskConnector,
   phantomConnector,
   bitgetConnector,
