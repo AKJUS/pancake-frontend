@@ -16,7 +16,7 @@ import useSentryUser from 'hooks/useSentryUser'
 import useThemeCookie from 'hooks/useThemeCookie'
 import useUserAgent from 'hooks/useUserAgent'
 import { DefaultSeo } from 'next-seo'
-import type { AppProps } from 'next/app'
+import NextApp, { type AppContext, type AppProps } from 'next/app'
 import dynamic from 'next/dynamic'
 import Head from 'next/head'
 import Script from 'next/script'
@@ -48,6 +48,7 @@ import Providers from '../Providers'
 import Menu, { SharedComponentWithOutMenu } from '../components/Menu'
 import GlobalStyle from '../style/Global'
 import { NextPageWithLayout } from '../utils/page.types'
+import { BASE_APP_ID_BY_HOST, MINI_APP_EMBED_BY_HOST, normalizeHost } from '../utils/domainMiniAppMeta'
 
 // polyfills
 import 'core-js/features/array/to-sorted'
@@ -97,13 +98,38 @@ function MPGlobalHooks() {
 
 const LoadVConsole = dynamic(() => import('components/vConsole'), { ssr: false })
 
-function MyApp(props: AppProps<{ initialReduxState: any; dehydratedState: any }>) {
+type ExtendedPageProps = {
+  initialReduxState: any
+  dehydratedState: any
+  appHost?: string
+}
+
+const DomainMiniAppMeta = ({ host }: { host?: string }) => {
+  const miniAppEmbedContent = host ? MINI_APP_EMBED_BY_HOST[host] : undefined
+  const baseAppIdMetaContent = host ? BASE_APP_ID_BY_HOST[host] : undefined
+
+  if (!miniAppEmbedContent && !baseAppIdMetaContent) {
+    return null
+  }
+
+  return (
+    <>
+      {miniAppEmbedContent && <meta name="fc:miniapp" content={miniAppEmbedContent} />}
+      {miniAppEmbedContent && <meta name="fc:frame" content={miniAppEmbedContent} />}
+      {baseAppIdMetaContent && <meta name="base:app_id" content={baseAppIdMetaContent} />}
+    </>
+  )
+}
+
+function MyApp(props: AppProps<ExtendedPageProps>) {
   const { pageProps, Component } = props
   const store = useStore(pageProps.initialReduxState)
+  const appHost = pageProps.appHost ?? (typeof window !== 'undefined' ? normalizeHost(window.location.host) : undefined)
 
   return (
     <>
       <Head>
+        <DomainMiniAppMeta host={appHost} />
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1, maximum-scale=5, minimum-scale=1, viewport-fit=cover"
@@ -205,6 +231,19 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
       <WalletModalManager isOpen={isOpen} onDismiss={handleDismiss} />
     </Suspense>
   )
+}
+
+MyApp.getInitialProps = async (appContext: AppContext) => {
+  const appProps = await NextApp.getInitialProps(appContext)
+  const host = normalizeHost(appContext.ctx.req?.headers['x-forwarded-host'] ?? appContext.ctx.req?.headers.host)
+
+  return {
+    ...appProps,
+    pageProps: {
+      ...appProps.pageProps,
+      appHost: host,
+    },
+  }
 }
 
 export default MyApp
