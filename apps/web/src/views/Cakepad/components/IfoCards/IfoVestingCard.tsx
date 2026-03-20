@@ -3,9 +3,9 @@ import { useTranslation } from '@pancakeswap/localization'
 import { Button, Card, CardBody, CardHeader, FlexGap, Image, Text } from '@pancakeswap/uikit'
 import useTheme from 'hooks/useTheme'
 import NextLink from 'next/link'
-import { useRouter } from 'next/router'
 import { styled } from 'styled-components'
-import { CAKEPAD_HISTORY_URL, isCakepadBaseExperience, withCakepadBaseChainQuery } from 'views/Cakepad/config/routes'
+import { CAKEPAD_HISTORY_URL, withCakepadBaseChainQuery } from 'views/Cakepad/config/routes'
+import { useCakepadBaseExperience } from 'views/Cakepad/hooks/useCakepadBaseExperience'
 import useIfo from '../../hooks/useIfo'
 import { useIFOClaimCallback } from '../../hooks/ifo/useIFOClaimCallback'
 import { useVestingInfo } from '../../hooks/ifo/useVestingInfo'
@@ -31,7 +31,7 @@ const ProgressBar = styled.div<{ width: number; color: string; left?: number }>`
 export const IfoVestingCard: React.FC = () => {
   const { t } = useTranslation()
   const { theme, isDark } = useTheme()
-  const router = useRouter()
+  const isBaseExperience = useCakepadBaseExperience()
   const { config, info, pools, users } = useIfo()
   const name = t(config.tgeTitle.i18nText)
   const [userStatus0, userStatus1] = users
@@ -64,10 +64,7 @@ export const IfoVestingCard: React.FC = () => {
 
   const claimedPercent = claimedAll ? progress : 0
   const availablePercent = claimedAll ? 0 : progress
-  const cakepadHistoryUrl = withCakepadBaseChainQuery(
-    CAKEPAD_HISTORY_URL,
-    isCakepadBaseExperience({ pathname: router.pathname, chain: router.query.chain }),
-  )
+  const cakepadHistoryUrl = withCakepadBaseChainQuery(CAKEPAD_HISTORY_URL, isBaseExperience)
 
   const handleClaim = async () => {
     if (userStatus0?.claimableAmount?.greaterThan(0) && pools[0]) {

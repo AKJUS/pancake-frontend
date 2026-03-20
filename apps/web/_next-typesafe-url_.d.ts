@@ -21,6 +21,7 @@ declare module "@@@next-typesafe-url" {
     "/404": StaticRoute;
     "/451": StaticRoute;
     "/add/[[...currency]]": StaticRoute;
+    "/auth/discord": StaticRoute;
     "/bridge": StaticRoute;
     "/burn-dashboard": StaticRoute;
     "/buy-crypto": StaticRoute;
@@ -28,9 +29,6 @@ declare module "@@@next-typesafe-url" {
     "/cakepad/deposit/[ifoId]/[poolIndex]": StaticRoute;
     "/cakepad/history": StaticRoute;
     "/cakepad": StaticRoute;
-    "/cakepad-base/deposit/[ifoId]/[poolIndex]": StaticRoute;
-    "/cakepad-base/history": StaticRoute;
-    "/cakepad-base": StaticRoute;
     "/competition/finished/[competition]": StaticRoute;
     "/competition/finished": StaticRoute;
     "/competition": StaticRoute;

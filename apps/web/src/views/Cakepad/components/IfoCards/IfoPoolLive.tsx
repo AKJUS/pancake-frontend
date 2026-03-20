@@ -6,7 +6,8 @@ import { useRouter } from 'next/router'
 import ConnectWalletButton from 'components/ConnectWalletButton'
 import { useStablecoinPriceAmount } from 'hooks/useStablecoinPrice'
 import { logGTMIfoConnectWalletEvent } from 'utils/customGTMEventTracking'
-import { CAKEPAD_DEPOSIT_URL, isCakepadBaseExperience } from 'views/Cakepad/config/routes'
+import { CAKEPAD_DEPOSIT_URL } from 'views/Cakepad/config/routes'
+import { useCakepadBaseExperience } from 'views/Cakepad/hooks/useCakepadBaseExperience'
 import { formatAmount } from '@pancakeswap/utils/formatFractions'
 import { BigNumber as BN } from 'bignumber.js'
 import type { IFOStatus } from '../../hooks/ifo/useIFOStatus'
@@ -45,7 +46,7 @@ const PoolAction: React.FC<{ pid: number }> = ({ pid }) => {
   const { address: account } = useAccount()
 
   const stakedAmountBN = BN(stakedAmount?.quotient.toString() ?? '')
-  const isBaseExperience = isCakepadBaseExperience({ pathname: router.pathname, chain: router.query.chain })
+  const isBaseExperience = useCakepadBaseExperience()
 
   const amountInDollar = useStablecoinPriceAmount(
     stakeCurrency ?? undefined,

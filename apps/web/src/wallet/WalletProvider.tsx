@@ -8,6 +8,7 @@ import { WagmiProvider as PrivyWagmiProvider } from '@privy-io/wagmi'
 import { rpcUrlAtom } from '@pancakeswap/utils/user'
 import { W3WConfigProvider } from './W3WConfigContext'
 import { useSyncWagmiState } from './hook/useSyncWagmiState'
+import { WalletEnvProvider } from './hook/useWalletEnv'
 import { useWagmiConfig } from './hook/useWagmiConfig'
 import { useSyncPersistChain } from './hook/useSyncPersistChain'
 import { SolanaWalletStateUpdater } from './SolanaProvider'
@@ -116,11 +117,13 @@ export const WalletProvider = (props: WalletProviderProps) => {
   return (
     <PrivyWagmiProvider reconnectOnMount config={wagmiConfig}>
       <W3WConfigProvider value={isInBinance()}>
-        <Sync />
-        <SolanaProviders endpoint={endpoint}>
-          <SolanaWalletStateUpdater />
-          {children}
-        </SolanaProviders>
+        <WalletEnvProvider>
+          <Sync />
+          <SolanaProviders endpoint={endpoint}>
+            <SolanaWalletStateUpdater />
+            {children}
+          </SolanaProviders>
+        </WalletEnvProvider>
       </W3WConfigProvider>
     </PrivyWagmiProvider>
   )

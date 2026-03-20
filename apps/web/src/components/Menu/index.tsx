@@ -20,7 +20,7 @@ import { useWebNotifications } from 'hooks/useWebNotifications'
 import { useRouter } from 'next/router'
 import { Suspense, lazy, useCallback, useMemo } from 'react'
 import { styled } from 'styled-components'
-import { isCakepadBaseExperience } from 'views/Cakepad/config/routes'
+import { useCakepadBaseExperience } from 'views/Cakepad/hooks/useCakepadBaseExperience'
 import GlobalSettings from './GlobalSettings'
 import UserMenu from './UserMenu'
 import { UseMenuItemsParams, useMenuItems } from './hooks/useMenuItems'
@@ -50,10 +50,10 @@ const Menu = (props) => {
   const cakePrice = useCakePrice()
   const { currentLanguage, t } = useTranslation()
   const router = useRouter()
-  const { pathname, query } = router
+  const { pathname } = router
   const perpUrl = usePerpUrl({ chainId, isDark, languageCode: currentLanguage.code })
   const [perpConfirmed] = useUserNotUsCitizenAcknowledgement(IdType.PERPETUALS)
-  const isCakepadBaseRoute = isCakepadBaseExperience({ pathname, chain: query.chain })
+  const isCakepadBaseRoute = useCakepadBaseExperience()
 
   const [onPerpConfirmModalPresent] = useModal(
     <USCitizenConfirmModal title={t('PancakeSwap Perpetuals')} id={IdType.PERPETUALS} href={perpUrl} />,
@@ -193,8 +193,7 @@ const StaticLogo: React.FC = () => (
 
 export const SharedComponentWithOutMenu: React.FC<React.PropsWithChildren> = ({ children }) => {
   const { enabled } = useWebNotifications()
-  const router = useRouter()
-  const isCakepadBaseRoute = isCakepadBaseExperience({ pathname: router.pathname, chain: router.query.chain })
+  const isCakepadBaseRoute = useCakepadBaseExperience()
   return (
     <>
       <SharedComponentWithOutMenuWrapper>

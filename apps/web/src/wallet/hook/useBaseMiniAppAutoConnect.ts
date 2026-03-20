@@ -1,13 +1,10 @@
-import { sdk } from '@farcaster/miniapp-sdk'
 import { useSetAtom, useAtomValue } from 'jotai'
 import { useEffect, useRef } from 'react'
 import { baseMiniAppAutoConnectRetryAtom, baseMiniAppAutoConnectStatusAtom } from 'state/wallet/atom'
 import { useAccount, useConnect } from 'wagmi'
 import { farcasterMiniAppConnector } from 'utils/wagmi'
+import { WalletEnv, useWalletEnv } from './useWalletEnv'
 
-const INITIAL_CHECK_DELAY_MS = 1500
-const CHECK_DELAY_MS = 500
-const CHECK_ATTEMPTS = 10
 const CONNECT_DELAY_MS = 500
 const CONNECT_ATTEMPTS = 5
 
@@ -16,6 +13,7 @@ export const useBaseMiniAppAutoConnect = () => {
   const { connectAsync, isPending } = useConnect()
   const retryCount = useAtomValue(baseMiniAppAutoConnectRetryAtom)
   const setStatus = useSetAtom(baseMiniAppAutoConnectStatusAtom)
+  const walletEnv = useWalletEnv()
   const checkedRef = useRef(false)
   const inFlightRef = useRef(false)
 
@@ -33,39 +31,18 @@ export const useBaseMiniAppAutoConnect = () => {
       return undefined
     }
     if (isPending) return undefined
+    if (walletEnv === WalletEnv.Other) {
+      checkedRef.current = true
+      setStatus('idle')
+      return undefined
+    }
 
     let cancelled = false
     inFlightRef.current = true
-    setStatus('checking')
+    setStatus('connecting')
 
     const init = async () => {
       try {
-        try {
-          sdk.actions.ready()
-        } catch (error) {
-          console.warn('[wallet] Base miniapp ready() failed', error)
-        }
-        await new Promise((resolve) => setTimeout(resolve, INITIAL_CHECK_DELAY_MS))
-
-        const checkIsInMiniApp = async (attemptsLeft: number): Promise<boolean> => {
-          const result = await sdk.isInMiniApp()
-          if (cancelled || result || attemptsLeft <= 1) {
-            return result
-          }
-          await new Promise((resolve) => setTimeout(resolve, CHECK_DELAY_MS))
-          return checkIsInMiniApp(attemptsLeft - 1)
-        }
-
-        const isInMiniApp = await checkIsInMiniApp(CHECK_ATTEMPTS)
-        if (cancelled) return
-        if (!isInMiniApp) {
-          checkedRef.current = true
-          setStatus('idle')
-          return
-        }
-
-        setStatus('connecting')
-
         const tryConnect = async (attemptsLeft: number): Promise<void> => {
           try {
             await new Promise((resolve) => setTimeout(resolve, CONNECT_DELAY_MS))
@@ -98,5 +75,5 @@ export const useBaseMiniAppAutoConnect = () => {
     return () => {
       cancelled = true
     }
-  }, [address, connector, connectAsync, isConnected, isPending, retryCount, setStatus])
+  }, [address, connector, connectAsync, isConnected, isPending, retryCount, setStatus, walletEnv])
 }

@@ -7,7 +7,7 @@ import { getIFOContract } from '../hooks/ifo/useIFOContract'
 import { ifoLoadingAnimationAtom } from '../atoms'
 import { useIfoConfigs } from '../hooks/useIfoConfigs'
 import { DEFAULT_CAKEPAD_IFO_ID } from '../config'
-import { isCakepadBaseExperience } from '../config/routes'
+import { useCakepadBaseExperience } from '../hooks/useCakepadBaseExperience'
 import { SyncIfoContext } from './SyncIfoContext'
 import { IfoV2Context } from './IfoV2Context'
 
@@ -20,7 +20,7 @@ export const IfoV2Provider: React.FC<ProviderProps> = ({ id, children }) => {
   const router = useRouter()
   const { query } = router
   const { data: signer } = useWalletClient()
-  const isCakepadBaseRoute = isCakepadBaseExperience({ pathname: router.pathname, chain: query.chain })
+  const isCakepadBaseRoute = useCakepadBaseExperience()
   const baseChainId = isCakepadBaseRoute ? ChainId.BASE : undefined
   const { data: ifoConfigs } = useIfoConfigs({ chainId: baseChainId })
 

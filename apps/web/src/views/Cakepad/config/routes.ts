@@ -10,3 +10,5 @@ export const isCakepadBaseExperience = ({ pathname, chain }: { pathname?: string
 
 export const withCakepadBaseChainQuery = (path: string, isBaseExperience: boolean) =>
   isBaseExperience ? `${path}?chain=${CAKEPAD_BASE_CHAIN_QUERY}` : path
+
+export const isCakepadRoute = (pathname?: string) => Boolean(pathname?.startsWith(CAKEPAD_URL))

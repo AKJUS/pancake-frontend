@@ -1,13 +1,13 @@
 import { useTranslation } from '@pancakeswap/localization'
 import { Box, Button, Flex, Text, getPortalRoot, useMatchBreakpoints } from '@pancakeswap/uikit'
-import { sdk } from '@farcaster/miniapp-sdk'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { QRCodeSVG } from 'qrcode.react'
-import React, { createContext, useEffect, useMemo, useState } from 'react'
+import React, { createContext, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { styled } from 'styled-components'
 import { ASSET_CDN } from 'config/constants/endpoints'
 import { baseMiniAppAutoConnectRetryAtom, baseMiniAppAutoConnectStatusAtom } from 'state/wallet/atom'
+import { WalletEnv, useWalletEnv } from 'wallet/hook/useWalletEnv'
 
 const QRCodeWrapper = styled(Box)`
   padding: 0px;
@@ -51,8 +51,6 @@ const Card = styled(Box)`
   text-align: center;
 `
 
-const CHECK_DELAY_MS = 100
-const CHECK_ATTEMPTS = 3
 const MINI_APP_QR_URL = 'https://base.app/app/https://cakepad.pancakeswap.finance'
 
 export const BaseMiniAppContext = createContext<{ isInMiniApp: boolean | null } | null>(null)
@@ -60,62 +58,12 @@ export const BaseMiniAppContext = createContext<{ isInMiniApp: boolean | null } 
 const BaseMiniAppProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const { t } = useTranslation()
   const { isMobile } = useMatchBreakpoints()
-  const isDev = process.env.NODE_ENV !== 'production'
   const autoConnectStatus = useAtomValue(baseMiniAppAutoConnectStatusAtom)
   const retryBaseWallet = useSetAtom(baseMiniAppAutoConnectRetryAtom)
-  const [isInMiniApp, setIsInMiniApp] = useState<boolean | null>(isDev ? true : null)
+  const walletEnv = useWalletEnv()
+  const isInMiniApp = walletEnv === WalletEnv.BaseMiniApp
   const contextValue = useMemo(() => ({ isInMiniApp }), [isInMiniApp])
   const portal = useMemo(() => (typeof window === 'undefined' ? null : getPortalRoot()), [])
-
-  useEffect(() => {
-    if (isDev) {
-      setIsInMiniApp(true)
-      return undefined
-    }
-    if (typeof window === 'undefined') return undefined
-    let cancelled = false
-
-    const init = async () => {
-      try {
-        try {
-          sdk.actions.ready()
-        } catch (error) {
-          console.warn('[base-miniapp] ready() failed', error)
-        }
-
-        const checkIsInMiniApp = async (attemptsLeft: number): Promise<boolean> => {
-          const result = await sdk.isInMiniApp()
-          if (cancelled || result || attemptsLeft <= 1) {
-            return result
-          }
-          await new Promise((resolve) => setTimeout(resolve, CHECK_DELAY_MS))
-          return checkIsInMiniApp(attemptsLeft - 1)
-        }
-
-        const result = await checkIsInMiniApp(CHECK_ATTEMPTS)
-        if (cancelled) return
-        setIsInMiniApp(result)
-      } catch (error) {
-        if (cancelled) return
-        console.warn('[base-miniapp] isInMiniApp() failed', error)
-        setIsInMiniApp(false)
-      }
-    }
-
-    init()
-
-    return () => {
-      cancelled = true
-    }
-  }, [isDev])
-
-  if (isDev) {
-    return <BaseMiniAppContext.Provider value={contextValue}>{children}</BaseMiniAppContext.Provider>
-  }
-
-  if (isInMiniApp === null) {
-    return <BaseMiniAppContext.Provider value={contextValue}>{null}</BaseMiniAppContext.Provider>
-  }
 
   return (
     <BaseMiniAppContext.Provider value={contextValue}>

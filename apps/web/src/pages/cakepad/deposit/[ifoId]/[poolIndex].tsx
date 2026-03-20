@@ -10,7 +10,7 @@ import { IFO_SUPPORT_CHAINS } from 'config/cakepad.config'
 import { useCheckAndSwitchChain } from 'hooks/useCheckAndSwitchChain'
 import { ChainId } from '@pancakeswap/chains'
 import BaseMiniAppProvider from 'components/BaseMiniAppProvider'
-import { isCakepadBaseExperience } from 'views/Cakepad/config/routes'
+import { useCakepadBaseExperience } from 'views/Cakepad/hooks/useCakepadBaseExperience'
 
 const IfoDepositPageContent: React.FC<{ pid: number; isBaseExperience: boolean }> = ({ pid, isBaseExperience }) => {
   const { config } = useIfo()
@@ -29,7 +29,7 @@ const IfoDepositPage: NextPageWithLayout = () => {
   const router = useRouter()
   const { query } = router
   const { ifoId, poolIndex } = query
-  const isBaseExperience = isCakepadBaseExperience({ pathname: router.pathname, chain: query.chain })
+  const isBaseExperience = useCakepadBaseExperience()
 
   if (typeof ifoId !== 'string' || typeof poolIndex !== 'string') {
     return null

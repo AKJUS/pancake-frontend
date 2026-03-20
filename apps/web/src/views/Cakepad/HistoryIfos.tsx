@@ -1,13 +1,11 @@
 import { ChainId } from '@pancakeswap/chains'
-import { useRouter } from 'next/router'
 import IfoHistoryCard from './components/IfoHistoryCard'
 import { IfoV2Provider } from './contexts/IfoV2Provider'
-import { isCakepadBaseExperience } from './config/routes'
+import { useCakepadBaseExperience } from './hooks/useCakepadBaseExperience'
 import { useIfoConfigs } from './hooks/useIfoConfigs'
 
 const HistoryIfos: React.FC = () => {
-  const router = useRouter()
-  const isCakepadBaseRoute = isCakepadBaseExperience({ pathname: router.pathname, chain: router.query.chain })
+  const isCakepadBaseRoute = useCakepadBaseExperience()
   const { data: filteredIfoConfigs } = useIfoConfigs({ chainId: isCakepadBaseRoute ? ChainId.BASE : undefined })
 
   if (!filteredIfoConfigs) {
