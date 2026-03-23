@@ -140,7 +140,7 @@ export const getMerklApr = async (result: any, chainId: number) => {
     const opportunities = result?.filter((opportunity) => opportunity?.chainId === chainId)
     if (!opportunities || opportunities?.length === 0) return {}
     return opportunities.reduce((acc: MerklApr, opportunity) => {
-      const poolId = safeGetAddress(opportunity.identifier)
+      const poolId = normalizePoolIdentifier(opportunity.identifier)
       if (poolId) {
         const key: ChainIdAddressKey = `${chainId}:${poolId}`
 
