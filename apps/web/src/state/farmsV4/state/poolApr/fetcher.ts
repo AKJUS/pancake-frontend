@@ -10,7 +10,6 @@ import dayjs from 'dayjs'
 import groupBy from 'lodash/groupBy'
 import set from 'lodash/set'
 import { chainIdToExplorerInfoChainName, explorerApiClient } from 'state/info/api/client'
-import { safeGetAddress } from 'utils/safeGetAddress'
 import { getCurrencyUsdPrice } from '@pancakeswap/price-api-sdk'
 import { getMasterChefV3Contract } from 'utils/contractHelpers'
 import { isInfinityProtocol } from 'utils/protocols'
@@ -21,7 +20,7 @@ import { ChainId, isEvm } from '@pancakeswap/chains'
 import { INCENTRA_API, INCENTRA_CAMPAIGN_TYPES, IncentraCampaign } from 'hooks/useIncentra'
 import { ChainIdAddressKey, InfinityPoolInfo, PoolInfo, StablePoolInfo, V2PoolInfo, V3PoolInfo } from '../type'
 import { CakeApr, IncentraApr, MerklApr } from './atom'
-import { normalizePoolIdentifier } from './normalizePoolIdentifier'
+import { buildPoolAprKey, normalizePoolIdentifier } from './normalizePoolIdentifier'
 
 export const getCakeApr = (pool: PoolInfo, cakePrice: BigNumber): Promise<CakeApr> => {
   switch (pool.protocol) {
@@ -30,12 +29,14 @@ export const getCakeApr = (pool: PoolInfo, cakePrice: BigNumber): Promise<CakeAp
     case 'v2':
     case 'stable':
       return v2PoolCakeAprBatcher.fetch({ pool, cakePrice })
-    default:
+    default: {
+      const key = buildPoolAprKey(pool.chainId, pool.lpAddress) ?? `${pool.chainId}:${pool.lpAddress}`
       return Promise.resolve({
-        [`${pool.chainId}:${pool.lpAddress}`]: {
+        [key]: {
           value: '0' as const,
         },
       })
+    }
   }
 }
 
@@ -264,7 +265,8 @@ const getV3PoolsCakeAprByChainId = async (pools: V3PoolInfo[], chainId: number, 
   return validPools.reduce((acc, pool, index) => {
     const poolInfo = poolInfos[index]
     if (!poolInfo) return acc
-    const key = `${chainId}:${safeGetAddress(pool.lpAddress)}`
+    const key = buildPoolAprKey(chainId, pool.lpAddress)
+    if (!key) return acc
     const liquidity = liquidities[index]
     set(
       acc,
@@ -298,7 +300,8 @@ const v3PoolCakeAprBatcher = create<CakeApr, { pool: V3PoolInfo; cakePrice: BigN
   fetcher: getV3PoolsCakeApr,
   resolver: (items, query) => {
     const { pool } = query
-    const key = `${pool.chainId}:${pool.lpAddress}`
+    const key = buildPoolAprKey(pool.chainId, pool.lpAddress)
+    if (!key) return {}
     return { [key]: items[key] }
   },
   scheduler: windowedFiniteBatchScheduler({
@@ -455,7 +458,8 @@ const getV2PoolsCakeAprByChainId = async (
     const token0Reserve = reserve0s[index]
     const token1Reserve = reserve1s[index]
     if (!rewardPerSecond || expired) return acc
-    const key = `${chainId}:${safeGetAddress(pool.lpAddress)}`
+    const key = buildPoolAprKey(chainId, pool.lpAddress)
+    if (!key) return acc
     set(
       acc,
       key,
@@ -491,7 +495,8 @@ const v2PoolCakeAprBatcher = create<CakeApr, { pool: V2PoolInfo | StablePoolInfo
   fetcher: getV2PoolsCakeApr,
   resolver: (items, query) => {
     const { pool } = query
-    const key = `${pool.chainId}:${pool.lpAddress}`
+    const key = buildPoolAprKey(pool.chainId, pool.lpAddress)
+    if (!key) return {}
     return { [key]: items[key] }
   },
   scheduler: windowedFiniteBatchScheduler({

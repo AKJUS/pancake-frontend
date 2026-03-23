@@ -3,6 +3,7 @@ import { atom } from 'jotai'
 import { extendPoolsAtom } from '../extendPools/atom'
 import { farmPoolsAtom } from '../farmPools/atom'
 import { ChainIdAddressKey, PoolInfo } from '../type'
+import { buildPoolAprKey } from './normalizePoolIdentifier'
 
 export const poolsAtom = atom<PoolInfo[]>((get) => {
   const farmPools = get(farmPoolsAtom)
@@ -23,8 +24,10 @@ export type LpApr = AprValue
 export const lpAprAtom = atom<LpApr>((get) => {
   const pools = get(poolsAtom)
   return pools.reduce((acc, pool) => {
+    const key = buildPoolAprKey(pool.chainId, pool.lpAddress)
+    if (!key) return acc
     // eslint-disable-next-line no-param-reassign
-    acc[`${pool.chainId}:${pool.lpAddress}`] = pool.lpApr ?? '0'
+    acc[key] = pool.lpApr ?? '0'
     return acc
   }, {} as LpApr)
 })
@@ -79,5 +82,8 @@ export const emptyCakeAprPoolsAtom = atom((get) => {
   const pools = get(poolsAtom)
   const aprs = get(cakeAprAtom)
 
-  return pools.filter((pool) => !(`${pool.chainId}:${pool.lpAddress}` in aprs))
+  return pools.filter((pool) => {
+    const key = buildPoolAprKey(pool.chainId, pool.lpAddress)
+    return !key || !(key in aprs)
+  })
 })

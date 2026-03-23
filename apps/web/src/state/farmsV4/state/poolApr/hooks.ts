@@ -20,6 +20,7 @@ import {
   poolAprAtom,
 } from './atom'
 import { getAllNetworkIncentraApr, getAllNetworkMerklApr, getCakeApr, getLpApr } from './fetcher'
+import { buildPoolAprKey, normalizePoolAprKey } from './normalizePoolIdentifier'
 
 const generatePoolKey = memoize((pools: PoolInfo[]) => {
   const poolData = pools.map((pool) => `${pool.chainId}:${pool.lpAddress}`).join(',')
@@ -28,7 +29,8 @@ const generatePoolKey = memoize((pools: PoolInfo[]) => {
 
 const useCakeAPR = (key: ChainIdAddressKey | null, pool: PoolInfo | null) => {
   const updateCakeApr = useSetAtom(cakeAprSetterAtom)
-  const poolApr = useAtomValue(poolAprAtom)[key ?? '']
+  const normalizedKey = normalizePoolAprKey(key) ?? buildPoolAprKey(pool?.chainId, pool?.lpAddress)
+  const poolApr = useAtomValue(poolAprAtom)[normalizedKey ?? '']
   const cakePrice = useCakePrice()
 
   // for infinity
@@ -39,14 +41,14 @@ const useCakeAPR = (key: ChainIdAddressKey | null, pool: PoolInfo | null) => {
     tvlUSD: pool?.tvlUsd,
   })
   useEffect(() => {
-    if (key && pool && isInfinityProtocol(pool?.protocol) && infinityCakeAPR.value) {
-      updateCakeApr({ [key]: infinityCakeAPR })
+    if (normalizedKey && pool && isInfinityProtocol(pool?.protocol) && infinityCakeAPR.value) {
+      updateCakeApr({ [normalizedKey]: infinityCakeAPR })
     }
-  }, [key, pool, updateCakeApr, infinityCakeAPR])
+  }, [normalizedKey, pool, updateCakeApr, infinityCakeAPR])
 
   // for v3,v2,ss
   useQuery({
-    queryKey: ['cake apr', key],
+    queryKey: ['cake apr', normalizedKey],
     queryFn: () => {
       if (!pool) {
         return undefined
@@ -59,7 +61,7 @@ const useCakeAPR = (key: ChainIdAddressKey | null, pool: PoolInfo | null) => {
     enabled:
       !isInfinityProtocol(pool?.protocol) &&
       typeof pool?.tvlUsd !== 'undefined' &&
-      !!key &&
+      !!normalizedKey &&
       cakePrice &&
       cakePrice.gt(BIG_ZERO),
     refetchOnMount: false,
@@ -90,41 +92,42 @@ export const usePoolApr = (
   apr24h?: boolean
 } => {
   const { setPools } = useExtendPoolsAtom()
-  const poolApr = useAtomValue(poolAprAtom)[key ?? '']
+  const normalizedKey = normalizePoolAprKey(key) ?? buildPoolAprKey(pool?.chainId, pool?.lpAddress)
+  const poolApr = useAtomValue(poolAprAtom)[normalizedKey ?? '']
   const [merklAprs, updateMerklApr] = useAtom(merklAprAtom)
   const [incentraAprs, updateIncentraApr] = useAtom(incentraAprAtom)
   const cakePrice = useCakePrice()
-  const cakeAPR = useCakeAPR(key, pool)
+  const cakeAPR = useCakeAPR(normalizedKey ?? null, pool)
 
   const getMerklApr = useCallback(async () => {
     if (Object.values(merklAprs).length === 0) {
       return getAllNetworkMerklApr()
         .then((aprs) => {
           updateMerklApr(aprs)
-          return aprs[key!] ?? '0'
+          return normalizedKey ? aprs[normalizedKey] ?? '0' : '0'
         })
         .catch((error) => {
           console.error('Error fetching Merkl APR:', error)
           return '0'
         })
     }
-    return merklAprs[key!] ?? '0'
-  }, [key, merklAprs, updateMerklApr])
+    return normalizedKey ? merklAprs[normalizedKey] ?? '0' : '0'
+  }, [normalizedKey, merklAprs, updateMerklApr])
 
   const getIncentraApr = useCallback(async () => {
     if (Object.values(incentraAprs).length === 0) {
       return getAllNetworkIncentraApr()
         .then((aprs) => {
           updateIncentraApr(aprs)
-          return aprs[key!] ?? '0'
+          return normalizedKey ? aprs[normalizedKey] ?? '0' : '0'
         })
         .catch((error) => {
           console.error('Error fetching Incentra APR:', error)
           return '0'
         })
     }
-    return incentraAprs[key!] ?? '0'
-  }, [key, incentraAprs, updateIncentraApr])
+    return normalizedKey ? incentraAprs[normalizedKey] ?? '0' : '0'
+  }, [normalizedKey, incentraAprs, updateIncentraApr])
 
   const updateCallback = useCallback(async () => {
     try {
@@ -161,13 +164,18 @@ export const usePoolApr = (
   }, [getMerklApr, getIncentraApr, pool, setPools, apr24h])
 
   useQuery({
-    queryKey: ['apr', key],
+    queryKey: ['apr', normalizedKey],
     queryFn: updateCallback,
     // calcV3PoolApr depend on pool's TvlUsd
     // so if there are local pool without tvlUsd, don't to fetch queryFn
     // issue: PAN-3698
     enabled:
-      enabled && typeof pool?.tvlUsd !== 'undefined' && !poolApr?.lpApr && !!key && cakePrice && cakePrice.gt(BIG_ZERO),
+      enabled &&
+      typeof pool?.tvlUsd !== 'undefined' &&
+      !poolApr?.lpApr &&
+      !!normalizedKey &&
+      cakePrice &&
+      cakePrice.gt(BIG_ZERO),
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
