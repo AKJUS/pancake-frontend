@@ -36,8 +36,13 @@ const nextConfig = {
     return [
       {
         source: '/',
-        destination: '/swap/',
-        permanent: false
+        destination: 'https://pancakeswap.finance/swap?chain=sol',
+        permanent: true
+      },
+      {
+        source: '/swap/:path*',
+        destination: 'https://pancakeswap.finance/swap?chain=sol',
+        permanent: true
       }
     ]
   }
