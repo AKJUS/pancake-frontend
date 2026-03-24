@@ -20,15 +20,13 @@ export const isCakepadRoute = ({ pathname, host }: { pathname?: string; host?: s
 export const isCakepadBaseExperience = ({
   pathname,
   chain,
-  host,
   walletEnv,
 }: {
   pathname?: string
   chain?: string | string[]
-  host?: string | string[]
   walletEnv?: WalletEnv | null
 }) =>
   Boolean(
     ((pathname?.startsWith(CAKEPAD_URL) ?? false) && normalizeChainQuery(chain) === CAKEPAD_BASE_CHAIN_QUERY) ||
-      walletEnv === WalletEnv.BaseMiniApp,
+      walletEnv === WalletEnv.BaseCakepadMiniApp,
   )

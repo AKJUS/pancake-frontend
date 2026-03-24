@@ -6,7 +6,7 @@ import { useEffect, useRef } from 'react'
 import { baseMiniAppAutoConnectRetryAtom, baseMiniAppAutoConnectStatusAtom } from 'state/wallet/atom'
 import { useAccount, useConnect } from 'wagmi'
 import { baseAccountConnector } from 'utils/wagmi'
-import { WalletEnv, useWalletEnv } from './useWalletEnv'
+import { isBaseMiniAppWalletEnv, useWalletEnv } from './useWalletEnv'
 
 const CONNECT_DELAY_MS = 500
 const CONNECT_ATTEMPTS = 5
@@ -19,6 +19,7 @@ export const useBaseMiniAppAutoConnect = () => {
   const retryCount = useAtomValue(baseMiniAppAutoConnectRetryAtom)
   const setStatus = useSetAtom(baseMiniAppAutoConnectStatusAtom)
   const walletEnv = useWalletEnv()
+  const isBaseMiniApp = isBaseMiniAppWalletEnv(walletEnv)
   const checkedRef = useRef(false)
   const inFlightRef = useRef(false)
   const switchAttemptedRef = useRef(false)
@@ -38,7 +39,7 @@ export const useBaseMiniAppAutoConnect = () => {
       return undefined
     }
     if (isPending) return undefined
-    if (walletEnv === WalletEnv.Other) {
+    if (!isBaseMiniApp) {
       checkedRef.current = true
       setStatus('idle')
       return undefined
@@ -82,11 +83,11 @@ export const useBaseMiniAppAutoConnect = () => {
     return () => {
       cancelled = true
     }
-  }, [address, connector, connectAsync, isConnected, isPending, retryCount, setStatus, walletEnv])
+  }, [address, connector, connectAsync, isBaseMiniApp, isConnected, isPending, retryCount, setStatus])
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined
-    if (walletEnv !== WalletEnv.BaseMiniApp) return undefined
+    if (!isBaseMiniApp) return undefined
     if (!address || !connector || !isConnected) return undefined
     if (chainId === ChainId.BASE) {
       switchAttemptedRef.current = false
@@ -102,5 +103,5 @@ export const useBaseMiniAppAutoConnect = () => {
     })
 
     return undefined
-  }, [address, canSwitch, chainId, connector, isConnected, isSwitching, switchNetwork, walletEnv])
+  }, [address, canSwitch, chainId, connector, isBaseMiniApp, isConnected, isSwitching, switchNetwork])
 }

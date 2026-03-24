@@ -61,7 +61,7 @@ const BaseMiniAppProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   const autoConnectStatus = useAtomValue(baseMiniAppAutoConnectStatusAtom)
   const retryBaseWallet = useSetAtom(baseMiniAppAutoConnectRetryAtom)
   const walletEnv = useWalletEnv()
-  const isInMiniApp = walletEnv === WalletEnv.BaseMiniApp
+  const isInMiniApp = walletEnv === WalletEnv.BaseCakepadMiniApp
   const contextValue = useMemo(() => ({ isInMiniApp }), [isInMiniApp])
   const portal = useMemo(() => (typeof window === 'undefined' ? null : getPortalRoot()), [])
 

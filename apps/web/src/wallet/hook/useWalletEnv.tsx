@@ -1,11 +1,34 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import { CAKEPAD_HOST, PANCAKESWAP_HOST, normalizeHost } from 'utils/domainMiniAppMeta'
 
 export enum WalletEnv {
-  BaseMiniApp = 'baseminiapp',
+  BasePcsMiniApp = 'basepcsminiapp',
+  BaseCakepadMiniApp = 'basecakepadminiapp',
   Other = 'other',
 }
 
 const WalletEnvContext = createContext<WalletEnv | null>(null)
+
+export const getWalletEnv = ({ host, isInMiniApp }: { host?: string | string[]; isInMiniApp: boolean }): WalletEnv => {
+  if (!isInMiniApp) {
+    return WalletEnv.Other
+  }
+
+  const normalizedHost = normalizeHost(host)
+
+  if (normalizedHost === CAKEPAD_HOST) {
+    return WalletEnv.BaseCakepadMiniApp
+  }
+
+  if (normalizedHost === PANCAKESWAP_HOST) {
+    return WalletEnv.BasePcsMiniApp
+  }
+
+  return WalletEnv.Other
+}
+
+export const isBaseMiniAppWalletEnv = (walletEnv: WalletEnv | null) =>
+  walletEnv === WalletEnv.BasePcsMiniApp || walletEnv === WalletEnv.BaseCakepadMiniApp
 
 const useWalletEnvDetect = () => {
   const [walletEnv, setWalletEnv] = useState<WalletEnv | null>(null)
@@ -27,7 +50,12 @@ const useWalletEnvDetect = () => {
         }
         const isInMiniApp = await sdk.isInMiniApp()
         if (!cancelled) {
-          setWalletEnv(isInMiniApp ? WalletEnv.BaseMiniApp : WalletEnv.Other)
+          setWalletEnv(
+            getWalletEnv({
+              host: window.location.host,
+              isInMiniApp,
+            }),
+          )
         }
       } catch (error) {
         if (!cancelled) {
