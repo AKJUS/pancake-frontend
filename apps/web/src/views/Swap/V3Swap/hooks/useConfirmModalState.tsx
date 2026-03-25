@@ -2,7 +2,7 @@ import { usePreviousValue } from '@pancakeswap/hooks'
 import { useTranslation } from '@pancakeswap/localization'
 import { getPermit2Address } from '@pancakeswap/permit2-sdk'
 import { PriceOrder } from '@pancakeswap/price-api-sdk'
-import { Currency, CurrencyAmount, Percent, Token } from '@pancakeswap/swap-sdk-core'
+import { Currency, CurrencyAmount, Percent, Token, TradeType } from '@pancakeswap/swap-sdk-core'
 import { useToast } from '@pancakeswap/uikit'
 import { Permit2Signature } from '@pancakeswap/universal-router-sdk'
 import { ConfirmModalState, useAsyncConfirmPriceImpactWithoutFee } from '@pancakeswap/widgets-internal'
@@ -863,6 +863,11 @@ const useConfirmActions = (
             setOrderHash(xOrder.hash)
             const inputAmount = order.trade.maximumAmountIn.toExact()
             const outputAmount = order.trade.minimumAmountOut.toExact()
+            const quotedOutputAmountRaw = order.trade.outputAmount.toExact()
+            const minimumAmountOutRaw =
+              order.trade.tradeType === TradeType.EXACT_OUTPUT
+                ? quotedOutputAmountRaw
+                : order.trade.minimumAmountOut.toExact()
             const input = order.trade.inputAmount.currency
             const output = order.trade.outputAmount.currency
             const { tradeType } = order.trade
@@ -873,6 +878,8 @@ const useConfirmActions = (
               hash: xOrder.hash,
               inputAmount,
               outputAmount,
+              quotedOutputAmountRaw,
+              minimumAmountOutRaw,
               input,
               output,
               type: 'X',
@@ -887,6 +894,8 @@ const useConfirmActions = (
                 hash: receipt.transactionHash,
                 inputAmount,
                 outputAmount,
+                quotedOutputAmountRaw,
+                minimumAmountOutRaw,
                 input,
                 output,
                 type: 'X-Filled',

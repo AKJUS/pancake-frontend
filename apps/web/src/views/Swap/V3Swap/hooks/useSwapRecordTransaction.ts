@@ -62,6 +62,11 @@ export default function useSwapRecordTransaction(chainId?: number, account?: str
             ? formatAmount(trade.outputAmount, 3)
             : formatAmount(SmartRouter.minimumAmountOut(trade as SmartRouterTrade<TradeType.EXACT_OUTPUT>, pct), 3)
       }
+      const quotedOutputAmountRaw = trade.outputAmount.toExact()
+      const minimumAmountOutRaw =
+        trade.tradeType === TradeType.EXACT_OUTPUT
+          ? quotedOutputAmountRaw
+          : SmartRouter.minimumAmountOut(trade as SmartRouterTrade<TradeType.EXACT_OUTPUT>, pct).toExact()
 
       const base = `Swap ${
         trade.tradeType === TradeType.EXACT_OUTPUT ? 'max.' : ''
@@ -111,6 +116,8 @@ export default function useSwapRecordTransaction(chainId?: number, account?: str
         hash,
         inputAmount,
         outputAmount,
+        quotedOutputAmountRaw,
+        minimumAmountOutRaw,
         input: trade.inputAmount.currency,
         output: trade.outputAmount.currency,
         type,

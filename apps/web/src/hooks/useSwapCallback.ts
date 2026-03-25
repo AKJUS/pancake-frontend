@@ -141,6 +141,9 @@ export function useSwapCallback(
               trade.tradeType === TradeType.EXACT_OUTPUT
                 ? trade.outputAmount.toSignificant(3)
                 : trade.minimumAmountOut(pct).toSignificant(3)
+            const quotedOutputAmountRaw = trade.outputAmount.toExact()
+            const minimumAmountOutRaw =
+              trade.tradeType === TradeType.EXACT_OUTPUT ? quotedOutputAmountRaw : trade.minimumAmountOut(pct).toExact()
 
             const base = `Swap ${
               trade.tradeType === TradeType.EXACT_OUTPUT ? 'max.' : ''
@@ -186,6 +189,8 @@ export function useSwapCallback(
               chainId,
               inputAmount,
               outputAmount,
+              quotedOutputAmountRaw,
+              minimumAmountOutRaw,
               input: trade.inputAmount.currency,
               output: trade.outputAmount.currency,
               type: isStableSwap(trade) ? 'StableSwap' : 'V2Swap',
