@@ -44,8 +44,12 @@ export const infoStableSwapClients: Record<(typeof STABLE_SUPPORTED_CHAIN_IDS)[n
 
 export const bitQueryServerClient = new GraphQLClient(BIT_QUERY, {
   headers: {
-    // only server, no `NEXT_PUBLIC` not going to expose in client
     'X-API-KEY': process.env.BIT_QUERY_HEADER || '',
   },
-  timeout: 5000,
+  fetch: (url, options) => {
+    return fetch(url, {
+      ...options,
+      signal: AbortSignal.timeout(5000),
+    })
+  },
 })

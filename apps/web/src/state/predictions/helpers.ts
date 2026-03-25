@@ -149,7 +149,7 @@ export const getBetHistory = async (
   api: string,
   tokenSymbol: string,
 ): Promise<Array<BetResponseBNB | BetResponseCAKE>> => {
-  const response = await request(
+  const response = (await request(
     api,
     gql`
       query getBetHistory($first: Int!, $skip: Int!, $where: Bet_filter) {
@@ -165,7 +165,7 @@ export const getBetHistory = async (
       }
     `,
     { first, skip, where },
-  )
+  )) as any
   return response.bets
 }
 
@@ -247,7 +247,7 @@ export const getPredictionUsers = async (
   tokenSymbol: string,
 ): Promise<UserResponse<BetResponse>[]> => {
   const { first, skip, where, orderBy, orderDir } = { ...defaultPredictionUserOptions, ...options }
-  const response = await request(
+  const response = (await request(
     api,
     gql`
       query getUsers($first: Int!, $skip: Int!, $where: User_filter, $orderBy: User_orderBy, $orderDir: OrderDirection) {
@@ -257,7 +257,7 @@ export const getPredictionUsers = async (
       }
     `,
     { first, skip, where, orderBy, orderDir },
-  )
+  )) as any
   return response.users
 }
 
@@ -266,7 +266,7 @@ export const getPredictionUser = async (
   api: string,
   tokenSymbol: string,
 ): Promise<UserResponse<BetResponse>> => {
-  const response = await request(
+  const response = (await request(
     api,
     gql`
       query getUser($id: ID!) {
@@ -278,7 +278,7 @@ export const getPredictionUser = async (
     {
       id: account.toLowerCase(),
     },
-  )
+  )) as any
   return response.user
 }
 

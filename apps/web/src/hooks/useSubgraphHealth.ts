@@ -57,7 +57,7 @@ const useSubgraphHealth = ({
     const fetchDeploymentId = async () => {
       const {
         _meta: { deployment, hasIndexingErrors },
-      } = await request(
+      } = (await request(
         subgraph,
         gql`
           query MyQuery {
@@ -67,7 +67,7 @@ const useSubgraphHealth = ({
             }
           }
         `,
-      )
+      )) as any
 
       if (unmounted) {
         return
@@ -147,7 +147,7 @@ const useSubgraphHealth = ({
               }
             }
           `,
-            ),
+            ) as Promise<any>,
             currentBlockNumber && propChainId === chainId
               ? Promise.resolve(currentBlockNumber)
               : publicClient({ chainId: propChainId })

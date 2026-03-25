@@ -50,7 +50,7 @@ export const spaceAtom = atom(async () => {
     }
   `
   try {
-    const data = await client.request(GET_SPACE_DATA)
+    const data = (await client.request(GET_SPACE_DATA)) as any
     return data.space as Space
   } catch (error) {
     console.error(error)

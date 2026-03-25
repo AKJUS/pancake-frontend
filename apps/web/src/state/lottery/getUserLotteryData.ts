@@ -78,7 +78,7 @@ export const getGraphLotteryUser = async (
   }
 
   try {
-    const response = await request(
+    const response = (await request(
       GRAPH_API_LOTTERY,
       gql`
         query getUserLotteries($account: ID!, $first: Int!, $skip: Int!, $where: Round_filter) {
@@ -100,7 +100,7 @@ export const getGraphLotteryUser = async (
         }
       `,
       { account: account.toLowerCase(), first, skip, where },
-    )
+    )) as any
     const userRes = response.user
 
     // If no user returned - return blank user

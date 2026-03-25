@@ -31,6 +31,7 @@ test('exports', () => {
       "V2_SUBGRAPHS",
       "BLOCKS_SUBGRAPHS",
       "STABLESWAP_SUBGRAPHS",
+      "filterSubgraphs",
       "getStableSwapSubgraphs",
       "getV3Subgraphs",
       "getV2Subgraphs",

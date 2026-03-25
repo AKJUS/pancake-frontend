@@ -6,7 +6,7 @@ const useGetParticipants = (subgraphAddress: string): string[] => {
   useEffect(() => {
     const getParticipants = async () => {
       try {
-        const response = await request(
+        const response = (await request(
           subgraphAddress,
           gql`
             query getTradingCompetitionParticipants {
@@ -21,7 +21,7 @@ const useGetParticipants = (subgraphAddress: string): string[] => {
               }
             }
           `,
-        )
+        )) as any
         const storm = parseInt(response.storm.userCount, 10)
         const flippers = parseInt(response.flippers.userCount, 10)
         const cakers = parseInt(response.cakers.userCount, 10)

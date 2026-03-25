@@ -48,7 +48,7 @@ export default async function handler(req, res) {
 
   try {
     // Execute the query
-    const data = await bitQueryServerClient.request(GET_TRANSACTIONS, { sender, to })
+    const data = (await bitQueryServerClient.request(GET_TRANSACTIONS, { sender, to })) as any
     const hashes = data.ethereum.transactions.map((tx) => tx.hash)
 
     const responseToCache = { hashes }

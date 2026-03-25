@@ -3,7 +3,7 @@ import request, { gql } from 'graphql-request'
 import flatten from 'lodash/flatten'
 
 export const getV1History = async (skip = 0, where = {}): Promise<Record<string, any>[]> => {
-  const response = await request(
+  const response = (await request(
     GRAPH_API_PREDICTION_V1,
     gql`
       query getV1BetHistory($skip: Int!, $where: Bet_filter) {
@@ -30,7 +30,7 @@ export const getV1History = async (skip = 0, where = {}): Promise<Record<string,
       }
     `,
     { skip, where },
-  )
+  )) as any
   return response.bets
 }
 

@@ -281,7 +281,7 @@ export const getCollectionSg = async (collectionAddress: string): Promise<Collec
  */
 export const getCollectionsSg = async (): Promise<CollectionMarketDataBaseFields[]> => {
   try {
-    const res = await request(
+    const res = (await request(
       GRAPH_API_NFTMARKET,
       gql`
         {
@@ -290,7 +290,7 @@ export const getCollectionsSg = async (): Promise<CollectionMarketDataBaseFields
           }
         }
       `,
-    )
+    )) as any
     return res.collections
   } catch (error) {
     console.error('Failed to fetch NFT collections', error)
@@ -314,7 +314,7 @@ export const getNftsFromCollectionSg = async (
   const isPBCollection = safeGetAddress(collectionAddress) === safeGetAddress(pancakeBunniesAddress)
 
   try {
-    const res = await request(
+    const res = (await request(
       GRAPH_API_NFTMARKET,
       gql`
         query getNftCollectionMarketData($collectionAddress: String!) {
@@ -327,7 +327,7 @@ export const getNftsFromCollectionSg = async (
         }
       `,
       { collectionAddress: collectionAddress.toLowerCase(), skip, first },
-    )
+    )) as any
     return res.collection.nfts
   } catch (error) {
     console.error('Failed to fetch NFTs from collection', error)
@@ -351,7 +351,7 @@ export const getNftsByBunnyIdSg = async (
       existingTokenIds.length > 0
         ? { otherId: bunnyId, isTradable: true, tokenId_not_in: existingTokenIds }
         : { otherId: bunnyId, isTradable: true }
-    const res = await request(
+    const res = (await request(
       GRAPH_API_NFTMARKET,
       gql`
         query getNftsByBunnyIdSg($collectionAddress: String!, $where: NFT_filter, $orderDirection: String!) {
@@ -365,7 +365,7 @@ export const getNftsByBunnyIdSg = async (
         where,
         orderDirection,
       },
-    )
+    )) as any
     return res.nfts
   } catch (error) {
     console.error(`Failed to fetch collection NFTs for bunny id ${bunnyId}`, error)
@@ -387,7 +387,7 @@ export const getMarketDataForTokenIds = async (
     if (existingTokenIds.length === 0) {
       return []
     }
-    const res = await request(
+    const res = (await request(
       GRAPH_API_NFTMARKET,
       gql`
         query getMarketDataForTokenIds($collectionAddress: String!, $where: NFT_filter) {
@@ -403,7 +403,7 @@ export const getMarketDataForTokenIds = async (
         collectionAddress: collectionAddress.toLowerCase(),
         where: { tokenId_in: existingTokenIds },
       },
-    )
+    )) as any
     return res.collection.nfts
   } catch (error) {
     console.error(`Failed to fetch market data for NFTs stored tokens`, error)
@@ -543,7 +543,7 @@ export const getNftsMarketData = async (
   skip = 0,
 ): Promise<TokenMarketData[]> => {
   try {
-    const res = await request(
+    const res = (await request(
       GRAPH_API_NFTMARKET,
       gql`
         query getNftsMarketData($first: Int, $skip: Int!, $where: NFT_filter, $orderBy: NFT_orderBy, $orderDirection: OrderDirection) {
@@ -556,7 +556,7 @@ export const getNftsMarketData = async (
         }
       `,
       { where, first, skip, orderBy, orderDirection },
-    )
+    )) as any
 
     return res.nfts
   } catch (error) {
@@ -575,14 +575,14 @@ export const getAllPancakeBunniesLowestPrice = async (bunnyIds: string[]): Promi
       }
     `,
     )
-    const rawResponse: Record<string, { currentAskPrice: string }[]> = await request(
+    const rawResponse: Record<string, { currentAskPrice: string }[]> = (await request(
       GRAPH_API_NFTMARKET,
       gql`
         query getAllPancakeBunniesLowestPrice {
           ${singlePancakeBunnySubQueries}
         }
       `,
-    )
+    )) as any
     return fromPairs(
       Object.keys(rawResponse).map((subQueryKey) => {
         const bunnyId = subQueryKey.split('b')[1]
@@ -608,14 +608,14 @@ export const getAllPancakeBunniesRecentUpdatedAt = async (bunnyIds: string[]): P
       }
     `,
     )
-    const rawResponse: Record<string, { updatedAt: string }[]> = await request(
+    const rawResponse: Record<string, { updatedAt: string }[]> = (await request(
       GRAPH_API_NFTMARKET,
       gql`
         query getAllPancakeBunniesLowestPrice {
           ${singlePancakeBunnySubQueries}
         }
       `,
-    )
+    )) as any
     return fromPairs(
       Object.keys(rawResponse).map((subQueryKey) => {
         const bunnyId = subQueryKey.split('b')[1]
@@ -665,7 +665,7 @@ export const getLeastMostPriceInCollection = async (
  */
 export const getUserActivity = async (address: string): Promise<UserActivity> => {
   try {
-    const res = await request(
+    const res = (await request(
       GRAPH_API_NFTMARKET,
       gql`
         query getUserActivity($address: String!) {
@@ -696,7 +696,7 @@ export const getUserActivity = async (address: string): Promise<UserActivity> =>
         }
       `,
       { address },
-    )
+    )) as any
 
     return res.user || { askOrderHistory: [], buyTradeHistory: [], sellTradeHistory: [] }
   } catch (error) {
@@ -790,7 +790,7 @@ export const getCollectionActivity = async (
     : ``
 
   try {
-    const res = await request(
+    const res = (await request(
       GRAPH_API_NFTMARKET,
       gql`
         query getCollectionActivity {
@@ -798,7 +798,7 @@ export const getCollectionActivity = async (
           ${transactionGql}
         }
       `,
-    )
+    )) as any
 
     return res || { askOrders: [], transactions: [] }
   } catch (error) {
@@ -815,7 +815,7 @@ export const getTokenActivity = async (
   collectionAddress: string,
 ): Promise<{ askOrders: AskOrder[]; transactions: Transaction[] }> => {
   try {
-    const res = await request(
+    const res = (await request(
       GRAPH_API_NFTMARKET,
       gql`
         query getCollectionActivity($tokenId: BigInt!, $address: ID!) {
@@ -843,7 +843,7 @@ export const getTokenActivity = async (
         }
       `,
       { tokenId, address: collectionAddress },
-    )
+    )) as any
 
     if (res.nfts.length > 0) {
       return { askOrders: res.nfts[0].askHistory, transactions: res.nfts[0].transactionHistory }
@@ -865,7 +865,7 @@ export const getTokenActivity = async (
  */
 export const getLatestListedNfts = async (first: number): Promise<TokenMarketData[]> => {
   try {
-    const res = await request(
+    const res = (await request(
       GRAPH_API_NFTMARKET,
       gql`
         query getLatestNftMarketData($first: Int) {
@@ -878,7 +878,7 @@ export const getLatestListedNfts = async (first: number): Promise<TokenMarketDat
         }
       `,
       { first },
-    )
+    )) as any
 
     return res.nfts
   } catch (error) {

@@ -25,6 +25,7 @@ catalog:
   "@wagmi/core": 2.21.2
   wrangler: 3.81.0
   zod: ^3.25.67
+  graphql-request: "7.4.0"
   '@solana/wallet-adapter-wallets': 0.19.37
   '@solana/wallet-adapter-base': 0.9.27
   '@solana/wallet-adapter-react': 0.15.39
