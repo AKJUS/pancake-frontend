@@ -3,7 +3,7 @@ import { Currency } from '@pancakeswap/swap-sdk-core'
 import { AddCircleIcon, AutoColumn, AutoRow, IconButton, RemoveIcon, Text } from '@pancakeswap/uikit'
 import { FeeAmount } from '@pancakeswap/v3-sdk'
 import { Card, LightCardProps, NumericalInput } from '@pancakeswap/widgets-internal'
-import { ReactNode, useCallback, useEffect, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 
 type StepCounterV2Props<TPrice = string | undefined> = {
@@ -56,6 +56,8 @@ export const StepCounterV2 = ({
   //  for focus state, styled components doesn't let you select input parent container
   const [, setActive] = useState(false)
 
+  const isButtonClick = useRef(false)
+
   // let user type value and only update parent value on blur
   const [localValue, setLocalValue] = useState('')
   const [useLocalValue, setUseLocalValue] = useState(false)
@@ -66,18 +68,24 @@ export const StepCounterV2 = ({
   }, [])
 
   const handleOnBlur = useCallback(() => {
-    setUseLocalValue(false)
     setActive(false)
-    onUserInput(parsePrice ? parsePrice(localValue) : localValue) // trigger update on parent value
+    if (isButtonClick.current) {
+      isButtonClick.current = false
+      return
+    }
+    setUseLocalValue(false)
+    onUserInput(parsePrice ? parsePrice(localValue) : localValue)
   }, [localValue, onUserInput, parsePrice])
 
   // for button clicks
   const handleDecrement = useCallback(() => {
+    isButtonClick.current = true
     setUseLocalValue(false)
     decrement()
   }, [decrement])
 
   const handleIncrement = useCallback(() => {
+    isButtonClick.current = true
     setUseLocalValue(false)
     increment()
   }, [increment])
