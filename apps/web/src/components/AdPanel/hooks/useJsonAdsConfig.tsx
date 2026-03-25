@@ -8,8 +8,10 @@ export const jsonAdsConfigAtom = atomFamily((url: string) => {
   return atomWithLoadable<RemoteAds[]>(async () => {
     if (!url) return []
     const res = await fetch(url)
+    if (!res.ok) return []
     const json = await res.json()
-    return json as RemoteAds[]
+    if (!Array.isArray(json)) return []
+    return json.filter((item): item is RemoteAds => item !== null && typeof item === 'object')
   })
 })
 
