@@ -1,4 +1,4 @@
-import { useMemo, ReactElement, FC, useCallback, useState, useEffect } from 'react'
+import { useMemo, ReactElement, FC, useCallback, useState } from 'react'
 import { NonEVMChainId } from '@pancakeswap/chains'
 import { Box, Text, Tag, FlexGap } from '@pancakeswap/uikit'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
@@ -261,7 +261,7 @@ export const SolanaV3PositionsTable: FC<V3PositionsTableProps> = ({ poolInfo }) 
         chainId: poolInfo.chainId,
         status: outOfRange
           ? POSITION_STATUS.INACTIVE
-          : p.liquidity.isZero()
+          : (p.liquidity as BN).isZero()
           ? POSITION_STATUS.CLOSED
           : POSITION_STATUS.ACTIVE,
       }
@@ -269,7 +269,7 @@ export const SolanaV3PositionsTable: FC<V3PositionsTableProps> = ({ poolInfo }) 
       const aprRes = getPositionAprCore({
         poolInfo: {
           ...poolInfo.rawPool,
-          liquidity: poolOnchain ? BigInt(poolOnchain?.computePoolInfo.liquidity.toNumber()) : 0n,
+          liquidity: poolOnchain ? BigInt(poolOnchain.computePoolInfo.liquidity.toString()) : 0n,
         },
         positionAccount: position,
         mintPrices,
@@ -348,7 +348,7 @@ export const SolanaV3PositionsTable: FC<V3PositionsTableProps> = ({ poolInfo }) 
       }
       return display
     })
-  }, [positionsInThisPool, poolOnchain, priceMap, poolInfo, poolForAction, flipCurrentPrice])
+  }, [handleEarningsReady, positionsInThisPool, poolOnchain, priceMap, poolInfo, poolForAction, flipCurrentPrice])
 
   const computed = useMemo(() => {
     if (!rowsDisplay.length)
