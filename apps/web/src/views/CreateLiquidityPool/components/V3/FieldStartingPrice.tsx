@@ -25,6 +25,7 @@ import styled from 'styled-components'
 import { Currency } from '@pancakeswap/swap-sdk-core'
 import { truncateText } from 'utils'
 import { CurrencyLogo } from '@pancakeswap/widgets-internal'
+import { TickMath, tickToPrice } from '@pancakeswap/v3-sdk'
 import { useCurrencies } from '../../hooks/useCurrencies'
 
 export type FieldStartingPriceProps = {
@@ -60,18 +61,45 @@ export const FieldStartingPrice: React.FC<FieldStartingPriceProps> = ({
 
   const [, , marketPrice] = usePoolMarketPrice(currency0, currency1)
 
+  const { minPrice, maxPrice } = useMemo(() => {
+    if (!baseCurrency || !quoteCurrency) return { minPrice: undefined, maxPrice: undefined }
+
+    const min = tickToPrice(
+      baseCurrency as unknown as Currency,
+      quoteCurrency as unknown as Currency,
+      TickMath.MIN_TICK + 1, // avoid absolute bounds so swaps remain possible
+    )
+    const max = tickToPrice(
+      baseCurrency as unknown as Currency,
+      quoteCurrency as unknown as Currency,
+      TickMath.MAX_TICK - 1,
+    )
+
+    return {
+      minPrice: inverted ? min.invert() : min,
+      maxPrice: inverted ? max.invert() : max,
+    }
+  }, [inverted, baseCurrency, quoteCurrency])
+
   const updatePrice = useCallback(
     (input: string | null) => {
       if (input === null) return
       if (input === '') {
         setStartPrice('')
-      } else {
-        const value = new BigNumber(input).toJSON()
-
-        setStartPrice(value)
+        return
       }
+
+      if (maxPrice && minPrice) {
+        const maxVal = new BigNumber(maxPrice.toFixed(18))
+        const minVal = new BigNumber(minPrice.toFixed(18))
+        const clamped = BigNumber.max(minVal, BigNumber.min(maxVal, new BigNumber(input)))
+        setStartPrice(clamped.toJSON())
+        return
+      }
+
+      setStartPrice(new BigNumber(input).toJSON())
     },
-    [setStartPrice],
+    [setStartPrice, maxPrice, minPrice],
   )
 
   useEffect(() => {
@@ -164,7 +192,7 @@ const StartingPriceInput: React.FC<StartingPriceInputProps> = ({ value, onUserIn
     if (
       value !== null &&
       inputValue !== null &&
-      parseFloat(inputValue) !== parseFloat(value) &&
+      !new BigNumber(inputValue).eq(new BigNumber(value)) &&
       !String(value).endsWith('.')
     ) {
       setInputValue(value)
