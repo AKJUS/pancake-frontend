@@ -36,6 +36,7 @@ import { ProposalTypeName } from 'state/types'
 import styled from 'styled-components'
 import { DatePicker, DatePickerPortal, TimePicker } from 'views/Voting/components/DatePicker'
 import { useAccount, useWalletClient } from 'wagmi'
+import { SpinnerPage } from 'components/SpinnerPage'
 import { spaceAtom } from '../atom/spaceAtom'
 import Layout from '../components/Layout'
 import VoteDetailsModal from '../components/VoteDetailsModal'
@@ -418,22 +419,6 @@ const Wrapped = () => {
     <Suspense fallback={<SpinnerPage />}>
       <CreateProposal />
     </Suspense>
-  )
-}
-
-const FullScreenBox = styled(Box)`
-  width: 100%;
-  height: 50vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`
-
-export const SpinnerPage = () => {
-  return (
-    <FullScreenBox>
-      <Spinner />
-    </FullScreenBox>
   )
 }
 

@@ -3,9 +3,11 @@ import dynamic from 'next/dynamic'
 import { useAtom, useAtomValue } from 'jotai'
 import { usePrivy } from '@privy-io/react-auth'
 import { atomWithStorage } from 'jotai/utils'
-import { useCallback, useEffect, useRef } from 'react'
+import { ReactNode, Suspense, useCallback, useEffect, useRef } from 'react'
 import { WagmiProvider as PrivyWagmiProvider } from '@privy-io/wagmi'
 import { rpcUrlAtom } from '@pancakeswap/utils/user'
+import { Spinner } from '@pancakeswap/uikit'
+import { SpinnerPage } from 'components/SpinnerPage'
 import { W3WConfigProvider } from './W3WConfigContext'
 import { useSyncWagmiState } from './hook/useSyncWagmiState'
 import { WalletEnvProvider } from './hook/useWalletEnv'
@@ -118,20 +120,31 @@ export const WalletProvider = (props: WalletProviderProps) => {
     <PrivyWagmiProvider reconnectOnMount config={wagmiConfig}>
       <W3WConfigProvider value={isInBinance()}>
         <WalletEnvProvider>
-          <Sync />
-          <SolanaProviders endpoint={endpoint}>
-            <SolanaWalletStateUpdater />
-            {children}
-          </SolanaProviders>
+          <ChainGate>
+            <Sync />
+            <SolanaProviders endpoint={endpoint}>
+              <SolanaWalletStateUpdater />
+              {children}
+            </SolanaProviders>
+          </ChainGate>
         </WalletEnvProvider>
       </W3WConfigProvider>
     </PrivyWagmiProvider>
   )
 }
 
+const ChainGate = ({ children }: { children: ReactNode }) => {
+  const isSwitching = useSyncPersistChain()
+
+  if (isSwitching) {
+    return <SpinnerPage />
+  }
+
+  return <>{children}</>
+}
+
 const Sync = () => {
   useBaseMiniAppAutoConnect()
   useSyncWagmiState()
-  useSyncPersistChain()
   return null
 }
