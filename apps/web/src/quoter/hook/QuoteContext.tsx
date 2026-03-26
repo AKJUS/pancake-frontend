@@ -46,6 +46,8 @@ const QuoteContext = createContext<QuoteContext>({
   speedQuoteEnabled: false,
 })
 
+const TEMP_DISABLE_INFINITY_STABLE_ROUTING = true
+
 export const QuoteContextProvider = ({ children }: { children: React.ReactNode }) => {
   const { chainId } = useActiveChainId()
   const limit = useMulticallGasLimit()
@@ -74,7 +76,8 @@ export const QuoteContextProvider = ({ children }: { children: React.ReactNode }
         v2Swap,
         v3Swap,
         infinitySwap,
-        infinityStableSwap,
+        // Temporary runtime override: Infinity Stable routing is disabled in swap quoting.
+        infinityStableSwap: TEMP_DISABLE_INFINITY_STABLE_ROUTING ? false : infinityStableSwap,
         stableSwap,
         maxHops: 3,
         chainId,
