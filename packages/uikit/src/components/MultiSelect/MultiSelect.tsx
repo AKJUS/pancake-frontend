@@ -1,7 +1,7 @@
 import { useTheme } from "@pancakeswap/hooks";
 import noop from "lodash/noop";
 import { MultiSelect as PrimereactSelect } from "primereact/multiselect";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { styled } from "styled-components";
 import { Box, Flex } from "../Box";
 import { Checkbox } from "../Checkbox";
@@ -103,11 +103,12 @@ const SelectContainer = styled.div`
       .p-checkbox-box {
         border-color: ${({ theme }) => theme.colors.success};
         background-color: ${({ theme }) => theme.colors.success};
+        border-bottom: 2px solid rgba(0, 0, 0, 0.20);
       }
 
       .p-checkbox-icon.p-icon {
         position: absolute;
-        top: 50%;
+        top: 47%;
         left: 0;
         right: 0;
         margin: auto;
@@ -267,6 +268,11 @@ export const MultiSelect = <T extends string | number>(props: IMultiSelectProps<
 
   const primereactSelectRef = useRef<PrimereactSelect>(null);
   const searchInputRef = useRef<IAdaptiveInputForwardProps>(null);
+
+  useImperativeHandle(props.panelRef, () => ({
+    show: () => primereactSelectRef.current?.show(),
+    hide: () => primereactSelectRef.current?.hide(),
+  }));
 
   const theme = useTheme();
   const list = useMemo(

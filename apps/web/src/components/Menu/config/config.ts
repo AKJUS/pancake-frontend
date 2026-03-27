@@ -151,12 +151,6 @@ const config: (
         ],
       },
       {
-        label: t('AI'),
-        icon: RocketIcon,
-        href: 'https://pancakeswap.ai/',
-        type: DropdownMenuItemType.EXTERNAL_LINK,
-      },
-      {
         label: t('Play'),
         icon: GameIcon,
         href: '/prediction',
@@ -204,6 +198,12 @@ const config: (
             ],
           },
         ],
+      },
+      {
+        label: t('AI'),
+        icon: RocketIcon,
+        href: 'https://pancakeswap.ai/',
+        type: DropdownMenuItemType.EXTERNAL_LINK,
       },
       {
         label: '',

@@ -15,6 +15,8 @@ export interface NavProps {
   rightSide?: ReactNode;
   banner?: ReactElement;
   links: Array<MenuItemsType>;
+  /** When set, desktop top `MenuItems` use this list; `links` is still used for mobile `BottomNav`. */
+  desktopNavLinks?: Array<MenuItemsType>;
   homeLink?: string;
   subLinks?: Array<SubMenuItemsType>;
   footerLinks: Array<FooterLinkType>;
@@ -30,9 +32,12 @@ export interface NavProps {
   buyCakeLabel: string;
   buyCakeLink: string;
   showCakePrice?: boolean;
+  showNavbarCakePrice?: boolean;
   showLangSelector?: boolean;
   langs: Language[];
   chainId: number;
   setLang: (lang: Language) => void;
   logoComponent?: ReactNode;
+  /** Desktop-only slot (e.g. global search) rendered before the right-side cluster */
+  headerSearchSlot?: ReactNode;
 }

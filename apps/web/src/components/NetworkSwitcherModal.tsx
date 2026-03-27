@@ -206,6 +206,63 @@ const WrongNetworkSelect = ({ switchNetwork, chainId, onDismiss }: WrongNetworkS
   )
 }
 
+export const NetworkSelectPanel = ({ onDismiss }: { onDismiss: () => void }) => {
+  const { chainId, isWrongNetwork } = useActiveChainId()
+  const { switchNetwork } = useSwitchNetwork()
+  const [showTestnet] = useUserShowTestnet()
+  const chainSpecificBehavior: Partial<Record<UnifiedChainId, ChainSpecificBehavior>> = useMemo(
+    () => ({
+      [NonEVMChainId.APTOS]: {
+        onClick: () => {
+          window.open('https://aptos.pancakeswap.finance', '_self')
+          onDismiss()
+        },
+      },
+    }),
+    [onDismiss],
+  )
+  const networks = useMemo(() => getSortedChains(chainId, showTestnet), [chainId, showTestnet])
+
+  return (
+    <Box padding="8px 0">
+      {networks.map((net) =>
+        !chainSpecificBehavior[net.id] ? (
+          <UserMenuItem
+            key={net.id}
+            style={{ justifyContent: 'flex-start', cursor: 'pointer', padding: '0px 24px' }}
+            onClick={() => {
+              if (net.id !== chainId || isWrongNetwork) {
+                switchNetwork(net.id)
+              }
+              onDismiss()
+            }}
+          >
+            <ChainLogo chainId={net.id} />
+            <Text
+              color={net.id === chainId && !isWrongNetwork ? 'secondary' : 'text'}
+              bold={net.id === chainId && !isWrongNetwork}
+              pl="12px"
+            >
+              {net.fullName}
+            </Text>
+          </UserMenuItem>
+        ) : (
+          <UserMenuItem
+            key={`non-evm-${net.id}`}
+            onClick={chainSpecificBehavior[net.id]?.onClick}
+            style={{ justifyContent: 'flex-start', cursor: 'pointer', padding: '0px 24px' }}
+          >
+            <ChainLogo chainId={net.id} />
+            <Text color="text" pl="12px">
+              {net.fullName}
+            </Text>
+          </UserMenuItem>
+        ),
+      )}
+    </Box>
+  )
+}
+
 export const NetworkSwitcherModal = () => {
   const { chainId, isWrongNetwork, isNotMatched } = useActiveChainId()
   const { switchNetwork } = useSwitchNetwork()

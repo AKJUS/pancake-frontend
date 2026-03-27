@@ -1,19 +1,29 @@
+import { useCallback, useImperativeHandle, useRef, useState } from "react";
+
+import styled, { css } from "styled-components";
+
 import { Trans, useTranslation } from "@pancakeswap/localization";
 import {
   Button,
   IMultiSelectChangeEvent,
   IMultiSelectProps,
   MultiSelect,
+  type MultiSelectHandle,
   useMatchBreakpoints,
 } from "@pancakeswap/uikit";
-import { useCallback, useState } from "react";
-import styled, { css } from "styled-components";
+
+export interface NetworkFilterHandle {
+  show: () => void;
+  hide: () => void;
+}
 
 export interface INetworkProps {
   multiple?: boolean;
   data: IMultiSelectProps<number>["options"];
   value: number[];
   onChange: (value: INetworkProps["value"], e: IMultiSelectChangeEvent<number>) => void;
+  panelRef?: React.Ref<NetworkFilterHandle>;
+  onPanelClose?: () => void;
 }
 
 export const Container = styled.div<{ $isShow: boolean }>`
@@ -61,6 +71,7 @@ const ItemContainer = styled.div`
 
   .network-icon {
     flex: 1;
+    border-radius: 35%;
   }
 `;
 
@@ -106,11 +117,33 @@ const StyledContainer = styled(Container)<{ $activeIndex?: number }>`
   }
 `;
 
-export const NetworkFilter: React.FC<INetworkProps> = ({ data, value, onChange, multiple }: INetworkProps) => {
+export const NetworkFilter: React.FC<INetworkProps> = ({
+  data,
+  value,
+  onChange,
+  multiple,
+  panelRef,
+  onPanelClose,
+}: INetworkProps) => {
   const [isShow, setIsShow] = useState(false);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [mobileActiveValue, setMobileActiveValue] = useState<number>(-1);
   const { isMobile } = useMatchBreakpoints();
   const { t } = useTranslation();
+  const multiSelectPanelRef = useRef<MultiSelectHandle>(null);
+
+  useImperativeHandle(panelRef, () => ({
+    show: () => {
+      setIsPanelOpen(true);
+      setIsShow(true);
+    },
+    hide: () => {
+      multiSelectPanelRef.current?.hide();
+      setIsPanelOpen(false);
+      setIsShow(false);
+      onPanelClose?.();
+    },
+  }));
 
   const activeIndex =
     isMobile && mobileActiveValue !== -1 && data ? data.findIndex((opt) => opt.value === mobileActiveValue) : undefined;
@@ -165,12 +198,14 @@ export const NetworkFilter: React.FC<INetworkProps> = ({ data, value, onChange, 
         </ItemContainer>
       );
     },
-    [handleOnlyClick, isMobile, mobileActiveValue]
+    [handleOnlyClick, isMobile]
   );
 
   return (
     <StyledContainer $isShow={isShow} $activeIndex={activeIndex}>
       <MultiSelect
+        panelRef={multiSelectPanelRef}
+        overlayVisible={isPanelOpen || undefined}
         multiple={multiple}
         style={{
           backgroundColor: "var(--colors-input)",
@@ -184,7 +219,11 @@ export const NetworkFilter: React.FC<INetworkProps> = ({ data, value, onChange, 
         selectAllLabel="All networks"
         value={value}
         onShow={() => setIsShow(true)}
-        onHide={() => setIsShow(false)}
+        onHide={() => {
+          setIsShow(false);
+          setIsPanelOpen(false);
+          onPanelClose?.();
+        }}
         onChange={handleSelectChange}
         itemTemplate={customItemTemplate}
         placeholder={t("Select Networks")}

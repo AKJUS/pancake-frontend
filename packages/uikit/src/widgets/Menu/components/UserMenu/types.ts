@@ -1,5 +1,7 @@
-import { Placement } from "@popperjs/core";
 import { ReactNode } from "react";
+
+import { Placement } from "@popperjs/core";
+
 import { FlexProps } from "../../../../components/Box";
 
 export const variants = {
@@ -23,6 +25,10 @@ export interface UserMenuProps extends Omit<FlexProps, "children"> {
   recalculatePopover?: boolean;
   ellipsis?: boolean;
   popperStyle?: React.CSSProperties;
+  /** Avatar / wallet icon diameter in px (default 32). Use ~24 for compact navbar. */
+  avatarSize?: number;
+  /** When true, renders the avatar icon as a circle (e.g. for chain icons). Default is rounded-square. */
+  avatarRound?: boolean;
 }
 
 export interface UserMenuItemProps {

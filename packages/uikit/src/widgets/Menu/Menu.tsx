@@ -1,6 +1,9 @@
-import { useIsMounted } from "@pancakeswap/hooks";
-import throttle from "lodash/throttle";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+
+import throttle from "lodash/throttle";
+
+import { useIsMounted } from "@pancakeswap/hooks";
+
 import { AtomBox } from "../../components/AtomBox";
 import { BottomNav } from "../../components/BottomNav";
 import { Box } from "../../components/Box";
@@ -8,6 +11,7 @@ import Flex from "../../components/Box/Flex";
 import CakePrice from "../../components/CakePrice/CakePrice";
 import Footer from "../../components/Footer";
 import LangSelector from "../../components/LangSelector/LangSelector";
+import FlexGap from "../../components/Layouts/FlexGap";
 import MenuItems from "../../components/MenuItems/MenuItems";
 import { SubMenuItems } from "../../components/SubMenuItems";
 import { useMatchBreakpoints } from "../../contexts";
@@ -27,6 +31,7 @@ const Menu: React.FC<React.PropsWithChildren<NavProps>> = ({
   setLang,
   cakePriceUsd,
   links,
+  desktopNavLinks,
   homeLink: homeLink_,
   subLinks,
   footerLinks,
@@ -36,6 +41,7 @@ const Menu: React.FC<React.PropsWithChildren<NavProps>> = ({
   activeSubItem,
   activeSubItemChildItem,
   showCakePrice = true,
+  showNavbarCakePrice = false,
   showLangSelector = true,
   langs,
   buyCakeLabel,
@@ -43,6 +49,7 @@ const Menu: React.FC<React.PropsWithChildren<NavProps>> = ({
   children,
   chainId,
   logoComponent,
+  headerSearchSlot,
 }) => {
   const { isMobile } = useMatchBreakpoints();
   const isMounted = useIsMounted();
@@ -109,21 +116,26 @@ const Menu: React.FC<React.PropsWithChildren<NavProps>> = ({
           <FixedContainer showMenu={showMenu} $height={totalTopMenuHeight}>
             {banner && isMounted && <TopBannerContainer height={topBannerHeight}>{banner}</TopBannerContainer>}
             <StyledNav id="nav">
-              <Flex>
+              <Flex flex={1} minWidth="0px" alignItems="center">
                 {logoComponent ?? <Logo href={homeLink_ ?? homeLink?.href ?? "/home"} />}
-                <AtomBox display={{ xs: "none", lg: "block" }}>
+                <AtomBox display={{ xs: "none", lg: "block" }} minWidth="0px">
                   <MenuItems
                     ml="24px"
-                    items={links}
+                    items={desktopNavLinks ?? links}
                     activeItem={activeItem}
                     activeSubItem={activeSubItem}
                     activeSubItemChildItem={activeSubItemChildItem}
                   />
                 </AtomBox>
               </Flex>
-              <Flex alignItems="center" height="100%">
-                <AtomBox mr="12px" display={{ xs: "none", xxl: "block" }}>
-                  <CakePrice chainId={chainId} showSkeleton={false} cakePriceUsd={cakePriceUsd} />
+              <FlexGap alignItems="center" height="100%" flexShrink={0} gap="8px">
+                {showNavbarCakePrice && (
+                  <AtomBox display={{ xs: "none", xxl: "block" }} style={{ flexShrink: 0 }}>
+                    <CakePrice chainId={chainId} showSkeleton={false} cakePriceUsd={cakePriceUsd} />
+                  </AtomBox>
+                )}
+                <AtomBox display={{ xs: "none", lg: "block" }} style={{ flexShrink: 0 }}>
+                  {headerSearchSlot}
                 </AtomBox>
                 {showLangSelector && (
                   <Box mt="4px">
@@ -138,7 +150,7 @@ const Menu: React.FC<React.PropsWithChildren<NavProps>> = ({
                   </Box>
                 )}
                 {rightSide}
-              </Flex>
+              </FlexGap>
             </StyledNav>
           </FixedContainer>
           {subLinks ? (

@@ -366,6 +366,7 @@ type FetchAllPoolsParams = {
   baseUrl: string
   orderBy?: 'tvlUSD' | 'volumeUSD24h' | 'apr24h'
   protocols: Array<'v2' | 'v3' | 'infinityBin' | 'infinityCl' | 'stable' | 'infinityStable'>
+  signal?: AbortSignal
   chains: Array<
     | 'bsc'
     | 'bsc-testnet'
@@ -401,6 +402,7 @@ async function fetchAllPools({
   symbols = [],
   pageSize = 100,
   maxPages = Infinity,
+  signal,
 }: FetchAllPoolsParams): Promise<RemotePoolBase[]> {
   const allResults: RemotePoolBase[] = []
   let cursor: string | null = null
@@ -459,7 +461,7 @@ async function fetchAllPools({
           ...(typeof window === 'undefined' ? { 'x-api-key': process.env.EXPLORER_API_KEY || '' } : {}),
           'Content-Type': 'application/json',
         },
-        signal: AbortSignal.timeout(10000), // 10 second timeout
+        signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(10000)]) : AbortSignal.timeout(10000),
       })
 
       if (!response.ok) {

@@ -1,13 +1,15 @@
-import { useTranslation } from '@pancakeswap/localization'
-import { Box, FlexGap, Skeleton, Text } from '@pancakeswap/uikit'
-import { CurrencyLogo } from '@pancakeswap/widgets-internal'
-import { ZERO_ADDRESS } from '@pancakeswap/swap-sdk-core'
-import { BalanceData } from 'hooks/useAddressBalance'
 import React from 'react'
-import styled from 'styled-components'
 
+import { BalanceData } from 'hooks/useAddressBalance'
+import styled from 'styled-components'
 import { formatAmount } from 'utils/formatInfoNumbers'
 import { safeGetAddress } from 'utils/safeGetAddress'
+
+import { useTranslation } from '@pancakeswap/localization'
+import { ZERO_ADDRESS } from '@pancakeswap/swap-sdk-core'
+import { Box, FlexGap, Skeleton, Text } from '@pancakeswap/uikit'
+import { CurrencyLogo } from '@pancakeswap/widgets-internal'
+
 import { useEnhancedTokenLogo } from './hooks/useEnhancedTokenLogo'
 import { getChainDisplayName } from './utils/getChainDisplayName'
 

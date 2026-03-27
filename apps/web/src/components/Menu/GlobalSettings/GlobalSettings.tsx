@@ -1,9 +1,10 @@
-import { useTranslation } from '@pancakeswap/localization'
-import { Flex, PreTitle, FlexGap } from '@pancakeswap/uikit'
 import { useCallback, useMemo, useState } from 'react'
 
-import { GlobalSettingsTab } from './GlobalSettingsTab'
+import { useTranslation } from '@pancakeswap/localization'
+import { Flex, FlexGap, PreTitle } from '@pancakeswap/uikit'
+
 import { EVMSettingsTab } from './EVMSettingsTab'
+import { GlobalSettingsTab } from './GlobalSettingsTab'
 import { SolanaSettingsTab } from './SolanaSettingsTab'
 
 enum GlobalSettingsTabIndex {
@@ -12,8 +13,16 @@ enum GlobalSettingsTabIndex {
   SOLANA_SETTINGS = 2,
 }
 
-const GlobalSettings: React.FC = () => {
+export type GlobalSettingsLayoutVariant = 'default' | 'navbarPanel'
+
+type GlobalSettingsProps = {
+  /** `navbarPanel`: typography + spacing aligned with desktop navbar hover */
+  layoutVariant?: GlobalSettingsLayoutVariant
+}
+
+const GlobalSettings: React.FC<GlobalSettingsProps> = ({ layoutVariant = 'default' }) => {
   const { t } = useTranslation()
+  const isPanel = layoutVariant === 'navbarPanel'
 
   // Tab state
   const [activeTabIndex, setActiveTabIndex] = useState<GlobalSettingsTabIndex>(GlobalSettingsTabIndex.GLOBAL)
@@ -32,7 +41,7 @@ const GlobalSettings: React.FC = () => {
       {
         index: GlobalSettingsTabIndex.GLOBAL,
         label: t('Global Settings'),
-        component: <GlobalSettingsTab />,
+        component: <GlobalSettingsTab compact={isPanel} />,
       },
       {
         index: GlobalSettingsTabIndex.EVM_SETTINGS,
@@ -45,16 +54,19 @@ const GlobalSettings: React.FC = () => {
         component: <SolanaSettingsTab />,
       },
     ],
-    [t],
+    [t, isPanel],
   )
 
   return (
-    <Flex pb="24px" flexDirection="column">
-      <FlexGap mb="24px" gap="16px">
+    <Flex pb={isPanel ? '0' : '24px'} flexDirection="column">
+      <FlexGap mb={isPanel ? '16px' : '24px'} gap={isPanel ? '20px' : '16px'} flexWrap="wrap" alignItems="center">
         {tabs.map((tab) => (
           <PreTitle
             key={tab.index}
-            style={{ cursor: 'pointer' }}
+            style={{
+              cursor: 'pointer',
+              ...(isPanel ? { fontSize: '14px', fontWeight: 600, textTransform: 'capitalize' } : {}),
+            }}
             color={activeTabIndex === tab.index ? 'secondary' : 'textSubtle'}
             onClick={() => onTabChange(tab.index)}
           >

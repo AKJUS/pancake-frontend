@@ -3,10 +3,12 @@ import { Box, FlexGap, SearchInput, Text } from '@pancakeswap/uikit'
 
 import { NetworkFilter } from '@pancakeswap/widgets-internal'
 import { BalanceData } from 'hooks/useAddressBalance'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { safeGetUnifiedAddress } from 'utils/safeGetAddress'
 import { useAllChainsOpts } from 'views/universalFarms/hooks/useMultiChains'
 import { useSendGiftContext } from 'views/Gift/providers/SendGiftProvider'
 import { getSunsetLegacyLink } from 'utils/sunsetLegacyLinks'
+import { useWalletPanel } from 'components/Menu/WalletPanelContext'
 import { ActionButton } from './ActionButton'
 import { AssetsList } from './AssetsList'
 import { SendAssetForm } from './SendAssetForm'
@@ -30,6 +32,7 @@ export const SendAssets: React.FC<SendAssetsProps> = ({ assets, isLoading, onBac
   const { t } = useTranslation()
   const { setIsSendGift, setNativeAmount, setIncludeStarterGas } = useSendGiftContext()
   const { sendEntry } = useWalletModalV2ViewState()
+  const { pendingSendTarget, clearPendingSendTarget } = useWalletPanel()
   const convertBalancesToAssets = useCallback((balanceItems): BalanceData[] => {
     return balanceItems.map((item) => ({
       id: item.id,
@@ -63,6 +66,38 @@ export const SendAssets: React.FC<SendAssetsProps> = ({ assets, isLoading, onBac
 
     return convertBalancesToAssets(searchFilteredBalances)
   }, [assets, selectedNetworks, searchQuery, convertBalancesToAssets])
+
+  useEffect(() => {
+    if (!pendingSendTarget || isLoading) return
+
+    const { chainId, tokenAddress } = pendingSendTarget
+    const normalizedTargetAddress = safeGetUnifiedAddress(chainId, tokenAddress)
+
+    const matchedAsset = assets.find((asset) => {
+      if (asset.chainId !== chainId) return false
+      const normalizedAssetAddress = safeGetUnifiedAddress(asset.chainId, asset.token.address)
+      return normalizedAssetAddress === normalizedTargetAddress
+    })
+
+    clearPendingSendTarget()
+
+    if (!matchedAsset) return
+
+    setSelectedAsset(matchedAsset)
+    onViewStateChange(ViewState.SEND_FORM)
+    setIsSendGift(false)
+    setNativeAmount(undefined)
+    setIncludeStarterGas(false)
+  }, [
+    assets,
+    clearPendingSendTarget,
+    isLoading,
+    onViewStateChange,
+    pendingSendTarget,
+    setIncludeStarterGas,
+    setIsSendGift,
+    setNativeAmount,
+  ])
 
   if (viewState >= ViewState.SEND_FORM && selectedAsset)
     return <SendAssetForm asset={selectedAsset} onViewStateChange={onViewStateChange} viewState={viewState} />

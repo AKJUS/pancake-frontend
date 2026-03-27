@@ -8,7 +8,6 @@ import { useSolanaTokenInfo } from 'hooks/solana/useSolanaTokenInfo'
 import { useSolanaTokenBalances } from 'state/token/solanaTokenBalances'
 import { useSolanaTokenPrices } from 'hooks/solana/useSolanaTokenPrice'
 import { FixedSizeList } from 'react-window'
-import { sanitizeTokenInfos, useAllLists, useInactiveListUrls } from 'state/lists/hooks'
 import { UpdaterByChainId } from 'state/lists/updater'
 import { useAllTokenBalances } from 'state/wallet/hooks'
 import { safeGetAddress } from 'utils'
@@ -20,7 +19,8 @@ import { useDebounce, useSortedTokensByQuery } from '@pancakeswap/hooks'
 import { useTranslation } from '@pancakeswap/localization'
 /* eslint-disable no-restricted-syntax */
 import { getTokenComparator, isSolWSolToken, Token, UnifiedCurrency } from '@pancakeswap/sdk'
-import { createFilterToken, WrappedTokenInfo } from '@pancakeswap/token-lists'
+import { useSearchInactiveTokenLists } from 'hooks/useSearchInactiveTokenLists'
+import { createFilterToken } from '@pancakeswap/token-lists'
 import {
   AutoColumn,
   Box,
@@ -69,53 +69,6 @@ interface CurrencySearchProps {
   supportCrossChain?: boolean
   onSettingsClick?: () => void
   showNative?: boolean
-}
-
-function useSearchInactiveTokenLists(search: string | undefined, minResults = 10): WrappedTokenInfo[] {
-  const lists = useAllLists()
-  const inactiveUrls = useInactiveListUrls()
-
-  const { chainId } = useActiveChainId()
-
-  const activeTokens = useAllTokens()
-
-  return useMemo(() => {
-    if (!search || search.trim().length === 0) return []
-    const filterToken = createFilterToken(search, (address) => isAddress(address))
-    const exactMatches: WrappedTokenInfo[] = []
-    const rest: WrappedTokenInfo[] = []
-    const addressSet: { [address: string]: true } = {}
-    const trimmedSearchQuery = search.toLowerCase().trim()
-    for (const url of inactiveUrls) {
-      const list = lists[url]?.current
-      // eslint-disable-next-line no-continue
-      if (!list) continue
-      const sanitizedTokens = sanitizeTokenInfos(list)
-      for (const tokenInfo of sanitizedTokens) {
-        if (
-          tokenInfo.chainId === chainId &&
-          !(tokenInfo.address in activeTokens) &&
-          !addressSet[tokenInfo.address] &&
-          filterToken(tokenInfo)
-        ) {
-          const wrapped: WrappedTokenInfo = new WrappedTokenInfo({
-            ...tokenInfo,
-            address: safeGetAddress(tokenInfo.address) || tokenInfo.address,
-          })
-          addressSet[wrapped.address] = true
-          if (
-            tokenInfo.name?.toLowerCase() === trimmedSearchQuery ||
-            tokenInfo.symbol?.toLowerCase() === trimmedSearchQuery
-          ) {
-            exactMatches.push(wrapped)
-          } else {
-            rest.push(wrapped)
-          }
-        }
-      }
-    }
-    return [...exactMatches, ...rest].slice(0, minResults)
-  }, [activeTokens, chainId, inactiveUrls, lists, minResults, search])
 }
 
 function CurrencySearch({
@@ -181,7 +134,10 @@ function CurrencySearch({
     : evmSearchTokenIsAdded
 
   // if no results on main list, show option to expand into inactive (only when tokensToShow is not set)
-  const filteredInactiveTokens = useSearchInactiveTokenLists(!tokensToShow ? debouncedQuery : undefined)
+  const filteredInactiveTokens = useSearchInactiveTokenLists(
+    !tokensToShow ? debouncedQuery : undefined,
+    selectedChainId as number,
+  )
 
   const showNative: boolean = useMemo(() => {
     if (tokensToShow && !showNativeProp) return false

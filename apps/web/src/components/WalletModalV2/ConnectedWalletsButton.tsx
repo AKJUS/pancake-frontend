@@ -1,7 +1,8 @@
+import styled from 'styled-components'
+
 import { useTranslation } from '@pancakeswap/localization'
 import { ASSET_CDN } from '@pancakeswap/ui-wallets/src/config/url'
-import { Button, Flex, FlexGap, Text, ChevronDownIcon, ButtonProps } from '@pancakeswap/uikit'
-import styled from 'styled-components'
+import { Button, ButtonProps, ChevronDownIcon, Flex, FlexGap, Text } from '@pancakeswap/uikit'
 
 export type ConnectedWalletsButtonProps = ButtonProps & {
   evmAccount: string | undefined
@@ -29,7 +30,7 @@ const StyledNetworkIcons = styled(Flex)`
 
 const StyledAccountsButton = styled(Button)`
   border: 1px solid ${(props) => props.theme.colors.cardBorder};
-  border-width-bottom: 2px;
+  border-bottom-width: 2px;
   border-radius: 16px;
   background-color: ${(props) => props.theme.colors.tertiary};
   padding: 8px;

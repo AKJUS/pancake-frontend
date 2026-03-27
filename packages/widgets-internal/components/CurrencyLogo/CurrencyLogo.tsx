@@ -23,10 +23,11 @@ const LogoContainer = styled.div`
   position: relative;
 `;
 
-const StyledChainLogo = styled(ChainLogo)`
+const StyledChainLogo = styled(ChainLogo)<{ height: number }>`
   position: absolute;
   right: 0;
   bottom: 0;
+  height: ${({ height }) => height}px;
 
   & > img {
     background-color: ${({ theme }) => theme.colors.invertedContrast};

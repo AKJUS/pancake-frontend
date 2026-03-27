@@ -7,15 +7,15 @@ import MenuIcon from "./MenuIcon";
 import { UserMenuItem } from "./styles";
 import { UserMenuProps, variants } from "./types";
 
-export const StyledUserMenu = styled(Flex)`
+export const StyledUserMenu = styled(Flex)<{ $avatarSize?: number }>`
   align-items: center;
   background-color: ${({ theme }) => theme.colors.tertiary};
-  border-radius: 16px;
-  box-shadow: inset 0px -2px 0px rgba(0, 0, 0, 0.1);
+  border-radius: 999px;
+  box-shadow: inset 0px -2px 0px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   display: inline-flex;
   height: 32px;
-  padding-left: 32px;
+  padding-left: ${({ $avatarSize }) => ($avatarSize ?? 32) + 8}px;
   padding-right: 8px;
   position: relative;
 
@@ -28,11 +28,13 @@ export const LabelText = styled.div`
   color: ${({ theme }) => theme.colors.text};
   display: none;
   font-weight: 600;
+  font-size: 16px;
+  white-space: nowrap;
 
   ${({ theme }) => theme.mediaQueries.sm} {
     display: block;
-    margin-left: 8px;
-    margin-right: 4px;
+    margin-left: 4px;
+    margin-right: 0;
   }
 `;
 
@@ -75,6 +77,8 @@ const UserMenu: React.FC<UserMenuProps> = ({
   recalculatePopover,
   ellipsis = true,
   popperStyle = {},
+  avatarSize,
+  avatarRound,
   ...props
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -119,15 +123,22 @@ const UserMenu: React.FC<UserMenuProps> = ({
   return (
     <Flex alignItems="center" height="100%" ref={setTargetRef} {...props}>
       <StyledUserMenu
+        $avatarSize={avatarSize}
         onTouchStart={() => {
           setIsOpen((s) => !s);
         }}
       >
-        <MenuIcon className={avatarClassName} avatarSrc={avatarSrc} variant={variant} />
+        <MenuIcon
+          className={avatarClassName}
+          avatarSrc={avatarSrc}
+          variant={variant}
+          avatarSize={avatarSize}
+          avatarRound={avatarRound}
+        />
         <LabelText title={typeof text === "string" ? text || account : account}>
           {text || (ellipsis ? accountEllipsis : account)}
         </LabelText>
-        {!disabled && <ChevronDownIcon color="text" width="24px" />}
+        {!disabled && <ChevronDownIcon color="text" width="20px" />}
       </StyledUserMenu>
       {!disabled && children && (
         <Menu style={{ ...styles.popper, ...popperStyle }} ref={setTooltipRef} {...attributes.popper} $isOpen={isOpen}>

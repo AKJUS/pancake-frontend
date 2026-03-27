@@ -61,7 +61,7 @@ function getPoolId(farm: UniversalFarmConfig) {
 
 export type ChainNameKebab = (typeof chainNamesInKebabCase)[keyof typeof chainNamesInKebabCase]
 
-async function fetchExplorerFarmPools(query: FarmQuery) {
+async function fetchExplorerFarmPools(query: FarmQuery, signal?: AbortSignal) {
   const { protocols, chains } = query
   const chainIds = chains.length > 0 ? chains : supportedChainIdV4
   const chainNames = chainIds.map((chainId) => getEdgeChainName(chainId))
@@ -81,6 +81,7 @@ async function fetchExplorerFarmPools(query: FarmQuery) {
     headers: {
       EXPLORER_API_KEY: process.env.EXPLORER_API_KEY,
     },
+    signal,
   })
 
   return (resp.data || []) as InfinityRouter.RemotePoolBase[]
@@ -129,30 +130,30 @@ async function mergePromiseList<T>(promises: Promise<T[]>[]): Promise<T[]> {
   })
 }
 
-async function fetchFarms(query: FarmQuery, extend: boolean) {
+async function fetchFarms(query: FarmQuery, extend: boolean, signal?: AbortSignal) {
   const { protocols: _protocols, tokens, symbols, chains, sortBy } = query
   const protocols = _protocols.length > 0 ? _protocols : DEFAULT_PROTOCOLS
   const chainIds = chains.length > 0 ? chains : supportedChainIdV4
 
   if (!extend) {
-    return mergePromiseList([fetchExplorerFarmPools(query), fetchAllExplorerPools(query)])
+    return mergePromiseList([fetchExplorerFarmPools(query, signal), fetchAllExplorerPools(query, signal)])
   }
 
   if (tokens && tokens.length > 0) {
-    const byTokenAddress = fetchAllExplorerPoolsByAddress(query, true)
-    const byPoolAddress = fetchAllExplorerPoolsByAddress(query, false)
+    const byTokenAddress = fetchAllExplorerPoolsByAddress(query, true, signal)
+    const byPoolAddress = fetchAllExplorerPoolsByAddress(query, false, signal)
     return mergePromiseList([byTokenAddress, byPoolAddress])
   }
 
   if (symbols && symbols.length > 0) {
-    return fetchAllExplorerPoolsBySymbols(Array.from(chainIds), symbols, protocols, sortBy)
+    return fetchAllExplorerPoolsBySymbols(Array.from(chainIds), symbols, protocols, sortBy, signal)
   }
-  return fetchAllExplorerPools(query)
+  return fetchAllExplorerPools(query, signal)
 }
 
-async function queryFarms(query: FarmQuery, extend: boolean) {
+async function queryFarms(query: FarmQuery, extend: boolean, signal?: AbortSignal) {
   try {
-    const [pools, universalFarms] = await Promise.all([fetchFarms(query, extend), fetchAllUniversalFarms()])
+    const [pools, universalFarms] = await Promise.all([fetchFarms(query, extend, signal), fetchAllUniversalFarms()])
 
     const farmMaps = universalFarms.reduce((acc, farm) => {
       const id = getPoolId(farm)
@@ -212,7 +213,7 @@ function getOrder(sortBy?: FarmQuery['sortBy']): 'tvlUSD' | 'volumeUSD24h' {
   return 'volumeUSD24h'
 }
 
-async function fetchAllExplorerPools(query: FarmQuery) {
+async function fetchAllExplorerPools(query: FarmQuery, signal?: AbortSignal) {
   const { protocols, chains, sortBy } = query
   const chainIds = chains.length > 0 ? chains : supportedChainIdV4
   const poolQuery = {
@@ -222,12 +223,13 @@ async function fetchAllExplorerPools(query: FarmQuery) {
     // Infinity Stable pools may appear beyond page 2 for popular token queries.
     maxPages: 3,
     orderBy: getOrder(sortBy),
+    signal,
   }
   const pools = await edgeQueries.fetchAllPools(poolQuery)
   return pools.map(normalizeAddress).filter((x) => x) as InfinityRouter.RemotePoolBase[]
 }
 
-async function fetchAllExplorerPoolsByAddress(query: FarmQuery, isPool: boolean = false) {
+async function fetchAllExplorerPoolsByAddress(query: FarmQuery, isPool: boolean = false, signal?: AbortSignal) {
   const { protocols, chains, tokens, sortBy } = query
   const chainIds = chains.length > 0 ? chains : supportedChainIdV4
   const protocolList = protocols.length > 0 ? protocols : DEFAULT_PROTOCOLS
@@ -249,6 +251,7 @@ async function fetchAllExplorerPoolsByAddress(query: FarmQuery, isPool: boolean 
         tokens: !isPool ? addrChunk : undefined,
         maxPages: 1,
         orderBy: getOrder(sortBy),
+        signal,
       })
     }),
   )
@@ -263,6 +266,7 @@ async function fetchAllExplorerPoolsBySymbols(
   symbols: string[],
   protocols: Protocol[],
   sortBy?: FarmQuery['sortBy'],
+  signal?: AbortSignal,
 ) {
   if (!protocols.length) return []
   if (!symbols.length) return []
@@ -280,6 +284,7 @@ async function fetchAllExplorerPoolsBySymbols(
         symbols: symbolChunk,
         maxPages: 3,
         orderBy: getOrder(sortBy),
+        signal,
       })
     }),
   )

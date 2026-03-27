@@ -18,6 +18,11 @@ export interface ISelectItem<T extends string | number> extends SelectItem {
 
 export type IOptionType<T extends string | number> = ISelectItem<T>[];
 
+export interface MultiSelectHandle {
+  show: () => void;
+  hide: () => void;
+}
+
 export interface IMultiSelectProps<T extends string | number> extends Omit<MultiSelectProps, "onChange"> {
   value?: T[];
   style?: React.CSSProperties;
@@ -28,4 +33,5 @@ export interface IMultiSelectProps<T extends string | number> extends Omit<Multi
   isShowFilter?: boolean;
   isShowSelectAll?: boolean;
   onChange?: (e: IMultiSelectChangeEvent<T>) => void;
+  panelRef?: React.Ref<MultiSelectHandle>;
 }

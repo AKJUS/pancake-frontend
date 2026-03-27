@@ -1,16 +1,17 @@
 import { useTranslation } from '@pancakeswap/localization'
 import {
   DropdownMenuItemType,
+  FlexGap,
   LogoIcon,
   LogoWithTextIcon,
   Menu as UikitMenu,
+  MoreIcon,
   footerLinks,
   useModal,
 } from '@pancakeswap/uikit'
 import { BIG_ZERO } from '@pancakeswap/utils/bigNumber'
 import { NextLinkFromReactRouter } from '@pancakeswap/widgets-internal'
 import USCitizenConfirmModal from 'components/Modal/USCitizenConfirmModal'
-import { NetworkSwitcher } from 'components/NetworkSwitcher'
 import { useActiveChainId } from 'hooks/useActiveChainId'
 import { useCakePrice } from 'hooks/useCakePrice'
 import { usePerpUrl } from 'hooks/usePerpUrl'
@@ -22,7 +23,10 @@ import { Suspense, lazy, useCallback, useMemo } from 'react'
 import { styled } from 'styled-components'
 import { useCakepadBaseExperience } from 'views/Cakepad/hooks/useCakepadBaseExperience'
 import GlobalSettings from './GlobalSettings'
+import LogoWithMoreMenu from './LogoWithMoreMenu'
+import { NavbarSearchDesktop, NavbarSearchMobile } from '../NavbarSearch'
 import UserMenu from './UserMenu'
+import { WalletPanelProvider } from './WalletPanelContext'
 import { UseMenuItemsParams, useMenuItems } from './hooks/useMenuItems'
 import { getActiveMenuItem, getActiveSubMenuChildItem, getActiveSubMenuItem } from './utils'
 
@@ -96,52 +100,84 @@ const Menu = (props) => {
 
   const filteredLinks = useMemo(() => filterItemsProps(menuItems), [menuItems])
 
+  const moreMenuItem = useMemo(
+    () => menuItems.find((item) => item.icon === MoreIcon && item.href === '/info'),
+    [menuItems],
+  )
+
+  const linksForNav = useMemo(
+    () => filteredLinks.filter((item) => !(item.icon === MoreIcon && item.href === '/info')),
+    [filteredLinks],
+  )
+
+  const cakePriceNumber = useMemo(
+    () => (cakePrice.eq(BIG_ZERO) ? undefined : parseFloat(cakePrice.toFixed(4))),
+    [cakePrice],
+  )
+
   const rightSide = isCakepadBaseRoute ? (
     <UserMenu />
   ) : (
-    <>
-      <GlobalSettings />
+    <FlexGap alignItems="center" flexShrink={0} gap="6px" style={{ minWidth: 0 }}>
+      <NavbarSearchMobile />
       {enabled && (
         <Suspense fallback={null}>
           <Notifications />
         </Suspense>
       )}
-      <NetworkSwitcher />
+      <GlobalSettings />
       <UserMenu />
-    </>
+    </FlexGap>
   )
 
-  const logoComponent = isCakepadBaseRoute ? <StaticLogo /> : undefined
-
-  return (
-    <UikitMenu
-      linkComponent={LinkComponent}
-      rightSide={rightSide}
-      chainId={chainId}
-      banner={null}
-      isDark={isDark}
-      toggleTheme={toggleTheme}
-      showLangSelector={false}
-      cakePriceUsd={cakePrice.eq(BIG_ZERO) ? undefined : cakePrice}
-      links={filteredLinks}
-      subLinks={
-        activeSubMenuItem?.overrideSubNavItems ??
-        activeMenuItem?.overrideSubNavItems ??
-        (activeMenuItem?.hideSubNav || activeSubMenuItem?.hideSubNav
-          ? EMPTY_ARRAY
-          : activeSubMenuItem?.items ?? activeMenuItem?.items)
-      }
-      footerLinks={getFooterLinks}
-      showFooter={!isCakepadBaseRoute}
-      showBottomNav={!isCakepadBaseRoute}
-      activeItem={activeMenuItem?.href}
-      activeSubItem={activeSubMenuItem?.href}
-      activeSubItemChildItem={activeSubChildMenuItem?.href}
+  const logoComponent = isCakepadBaseRoute ? (
+    <StaticLogo />
+  ) : (
+    <LogoWithMoreMenu
+      homeHref="/swap"
+      moreItems={moreMenuItem?.items}
       buyCakeLabel={t('Buy CAKE')}
       buyCakeLink="/swap?outputCurrency=0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82&chainId=56"
-      logoComponent={logoComponent}
-      {...props}
+      chainId={chainId}
+      cakePriceUsd={cakePriceNumber}
     />
+  )
+
+  const headerSearchSlot = isCakepadBaseRoute ? undefined : <NavbarSearchDesktop />
+
+  return (
+    <WalletPanelProvider>
+      <UikitMenu
+        linkComponent={LinkComponent}
+        rightSide={rightSide}
+        chainId={chainId}
+        banner={null}
+        isDark={isDark}
+        toggleTheme={toggleTheme}
+        showLangSelector={false}
+        cakePriceUsd={cakePrice.eq(BIG_ZERO) ? undefined : cakePriceNumber}
+        links={filteredLinks}
+        desktopNavLinks={linksForNav}
+        headerSearchSlot={headerSearchSlot}
+        subLinks={
+          activeSubMenuItem?.overrideSubNavItems ??
+          activeMenuItem?.overrideSubNavItems ??
+          (activeMenuItem?.hideSubNav || activeSubMenuItem?.hideSubNav
+            ? EMPTY_ARRAY
+            : activeSubMenuItem?.items ?? activeMenuItem?.items)
+        }
+        footerLinks={getFooterLinks}
+        showFooter={!isCakepadBaseRoute}
+        showBottomNav={!isCakepadBaseRoute}
+        activeItem={activeMenuItem?.href}
+        activeSubItem={activeSubMenuItem?.href}
+        activeSubItemChildItem={activeSubChildMenuItem?.href}
+        buyCakeLabel={t('Buy CAKE')}
+        buyCakeLink="/swap?outputCurrency=0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82&chainId=56"
+        logoComponent={logoComponent}
+        {...props}
+      />
+    </WalletPanelProvider>
   )
 }
 
@@ -205,7 +241,6 @@ export const SharedComponentWithOutMenu: React.FC<React.PropsWithChildren> = ({ 
                 <Notifications />
               </Suspense>
             )}
-            <NetworkSwitcher />
           </>
         )}
         <UserMenu />

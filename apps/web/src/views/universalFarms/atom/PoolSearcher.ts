@@ -70,14 +70,18 @@ export class PoolSearcher extends Emitter<PoolSearchEvent> {
 
   private tokensMap: Record<string, TokenInfo> = {}
 
+  private abortController?: AbortController
+
   private checkQuery(query: FarmQuery) {
     const newHash = getHashKey({ ...query, page: 0, abort: false })
     const queryUpdated = this.currentHash !== newHash
     const pageUpdated = this.currentQuery?.page !== query.page
 
-    // Set abort flag on the previous query if a new search is starting
+    // Set abort flag on the previous query and cancel in-flight requests if a new search is starting
     if (this.currentQuery && queryUpdated) {
       this.currentQuery.abort = true
+      this.abortController?.abort()
+      this.abortController = new AbortController()
     }
 
     this.currentQuery = query
@@ -95,7 +99,7 @@ export class PoolSearcher extends Emitter<PoolSearchEvent> {
     if (!this.currentQuery?.abort) {
       this.emit(PoolSearchEvent.POOLS_UPDATED, [])
     }
-    this.setState(PoolSearcherState.IDLE)
+    // State is intentionally NOT set to IDLE here — callers manage state transitions
   }
 
   public async search(query: FarmQuery, tokensMap: Record<string, TokenInfo>, useShowTestnet: boolean = false) {
@@ -111,10 +115,11 @@ export class PoolSearcher extends Emitter<PoolSearchEvent> {
     try {
       const page = query.page || 0
       if (queryUpdated) {
+        // Set SEARCHING before clearing so state never flickers to IDLE mid-query
+        this.setState(PoolSearcherState.SEARCHING)
         this.clearStates()
         await wait(100)
-        this.setState(PoolSearcherState.SEARCHING)
-        await this.updatePools(query, useShowTestnet)
+        await this.updatePools(query, useShowTestnet, this.abortController?.signal)
       } else {
         const total = this.all.slice(0, 20 * (page + 1))
         if (total.length === this.all.length) {
@@ -149,9 +154,9 @@ export class PoolSearcher extends Emitter<PoolSearchEvent> {
     }
   }
 
-  private async updatePools(query: FarmQuery, useShowTestnet: boolean) {
+  private async updatePools(query: FarmQuery, useShowTestnet: boolean, signal?: AbortSignal) {
     const checkWhiteList = isInWhitelist(this.tokensMap)
-    const allResults = await this.fetch(query, useShowTestnet)
+    const allResults = await this.fetch(query, useShowTestnet, signal)
     const filtered = this.filter(allResults, query)
 
     for (const farm of filtered) {
@@ -243,7 +248,7 @@ export class PoolSearcher extends Emitter<PoolSearchEvent> {
     }
   }
 
-  private async fetch(query: FarmQuery, useShowTestnet: boolean = false): Promise<FarmInfo[]> {
+  private async fetch(query: FarmQuery, useShowTestnet: boolean = false, signal?: AbortSignal): Promise<FarmInfo[]> {
     // Build queries using the existing buildQueries method
     const queries = this.buildQueries(query, useShowTestnet)
 
@@ -253,11 +258,11 @@ export class PoolSearcher extends Emitter<PoolSearchEvent> {
       throw new Error('No base query found')
     }
 
-    const baseResults = await this.fetchFarmList(baseQuery, false)
+    const baseResults = await this.fetchFarmList(baseQuery, false, signal)
 
     // Fetch extend results if there are extend queries
     const extendQueries = queries.filter((q) => q.extend)
-    const _extendResults = await Promise.allSettled(extendQueries.map((q) => this.fetchFarmList(q.query, true)))
+    const _extendResults = await Promise.allSettled(extendQueries.map((q) => this.fetchFarmList(q.query, true, signal)))
     const extendResults = _extendResults.flatMap((r) => {
       if (r.status === 'fulfilled') {
         return r.value
@@ -282,8 +287,8 @@ export class PoolSearcher extends Emitter<PoolSearchEvent> {
     return filtered
   }
 
-  private async fetchFarmList(query: FarmQuery, extend: boolean): Promise<FarmInfo[]> {
-    const pools = await edgeFarmQueries.queryFarms(query, extend)
+  private async fetchFarmList(query: FarmQuery, extend: boolean, signal?: AbortSignal): Promise<FarmInfo[]> {
+    const pools = await edgeFarmQueries.queryFarms(query, extend, signal)
     return buildFarmList(pools)
   }
 

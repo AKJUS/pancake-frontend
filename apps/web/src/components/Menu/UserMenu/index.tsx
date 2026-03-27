@@ -1,39 +1,45 @@
-import { Trans, useTranslation } from '@pancakeswap/localization'
-import {
-  Box,
-  FlexGap,
-  UserMenu as UIKitUserMenu,
-  useMatchBreakpoints,
-  UserMenuVariant,
-  useTooltip,
-} from '@pancakeswap/uikit'
-import { usePrivy } from '@privy-io/react-auth'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
+import ConnectWalletButton from 'components/ConnectWalletButton'
 import { WalletContent, WalletModalV2 } from 'components/WalletModalV2'
-import { ViewState } from 'components/WalletModalV2/type'
+import { SEND_ENTRY, ViewState } from 'components/WalletModalV2/type'
 import {
   useWalletModalV2ViewState,
   WalletModalV2ViewStateProvider,
 } from 'components/WalletModalV2/WalletModalV2ViewStateProvider'
-import { usePrivyWalletAddress } from 'wallet/Privy/hooks'
+import { useAccountActiveChain } from 'hooks/useAccountActiveChain'
+import { useMultichainAddressBalance } from 'hooks/useAddressBalance'
 import useAuth from 'hooks/useAuth'
 import { useDomainNameForAddress } from 'hooks/useDomain'
 import { useProfile } from 'state/profile/hooks'
 import { usePendingTransactions } from 'state/transactions/hooks'
+import { useCurrentWalletIcon } from 'state/wallet/hooks'
 import styled from 'styled-components'
 import { logGTMDisconnectWalletEvent } from 'utils/customGTMEventTracking'
+import { formatAmount } from 'utils/formatInfoNumbers'
+import { useCakepadBaseExperience } from 'views/Cakepad/hooks/useCakepadBaseExperience'
 import { useAutoFillCode } from 'views/Gift/hooks/useAutoFillCode'
 import { ClaimGiftProvider, useClaimGiftContext } from 'views/Gift/providers/ClaimGiftProvider'
 import { SendGiftProvider, useSendGiftContext } from 'views/Gift/providers/SendGiftProvider'
 import { UnclaimedOnlyProvider } from 'views/Gift/providers/UnclaimedOnlyProvider'
 import { useAccount } from 'wagmi'
-import { useAccountActiveChain } from 'hooks/useAccountActiveChain'
-import { isSolana, NonEVMChainId } from '@pancakeswap/chains'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import ConnectWalletButton from 'components/ConnectWalletButton'
 import SolanaConnectButton from 'wallet/components/SolanaConnectButton'
-import { useCurrentWalletIcon } from 'state/wallet/hooks'
-import { useCakepadBaseExperience } from 'views/Cakepad/hooks/useCakepadBaseExperience'
+import { usePrivyWalletAddress } from 'wallet/Privy/hooks'
+
+import { isSolana, NonEVMChainId } from '@pancakeswap/chains'
+import { Trans, useTranslation } from '@pancakeswap/localization'
+import {
+  Box,
+  FlexGap,
+  useMatchBreakpoints,
+  UserMenu as UIKitUserMenu,
+  UserMenuVariant,
+  useTooltip,
+} from '@pancakeswap/uikit'
+import { usePrivy } from '@privy-io/react-auth'
+import { useWallet } from '@solana/wallet-adapter-react'
+
+import { useWalletPanel } from '../WalletPanelContext'
 import { MenuTabProvider, useMenuTab, WalletView } from './providers/MenuTabProvider'
 
 const UserMenuItems = ({ onReceiveClick, onDismiss }: { onReceiveClick: () => void; onDismiss: () => void }) => {
@@ -79,17 +85,18 @@ const ClickableUserMenu = styled.div`
 
 const ClickablePopover = styled.div<{ isOpen: boolean }>`
   position: absolute;
-  top: 100%;
+  top: calc(100% + 8px);
   right: 0;
   z-index: 1001;
   min-width: 380px;
   background-color: ${({ theme }) => theme.card.background};
   border: 1px solid ${({ theme }) => theme.colors.cardBorder};
   border-radius: 16px;
-  margin-top: 28px;
+  margin-top: 0;
   visibility: ${({ isOpen }) => (isOpen ? 'visible' : 'hidden')};
   opacity: ${({ isOpen }) => (isOpen ? 1 : 0)};
   transition: visibility 0.2s, opacity 0.2s;
+  pointer-events: ${({ isOpen }) => (isOpen ? 'auto' : 'none')};
 `
 
 const useAvatar = () => {
@@ -140,11 +147,49 @@ const UserMenu = () => {
   const [showDesktopPopup] = useState(true)
 
   const { reset: resetViewState, viewState } = useWalletModalV2ViewState()
+  const { setSendEntry, setViewState } = useWalletModalV2ViewState()
   const { setCode, code: giftCode } = useClaimGiftContext()
   const { setNativeAmount, setIncludeStarterGas } = useSendGiftContext()
-  // State for click-based menu
+  const { request: walletPanelRequest, clearWalletPanelRequest } = useWalletPanel()
+  // State for click-based menu (mobile) / hover-based (desktop)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const viewStateRef = useRef(viewState)
+  viewStateRef.current = viewState
   const menuRef = useRef<HTMLDivElement>(null)
+  const hoverLeaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const { totalBalanceUsd } = useMultichainAddressBalance()
+  const desktopBalanceLabel = useMemo(() => {
+    if (isMobile) return undefined
+    const display = formatAmount(totalBalanceUsd)?.split('.')
+    if (!display?.[0]) return undefined
+    return { integer: `$${display[0]}`, decimal: `.${display[1] ?? '00'}` }
+  }, [totalBalanceUsd, isMobile])
+
+  const clearHoverLeave = useCallback(() => {
+    if (hoverLeaveTimer.current) {
+      clearTimeout(hoverLeaveTimer.current)
+      hoverLeaveTimer.current = null
+    }
+  }, [])
+
+  const handleWalletHoverEnter = useCallback(() => {
+    if (isMobile) return
+    clearHoverLeave()
+    setIsMenuOpen(true)
+  }, [isMobile, clearHoverLeave])
+
+  const handleWalletHoverLeave = useCallback(() => {
+    if (isMobile) return
+    if (viewStateRef.current > ViewState.WALLET_INFO) return
+    clearHoverLeave()
+    hoverLeaveTimer.current = setTimeout(() => {
+      if (viewStateRef.current > ViewState.WALLET_INFO) return
+      setIsMenuOpen(false)
+      resetViewState()
+      setCode('')
+    }, 120)
+  }, [isMobile, clearHoverLeave, resetViewState, setCode])
   const { setView } = useMenuTab()
   const [hasInitialized, setHasInitialized] = useState(false)
 
@@ -168,7 +213,7 @@ const UserMenu = () => {
     setHasInitialized(false)
 
     return undefined
-  }, [ready, authenticated, user])
+  }, [ready, authenticated, user, hasInitialized])
 
   // Reset hasInitialized when successfully connected to prevent false error states
   useEffect(() => {
@@ -195,40 +240,79 @@ const UserMenu = () => {
   })
 
   useEffect(() => {
-    if (isMenuOpen) {
+    if (isMenuOpen && viewState === ViewState.WALLET_INFO) {
       setView(WalletView.WALLET_INFO)
       setNativeAmount(undefined)
       setIncludeStarterGas(false)
     }
-  }, [isMenuOpen, setView, setNativeAmount, setIncludeStarterGas])
+  }, [isMenuOpen, viewState, setView, setNativeAmount, setIncludeStarterGas])
 
-  // Handle click outside to close menu
   useEffect(() => {
-    // Disable click outside to close menu when sending gift
-    if (viewState === ViewState.CONFIRM_TRANSACTION) {
-      return undefined
+    if (!walletPanelRequest) return
+
+    if (!(finalAddress || giftCode || isWrongNetwork)) {
+      clearWalletPanelRequest()
+      return
     }
 
-    const handleClickOutside = (event: MouseEvent) => {
-      // Check if the click target is within portal-root
+    setView(WalletView.WALLET_INFO)
+    setNativeAmount(undefined)
+    setIncludeStarterGas(false)
 
+    if (walletPanelRequest.action === 'send') {
+      setSendEntry(SEND_ENTRY.SEND_ONLY)
+      setViewState(ViewState.SEND_ASSETS)
+    } else {
+      setViewState(ViewState.RECEIVE_OPTIONS)
+    }
+
+    if (isMobile) {
+      setShowMobileWalletModal(true)
+    } else {
+      clearHoverLeave()
+      setIsMenuOpen(true)
+    }
+
+    clearWalletPanelRequest()
+  }, [
+    walletPanelRequest,
+    finalAddress,
+    giftCode,
+    isWrongNetwork,
+    clearWalletPanelRequest,
+    setView,
+    setNativeAmount,
+    setIncludeStarterGas,
+    setSendEntry,
+    setViewState,
+    isMobile,
+    clearHoverLeave,
+  ])
+
+  // Click outside to close (mobile always, desktop when in send/receive views)
+  useEffect(() => {
+    const isNonWalletView = viewState > ViewState.WALLET_INFO
+    if (!isMobile && !isNonWalletView) return undefined
+    if (!isMenuOpen && !showMobileWalletModal) return undefined
+    if (viewState === ViewState.CONFIRM_TRANSACTION) return undefined
+
+    const handleClickOutside = (event: MouseEvent) => {
       const portalRoot = document.getElementById('portal-root')
       const isClickInPortal = portalRoot?.contains(event.target as Node)
+      if (isClickInPortal) return
+      if (menuRef.current?.contains(event.target as Node)) return
 
-      // Only close if click is outside menu and not in portal-root
-      if (menuRef.current && !menuRef.current.contains(event.target as Node) && !isClickInPortal) {
-        setIsMenuOpen(false)
-        // reset view state and code
-        resetViewState()
-        setCode('')
-      }
+      setIsMenuOpen(false)
+      if (isMobile) setShowMobileWalletModal(false)
+      resetViewState()
+      setCode('')
     }
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [menuRef, viewState, resetViewState, setCode])
+  }, [isMobile, isMenuOpen, showMobileWalletModal, viewState, resetViewState, setCode])
 
   useEffect(() => {
     if (hasPendingTransactions) {
@@ -249,6 +333,20 @@ const UserMenu = () => {
     }
   }, [disconnect, logout, connector?.name, finalAddress, chainId])
 
+  const accountDisplay = useMemo(() => {
+    return domainName || finalAddress
+  }, [domainName, finalAddress])
+
+  const desktopBalanceText = useMemo(() => {
+    if (isMobile || !desktopBalanceLabel) return undefined
+    return (
+      <>
+        {desktopBalanceLabel.integer}
+        <span style={{ color: 'var(--colors-textSubtle)' }}>{desktopBalanceLabel.decimal}</span>
+      </>
+    )
+  }, [isMobile, desktopBalanceLabel])
+
   if (shouldShowLoading) {
     if (isCakepadBaseRoute) {
       return null
@@ -260,6 +358,7 @@ const UserMenu = () => {
           account={t('Loading...')}
           ellipsis={false}
           avatarSrc={avatarSrc}
+          avatarSize={isMobile ? undefined : 24}
           text=""
           variant="default"
           popperStyle={{
@@ -278,12 +377,13 @@ const UserMenu = () => {
   if (finalAddress || giftCode) {
     return (
       <>
-        <ClickableUserMenu ref={menuRef}>
+        <ClickableUserMenu ref={menuRef} onMouseEnter={handleWalletHoverEnter} onMouseLeave={handleWalletHoverLeave}>
           <UIKitUserMenu
-            account={domainName || finalAddress}
-            ellipsis={!domainName}
+            account={accountDisplay}
+            ellipsis={isMobile ? !domainName : false}
             avatarSrc={avatarSrc}
-            text={userMenuText}
+            avatarSize={isMobile ? undefined : 24}
+            text={userMenuText || desktopBalanceText}
             variant={userMenuVariable}
             popperStyle={{
               minWidth: '380px',
@@ -292,12 +392,8 @@ const UserMenu = () => {
               if (isCakepadBaseRoute) {
                 return
               }
-
               if (isMobile) {
                 setShowMobileWalletModal(true)
-              } else {
-                // Toggle menu on click for desktop
-                setIsMenuOpen((prev) => !prev)
               }
             }}
           >
@@ -305,9 +401,12 @@ const UserMenu = () => {
             {undefined}
           </UIKitUserMenu>
 
-          {/* Custom click-based menu for desktop */}
           {!isMobile && (
-            <ClickablePopover isOpen={isMenuOpen}>
+            <ClickablePopover
+              isOpen={isMenuOpen}
+              onMouseEnter={handleWalletHoverEnter}
+              onMouseLeave={handleWalletHoverLeave}
+            >
               {isMenuOpen && showDesktopPopup && (
                 <UserMenuItems onDismiss={() => setIsMenuOpen(false)} onReceiveClick={() => {}} />
               )}
@@ -338,25 +437,17 @@ const UserMenu = () => {
     }
 
     return (
-      <ClickableUserMenu ref={menuRef}>
-        <UIKitUserMenu
-          text={t('Network')}
-          variant="danger"
-          onClick={() => {
-            if (!isMobile) {
-              setIsMenuOpen((prev) => !prev)
-            }
-          }}
-        >
-          {!isMobile && !isMenuOpen
-            ? ({ isOpen }) =>
-                isOpen && <UserMenuItems onReceiveClick={() => {}} onDismiss={() => setIsMenuOpen(false)} />
-            : undefined}
+      <ClickableUserMenu ref={menuRef} onMouseEnter={handleWalletHoverEnter} onMouseLeave={handleWalletHoverLeave}>
+        <UIKitUserMenu text={t('Network')} variant="danger" avatarSize={isMobile ? undefined : 24}>
+          {undefined}
         </UIKitUserMenu>
 
-        {/* Custom click-based menu for desktop */}
         {!isMobile && (
-          <ClickablePopover isOpen={isMenuOpen}>
+          <ClickablePopover
+            isOpen={isMenuOpen}
+            onMouseEnter={handleWalletHoverEnter}
+            onMouseLeave={handleWalletHoverLeave}
+          >
             {isMenuOpen && <UserMenuItems onReceiveClick={() => {}} onDismiss={() => setIsMenuOpen(false)} />}
           </ClickablePopover>
         )}

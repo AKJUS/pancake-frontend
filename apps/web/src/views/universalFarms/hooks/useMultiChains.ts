@@ -1,9 +1,11 @@
-import { ChainId, isEvm, NonEVMChainId } from '@pancakeswap/chains'
+import { useMemo } from 'react'
+
 import { CHAINS } from 'config/chains'
 import { ASSET_CDN } from 'config/constants/endpoints'
 import { useActiveChainId } from 'hooks/useActiveChainId'
-import { useMemo } from 'react'
 import { useUserShowTestnet } from 'state/user/hooks/useUserShowTestnet'
+
+import { ChainId, isEvm, NonEVMChainId } from '@pancakeswap/chains'
 
 export const MAINNET_CHAINS = CHAINS.filter((chain) => {
   if ('testnet' in chain && chain.testnet && chain.id !== ChainId.BSC_TESTNET && chain.id !== ChainId.MONAD_TESTNET) {
@@ -38,22 +40,24 @@ export const useAllEvmChainIds = () => {
 
 export const useAllChainsOpts = ({ includeSolana = true }: { includeSolana?: boolean } = {}) => {
   const chains = useAllChain()
-  const evmChains = chains.map((chain) => ({
-    icon: `${ASSET_CDN}/web/chains/${chain.id}.png`,
-    value: chain.id,
-    label: chain.name,
-  }))
+  return useMemo(() => {
+    const evmChains = chains.map((chain) => ({
+      icon: `${ASSET_CDN}/web/chains/square/${chain.id}.svg`,
+      value: chain.id,
+      label: chain.name,
+    }))
 
-  if (includeSolana) {
-    // non-evm chains
-    evmChains.unshift({
-      icon: `${ASSET_CDN}/web/chains/${NonEVMChainId.SOLANA}.png`,
-      value: NonEVMChainId.SOLANA,
-      label: 'Solana',
-    })
-  }
+    if (includeSolana) {
+      // non-evm chains
+      evmChains.unshift({
+        icon: `${ASSET_CDN}/web/chains/square/${NonEVMChainId.SOLANA}.svg`,
+        value: NonEVMChainId.SOLANA,
+        label: 'Solana',
+      })
+    }
 
-  return evmChains
+    return evmChains
+  }, [chains, includeSolana])
 }
 
 export const useOrderChainIds = () => {

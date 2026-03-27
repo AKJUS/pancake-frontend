@@ -1,8 +1,12 @@
-import { getChainName as defaultGetChainName } from "@pancakeswap/chains";
-import { Currency, UnifiedCurrency } from "@pancakeswap/sdk";
-import { Flex, Skeleton, Text } from "@pancakeswap/uikit";
 import { styled } from "styled-components";
+
+import { getChainName as defaultGetChainName } from "@pancakeswap/chains";
+import { UnifiedCurrency } from "@pancakeswap/sdk";
+import { Flex, Skeleton, Text } from "@pancakeswap/uikit";
+
 import { ChainLogo, DoubleCurrencyLogo } from "../CurrencyLogo";
+
+const ICON_CHAIN_RATIO = 0.4167;
 
 export interface ITokenInfoProps {
   isReady?: boolean;
@@ -14,6 +18,7 @@ export interface ITokenInfoProps {
   token: UnifiedCurrency;
   quoteToken: UnifiedCurrency;
   iconWidth?: string;
+  showChainLogo?: boolean;
   getChainName?: (chainId: number) => string | undefined;
   getCurrencySymbol?: (token: UnifiedCurrency) => string | undefined;
 }
@@ -25,7 +30,19 @@ const Container = styled.div`
 `;
 
 const IconWrapper = styled.div<{ width?: string }>`
+  position: relative;
   width: ${({ width }) => width ?? "40px"};
+`;
+
+const StyledChainLogo = styled(ChainLogo)`
+  position: absolute;
+  right: -2px;
+  bottom: -6px;
+  z-index: 6;
+
+  & > img {
+    border-radius: 35%;
+  }
 `;
 
 const DescWrapper = styled.div`
@@ -50,10 +67,13 @@ export const TokenOverview: React.FC<ITokenInfoProps> = ({
   token,
   quoteToken,
   iconWidth,
+  showChainLogo = false,
   titleFontSize = "16px",
   getChainName = defaultGetChainName,
   getCurrencySymbol = (token) => token.symbol, // Default alias function
 }) => {
+  const iconSize = parseInt(iconWidth ?? "40");
+
   if (!isReady) {
     return (
       <Container>
@@ -69,6 +89,13 @@ export const TokenOverview: React.FC<ITokenInfoProps> = ({
     <Container>
       <IconWrapper width={iconWidth}>
         {icon ?? <DoubleCurrencyLogo currency0={token} currency1={quoteToken} />}
+        {showChainLogo && token.chainId && (
+          <StyledChainLogo
+            chainId={token.chainId}
+            width={iconSize * ICON_CHAIN_RATIO}
+            height={iconSize * ICON_CHAIN_RATIO}
+          />
+        )}
       </IconWrapper>
       {customContent ?? (
         <Flex flexDirection="column">

@@ -48,7 +48,7 @@ function isNative(address: string): boolean {
   return address === ZERO_ADDRESS
 }
 
-const useIsListedToken = () => {
+export const useIsListedToken = () => {
   const list = useCombinedActiveList()
   return useCallback(
     (chainId: ChainId | NonEVMChainId, tokenAddress: string): boolean => {

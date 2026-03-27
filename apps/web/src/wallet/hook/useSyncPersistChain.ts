@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { allCasesNameToChainId } from '@pancakeswap/chains'
 import { useActiveChainIdRef } from 'hooks/useAccountActiveChain'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSwitchNetworkV2 } from './useSwitchNetworkV2'
 
 let resolvedChainId: number | null = null
@@ -17,6 +17,7 @@ export const useSyncPersistChain = () => {
   const targetChainId = chain ? allCasesNameToChainId[chain] : null
   const shouldSync = !!targetChainId && !!persistChain && resolvedChainId !== targetChainId
   const switchingRef = useRef(false)
+  const [, forceUpdate] = useState(0)
 
   useEffect(() => {
     const handleRouteChangeComplete = () => {
@@ -42,6 +43,7 @@ export const useSyncPersistChain = () => {
         }, 0)
       } else {
         resolvedChainId = targetChainId
+        forceUpdate((n) => n + 1)
       }
       switchingRef.current = false
     })

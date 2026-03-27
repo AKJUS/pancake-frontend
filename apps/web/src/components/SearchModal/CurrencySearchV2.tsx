@@ -1,21 +1,19 @@
-import { useDebounce, useSortedTokensByQuery } from '@pancakeswap/hooks'
+import { useDebounce } from '@pancakeswap/hooks'
 import { useTranslation } from '@pancakeswap/localization'
 /* eslint-disable no-restricted-syntax */
 import { Currency, Token, UnifiedCurrency, UnifiedToken } from '@pancakeswap/sdk'
-import { WrappedTokenInfo, createFilterToken } from '@pancakeswap/token-lists'
+import { WrappedTokenInfo } from '@pancakeswap/token-lists'
 import { AutoColumn, Box, Column, Input, Text, useMatchBreakpoints } from '@pancakeswap/uikit'
 import { useAudioPlay } from '@pancakeswap/utils/user'
 import { KeyboardEvent, RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FixedSizeList } from 'react-window'
-import { isAddress } from 'viem'
 
 import { useActiveChainId } from 'hooks/useActiveChainId'
 import useNativeCurrency from 'hooks/useNativeCurrency'
-import { sanitizeTokenInfos, useAllLists, useInactiveListUrls } from 'state/lists/hooks'
+import { useFilteredSortedTokens } from 'hooks/useTokenSearch'
 import { safeGetAddress } from 'utils'
 
-import { useTokenComparator } from 'hooks/useTokenComparator'
-import { useAllTokens, useIsUserAddedToken, useTokenByChainId } from '../../hooks/Tokens'
+import { useIsUserAddedToken, useTokenByChainId } from '../../hooks/Tokens'
 import Row from '../Layout/Row'
 import CommonBases from './CommonBases'
 import CurrencyListV2 from './CurrencyListV2'
@@ -35,58 +33,6 @@ interface CurrencySearchV2Props {
   height?: number
   tokensToShow?: Token[]
   chainId?: number
-}
-
-function useSearchInactiveTokenLists(
-  search: string | undefined,
-  overrideChainId: number,
-  minResults = 10,
-): WrappedTokenInfo[] {
-  const lists = useAllLists()
-  const inactiveUrls = useInactiveListUrls()
-
-  const { chainId: activeChainId } = useActiveChainId()
-  const chainId = overrideChainId || activeChainId
-
-  const activeTokens = useAllTokens(chainId)
-
-  return useMemo(() => {
-    if (!search || search.trim().length === 0) return []
-    const filterToken = createFilterToken(search, (address) => isAddress(address))
-    const exactMatches: WrappedTokenInfo[] = []
-    const rest: WrappedTokenInfo[] = []
-    const addressSet: { [address: string]: true } = {}
-    const trimmedSearchQuery = search.toLowerCase().trim()
-    for (const url of inactiveUrls) {
-      const list = lists[url]?.current
-      // eslint-disable-next-line no-continue
-      if (!list) continue
-      const sanitizedTokens = sanitizeTokenInfos(list)
-      for (const tokenInfo of sanitizedTokens) {
-        if (
-          tokenInfo.chainId === chainId &&
-          !(tokenInfo.address in activeTokens) &&
-          !addressSet[tokenInfo.address] &&
-          filterToken(tokenInfo)
-        ) {
-          const wrapped: WrappedTokenInfo = new WrappedTokenInfo({
-            ...tokenInfo,
-            address: safeGetAddress(tokenInfo.address) || tokenInfo.address,
-          })
-          addressSet[wrapped.address] = true
-          if (
-            tokenInfo.name?.toLowerCase() === trimmedSearchQuery ||
-            tokenInfo.symbol?.toLowerCase() === trimmedSearchQuery
-          ) {
-            exactMatches.push(wrapped)
-          } else {
-            rest.push(wrapped)
-          }
-        }
-      }
-    }
-    return [...exactMatches, ...rest].slice(0, minResults)
-  }, [activeTokens, chainId, inactiveUrls, lists, minResults, search])
 }
 
 function CurrencySearchV2({
@@ -112,10 +58,6 @@ function CurrencySearchV2({
   const [searchQuery, setSearchQuery] = useState<string>('')
   const debouncedQuery = useDebounce(searchQuery, 200)
 
-  const [invertSearchOrder] = useState<boolean>(false)
-
-  const allTokens = useAllTokens(chainId)
-
   // if they input an address, use it (only when tokensToShow is not set)
   const searchToken = useTokenByChainId(!tokensToShow ? debouncedQuery : undefined, chainId)
   const searchTokenIsAdded = useIsUserAddedToken(searchToken, chainId)
@@ -131,18 +73,9 @@ function CurrencySearchV2({
     return native && native.symbol?.toLowerCase?.()?.indexOf(s) !== -1
   }, [debouncedQuery, native, tokensToShow])
 
-  const filteredTokens: Token[] = useMemo(() => {
-    const filterToken = createFilterToken(debouncedQuery, (address) => isAddress(address))
-    return Object.values(tokensToShow || allTokens).filter(filterToken)
-  }, [tokensToShow, allTokens, debouncedQuery])
-
-  const filteredQueryTokens = useSortedTokensByQuery(filteredTokens, debouncedQuery)
-  const tokenComparator = useTokenComparator(invertSearchOrder, chainId)
-
-  const filteredSortedTokens: Token[] = useMemo(
-    () => [...filteredQueryTokens].sort(tokenComparator),
-    [filteredQueryTokens, tokenComparator],
-  )
+  const { filteredSortedTokens, filteredInactiveTokens } = useFilteredSortedTokens(debouncedQuery, chainId, {
+    tokensToShow,
+  })
 
   const handleCurrencySelect = useCallback(
     (currency: UnifiedCurrency) => {
@@ -186,9 +119,6 @@ function CurrencySearchV2({
     },
     [debouncedQuery, filteredSortedTokens, handleCurrencySelect, native],
   )
-
-  // if no results on main list, show option to expand into inactive (only when tokensToShow is not set)
-  const filteredInactiveTokens = useSearchInactiveTokenLists(!tokensToShow ? debouncedQuery : undefined, chainId)
 
   const hasFilteredInactiveTokens = Boolean(filteredInactiveTokens?.length)
 

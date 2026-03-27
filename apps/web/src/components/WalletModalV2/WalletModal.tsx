@@ -1,4 +1,30 @@
+import React, { useCallback, useMemo, useRef, useState } from 'react'
+
+import { RecentTransactions } from 'components/App/Transactions/TransactionsModal'
+import { ChainLogo } from 'components/Logo/ChainLogo'
+import { useMenuTab, WalletView } from 'components/Menu/UserMenu/providers/MenuTabProvider'
+import { StyledButtonMenuItem, TabsComponent } from 'components/Menu/UserMenu/WalletModal'
+import { walletsConfig } from 'config/wallet'
+import { useActiveChainId } from 'hooks/useActiveChainId'
+import { useIsListedToken, useMultichainAddressBalance } from 'hooks/useAddressBalance'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { useRouter } from 'next/router'
+import { connectedWalletModalVisibleAtom } from 'state/wallet/atom'
+import styled from 'styled-components'
+import { formatAmount } from 'utils/formatInfoNumbers'
+import { ClaimGiftConfirmView } from 'views/Gift/components/ClaimGiftConfirmView'
+import { ClaimGiftView } from 'views/Gift/components/ClaimGiftView'
+import { GiftInfoDetailView } from 'views/Gift/components/GiftInfoDetailView'
+import { GiftsDashboard } from 'views/Gift/components/GiftsDashboard'
+import { CancelGiftProvider } from 'views/Gift/providers/CancelGiftProvider'
+import { useClaimGiftContext } from 'views/Gift/providers/ClaimGiftProvider'
+import { NetworkSelectPanel } from 'components/NetworkSwitcherModal'
+import { useConnect } from 'wagmi'
+
+import { NonEVMChainId } from '@pancakeswap/chains'
+import { useTheme } from '@pancakeswap/hooks'
 import { useTranslation } from '@pancakeswap/localization'
+import { previouslyUsedEvmWalletsAtom } from '@pancakeswap/ui-wallets/src/state/atom'
 import {
   ArrowBackIcon,
   ArrowForwardIcon,
@@ -7,48 +33,29 @@ import {
   ButtonMenu,
   Card,
   CardBody,
+  Checkbox,
+  ChevronDownIcon,
+  Flex,
   FlexGap,
   Modal,
   ModalHeader,
   ModalV2,
   Text,
+  TokensOnPCSIcon,
   useMatchBreakpoints,
 } from '@pancakeswap/uikit'
-
-import { RecentTransactions } from 'components/App/Transactions/TransactionsModal'
-
-import { useTheme } from '@pancakeswap/hooks'
-import { useMenuTab, WalletView } from 'components/Menu/UserMenu/providers/MenuTabProvider'
-import { StyledButtonMenuItem, TabsComponent } from 'components/Menu/UserMenu/WalletModal'
-import { useMultichainAddressBalance } from 'hooks/useAddressBalance'
-import { useRouter } from 'next/router'
-import React, { useCallback, useMemo, useState } from 'react'
-import styled from 'styled-components'
-import { formatAmount } from 'utils/formatInfoNumbers'
-import { ClaimGiftConfirmView } from 'views/Gift/components/ClaimGiftConfirmView'
-import { ClaimGiftView } from 'views/Gift/components/ClaimGiftView'
-import { GiftInfoDetailView } from 'views/Gift/components/GiftInfoDetailView'
-import { GiftsDashboard } from 'views/Gift/components/GiftsDashboard'
-import { NonEVMChainId } from '@pancakeswap/chains'
-import { useActiveChainId } from 'hooks/useActiveChainId'
-import { CancelGiftProvider } from 'views/Gift/providers/CancelGiftProvider'
-import { useAtomValue, useSetAtom } from 'jotai'
-import { connectedWalletModalVisibleAtom } from 'state/wallet/atom'
-import { useConnect } from 'wagmi'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { previouslyUsedEvmWalletsAtom } from '@pancakeswap/ui-wallets/src/state/atom'
-import { walletsConfig } from 'config/wallet'
-import { useClaimGiftContext } from 'views/Gift/providers/ClaimGiftProvider'
+
 import { ActionButton } from './ActionButton'
 import { AssetsList } from './AssetsList'
+import { ConnectedWallets } from './ConnectedWallets'
+import { ConnectedWalletsButton } from './ConnectedWalletsButton'
+import EmptyWalletActions from './EmptyWalletActions'
+import { ReceiveContent } from './ReceiveModal'
+import ReceiveOptionsView from './ReceiveOptionsView'
 import { SendAssets } from './SendAssets'
 import { SEND_ENTRY, ViewState } from './type'
 import { useWalletModalV2ViewState } from './WalletModalV2ViewStateProvider'
-import { ConnectedWalletsButton } from './ConnectedWalletsButton'
-import { ConnectedWallets } from './ConnectedWallets'
-import ReceiveOptionsView from './ReceiveOptionsView'
-import { ReceiveContent } from './ReceiveModal'
-import EmptyWalletActions from './EmptyWalletActions'
 
 interface WalletModalProps {
   isOpen: boolean
@@ -91,6 +98,64 @@ const ActionButtonsContainer = styled(FlexGap)`
   }
 `
 
+const ChainSelectorButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 8px;
+  border-radius: 16px;
+  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
+  border-bottom-width: 2px;
+  background: ${({ theme }) => theme.colors.cardSecondary};
+  cursor: pointer;
+`
+
+const ChainPickerOverlay = styled(Box)`
+  position: absolute;
+  top: 72px;
+  left: 16px;
+  right: 16px;
+  z-index: 10;
+  border-radius: 16px;
+  border: 1px solid ${({ theme }) => theme.colors.secondary};
+  background: ${({ theme }) => theme.colors.input};
+  box-shadow: 2px 2px 2px 2px #7645d933, -2px 2px 2px 2px #7645d933;
+  overflow: hidden;
+`
+
+const ChainPickerBackdrop = styled(Box)`
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+`
+
+const FilterRow = styled(Flex)`
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+`
+
+const FilterPill = styled(Flex)`
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
+  border-bottom-width: 2px;
+  background: ${({ theme }) => theme.colors.cardSecondary};
+`
+
+const TokensOnPCSButton = styled.button<{ $active: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: ${({ theme, $active }) => ($active ? theme.colors.secondary : theme.colors.textSubtle)};
+`
+
 const WalletModal: React.FC<WalletModalProps> = ({
   evmAccount,
   solanaAccount,
@@ -124,8 +189,8 @@ export const WalletContent = ({
   evmAccount,
   solanaAccount,
   onDismiss,
-  onReceiveClick,
-  onDisconnect,
+  onReceiveClick: _onReceiveClick,
+  onDisconnect: _onDisconnect,
 }: {
   evmAccount: string | undefined
   solanaAccount: string | undefined
@@ -145,11 +210,6 @@ export const WalletContent = ({
   const { chainId } = useActiveChainId()
   const [selectedReceiveAccount, setSelectedReceiveAccount] = useState<string | undefined>(undefined)
   const [selectedReceiveChain, setSelectedReceiveChain] = useState<'evm' | 'solana' | undefined>(undefined)
-  const selectedWallet = useMemo(() => {
-    if (selectedReceiveChain === 'evm') return evmAccount
-    if (selectedReceiveChain === 'solana') return solanaAccount
-    return undefined
-  }, [selectedReceiveChain, evmAccount, solanaAccount])
 
   // Wallet connection hooks for getting icons
   const { connectAsync } = useConnect()
@@ -171,6 +231,21 @@ export const WalletContent = ({
 
   // Fetch balances using the hook we created
   const { balances, isLoading, totalBalanceUsd } = useMultichainAddressBalance()
+  const isListedToken = useIsListedToken()
+
+  const [hideSmallBalances, setHideSmallBalances] = useState(false)
+  const [showOnlyListed, setShowOnlyListed] = useState(false)
+  const [showChainPicker, setShowChainPicker] = useState(false)
+  const chainPickerRef = useRef<HTMLButtonElement>(null)
+
+  const filteredBalances = useMemo(() => {
+    return balances.filter((balance) => {
+      if (hideSmallBalances && (balance.price?.totalUsd ?? 0) < 0.1) return false
+      if (showOnlyListed && !isListedToken(balance.chainId, balance.token.address)) return false
+      return true
+    })
+  }, [balances, hideSmallBalances, showOnlyListed, isListedToken])
+
   const balanceDisplay = useMemo(() => {
     const display = formatAmount(totalBalanceUsd)?.split('.')
     return {
@@ -291,20 +366,39 @@ export const WalletContent = ({
       maxHeight={isMobile ? 'auto' : 'calc(100vh - 80px)'}
       maxWidth={isMobile ? '100%' : '377px'}
       overflowY={isMobile ? undefined : 'auto'}
+      position="relative"
     >
-      {(evmAccount || solanaAccount) && viewState === ViewState.WALLET_INFO ? (
+      {showChainPicker && viewState === ViewState.WALLET_INFO && (
         <>
-          <Box padding="16px">
-            <ConnectedWalletsButton
-              evmAccount={evmAccount}
-              solanaAccount={solanaAccount}
-              onClick={() => {
-                setConnectedWalletModalVisible(true)
-                setViewState(ViewState.CONNECTED_WALLETS)
-              }}
-            />
-          </Box>
+          <ChainPickerBackdrop onClick={() => setShowChainPicker(false)} />
+          <ChainPickerOverlay>
+            <NetworkSelectPanel onDismiss={() => setShowChainPicker(false)} />
+          </ChainPickerOverlay>
         </>
+      )}
+      {(evmAccount || solanaAccount) && viewState === ViewState.WALLET_INFO ? (
+        <FlexGap padding="16px" justifyContent="space-between" alignItems="center" gap="8px">
+          <ConnectedWalletsButton
+            evmAccount={evmAccount}
+            solanaAccount={solanaAccount}
+            onClick={() => {
+              setConnectedWalletModalVisible(true)
+              setViewState(ViewState.CONNECTED_WALLETS)
+            }}
+          />
+          <ChainSelectorButton
+            ref={chainPickerRef as React.RefObject<HTMLButtonElement>}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              setShowChainPicker((c) => !c)
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <ChainLogo chainId={chainId} width={32} height={32} />
+            <ChevronDownIcon color="textSubtle" width="24px" />
+          </ChainSelectorButton>
+        </FlexGap>
       ) : null}
       {viewState > ViewState.SEND_ASSETS && (
         <FlexGap py="16px" gap="8px" justifyContent="space-between" alignItems="center">
@@ -354,7 +448,7 @@ export const WalletContent = ({
               )}
               <Card background={theme.colors.cardSecondary} mb="16px">
                 <CardBody p="16px">
-                  <Text fontSize="20px" fontWeight="600" mb="8px">
+                  <Text fontSize="20px" fontWeight="600">
                     {t('My Wallet')}
                   </Text>
                   <FlexGap alignItems="center" gap="3px">
@@ -366,9 +460,33 @@ export const WalletContent = ({
               {view === WalletView.GIFTS ? (
                 <GiftsDashboard setViewState={setViewState} />
               ) : view === WalletView.WALLET_INFO && !noAssets ? (
-                <Box mt="16px">
-                  <AssetsList assets={balances} isLoading={isLoading} />
-                </Box>
+                <>
+                  <FilterRow mb="16px">
+                    <FilterPill>
+                      <Text fontSize="14px" color="textSubtle">
+                        {t('Hide small balances')}
+                      </Text>
+                      <Checkbox
+                        scale="xs"
+                        checked={hideSmallBalances}
+                        onChange={() => setHideSmallBalances((c) => !c)}
+                      />
+                    </FilterPill>
+                    <TokensOnPCSButton
+                      type="button"
+                      $active={showOnlyListed}
+                      onClick={() => setShowOnlyListed((c) => !c)}
+                    >
+                      <TokensOnPCSIcon width="24px" color={showOnlyListed ? 'secondary' : 'textSubtle'} />
+                      <Text fontSize="12px" color={showOnlyListed ? 'secondary' : 'textSubtle'}>
+                        {t('Tokens on PancakeSwap')}
+                      </Text>
+                    </TokensOnPCSButton>
+                  </FilterRow>
+                  <Box>
+                    <AssetsList assets={filteredBalances} isLoading={isLoading} />
+                  </Box>
+                </>
               ) : (
                 !noAssets && (
                   <Box padding="16px 0" maxHeight="280px" overflow="auto">

@@ -1,4 +1,5 @@
 import styled from "styled-components";
+
 import { Box } from "../../components/Box";
 import { MENU_HEIGHT } from "./config";
 
@@ -14,13 +15,18 @@ export const StyledNav = styled.nav`
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  min-width: 320px;
   height: ${MENU_HEIGHT}px;
   background-color: ${({ theme }) => theme.nav.background};
   border-bottom: 1px solid ${({ theme }) => theme.colors.cardBorder};
   transform: translate3d(0, 0, 0);
 
-  padding-left: 16px;
-  padding-right: 16px;
+  padding-left: 8px;
+  padding-right: 8px;
+  ${({ theme }) => theme.mediaQueries.sm} {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
 `;
 
 export const FixedContainer = styled("div").withConfig({

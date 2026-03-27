@@ -5,10 +5,10 @@ import { Percent } from '@pancakeswap/sdk'
 import { WrappedTokenInfo } from '@pancakeswap/token-lists'
 import {
   AutoRenewIcon,
-  BalanceInput,
   Box,
   Button,
   CloseIcon,
+  Flex,
   FlexGap,
   IconButton,
   Input,
@@ -108,6 +108,39 @@ const AddressInputWrapper = styled(Box)`
 const ClearButton = styled(IconButton)`
   width: 20px;
   height: 20px;
+`
+
+const CurrencyInputContainer = styled(Box)`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 80px;
+  padding: 0 16px;
+  background-color: ${({ theme }) => theme.colors.input};
+  border: 1px solid ${({ theme }) => theme.colors.inputSecondary};
+  border-radius: 24px;
+  box-shadow: ${({ theme }) => theme.shadows.inset};
+`
+
+const AmountStyledInput = styled.input`
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 24px;
+  font-weight: 600;
+  text-align: right;
+  color: ${({ theme }) => theme.colors.text};
+  font-family: inherit;
+
+  ::placeholder {
+    color: ${({ theme }) => theme.colors.textSubtle};
+  }
+
+  &:focus {
+    outline: none;
+  }
 `
 
 const ErrorMessage = styled(Text)`
@@ -588,17 +621,13 @@ export const SendAssetForm: React.FC<SendAssetFormProps> = ({ asset, onViewState
       if (isSolanaChain) {
         const frontendCheck = isLikelyWalletAddress(debouncedAddress)
         if (!frontendCheck.ok) {
-          console.info('Frontend validation failed:', frontendCheck.reason)
-          const errorMsg = t('Invalid wallet address') || 'Invalid Solana wallet address'
-          console.info('Setting address error to:', errorMsg)
-          setAddressError(errorMsg)
+          setAddressError(t('Invalid wallet address') || 'Invalid Solana wallet address')
           return
         }
 
         try {
           const rpcCheck = await isEOASystemAccount(connection, frontendCheck.pubkey!)
           if (!rpcCheck.ok) {
-            console.log('RPC validation failed:', rpcCheck.reason)
             setAddressError(t('Invalid wallet address') || 'Invalid Solana wallet address')
             return
           }
@@ -754,8 +783,24 @@ export const SendAssetForm: React.FC<SendAssetFormProps> = ({ asset, onViewState
             )}
 
             <Box>
-              <FlexGap alignItems="center" gap="8px" justifyContent="space-between" position="relative">
-                <FlexGap alignItems="center" gap="8px" mb="8px">
+              <Flex justifyContent="flex-end" position="relative" height="18px" mb="8px">
+                <LazyAnimatePresence mode="wait" features={domAnimation}>
+                  {tokenBalance ? (
+                    !isInputFocus ? (
+                      <SwapUIV2.WalletAssetDisplay
+                        isUserInsufficientBalance={isInsufficientBalance}
+                        balance={tokenBalance.toSignificant(6)}
+                        onMax={handleMaxInput}
+                      />
+                    ) : (
+                      <SwapUIV2.AssetSettingButtonList onPercentInput={handlePercentInput} />
+                    )
+                  ) : null}
+                </LazyAnimatePresence>
+              </Flex>
+
+              <CurrencyInputContainer>
+                <FlexGap alignItems="center" gap="8px" flexShrink={0} pl="4px">
                   <AssetContainer>
                     <CurrencyLogo
                       currency={currency}
@@ -772,52 +817,35 @@ export const SendAssetForm: React.FC<SendAssetFormProps> = ({ asset, onViewState
                     </ChainIconWrapper>
                   </AssetContainer>
                   <FlexGap flexDirection="column">
-                    <FlexGap alignItems="center" gap="8px">
-                      <Text fontWeight="bold" fontSize="20px">
-                        {asset.token.symbol}
-                      </Text>
-                      {/* {isSolanaChain && (
-                        <IconButton
-                          scale="sm"
-                          variant="tertiary"
-                          onClick={() => setShowPriorityFeeModal(true)}
-                          title={t('Priority Fee Settings')}
-                        >
-                          <CogIcon width="16px" height="16px" />
-                        </IconButton>
-                      )} */}
-                    </FlexGap>
-                    <Text color="textSubtle" fontSize="12px" mt="-4px">{`${chainName?.toUpperCase() ?? '-'} ${t(
-                      'Chain',
-                    )}`}</Text>
+                    <Text fontWeight="bold" fontSize="20px" lineHeight="1.2">
+                      {asset.token.symbol}
+                    </Text>
+                    <Text color="textSubtle" fontSize="12px" lineHeight="1.2">
+                      {chainName}
+                    </Text>
                   </FlexGap>
                 </FlexGap>
-                <Box position="relative">
-                  <LazyAnimatePresence mode="wait" features={domAnimation}>
-                    {tokenBalance ? (
-                      !isInputFocus ? (
-                        <SwapUIV2.WalletAssetDisplay
-                          isUserInsufficientBalance={isInsufficientBalance}
-                          balance={tokenBalance.toSignificant(6)}
-                          onMax={handleMaxInput}
-                        />
-                      ) : (
-                        <SwapUIV2.AssetSettingButtonList onPercentInput={handlePercentInput} />
-                      )
-                    ) : null}
-                  </LazyAnimatePresence>
-                </Box>
-              </FlexGap>
+                <AmountStyledInput
+                  pattern={`^[0-9]*[.,]?[0-9]{0,${currency?.decimals ?? 18}}$`}
+                  inputMode="decimal"
+                  min="0"
+                  value={amount}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    if (e.currentTarget.validity.valid) {
+                      handleAmountChange(e.currentTarget.value.replace(/,/g, '.'))
+                    }
+                  }}
+                  onFocus={() => setIsInputFocus(true)}
+                  onBlur={handleUserInputBlur}
+                  placeholder="0.0"
+                />
+              </CurrencyInputContainer>
 
-              <BalanceInput
-                value={amount}
-                onUserInput={handleAmountChange}
-                onFocus={() => setIsInputFocus(true)}
-                onBlur={handleUserInputBlur}
-                currencyValue={amount ? `~${(parseFloat(amount) * price).toFixed(2)} USD` : ''}
-                placeholder="0.0"
-                unit={asset.token.symbol}
-              />
+              {amount && parseFloat(amount) > 0 && (
+                <Text fontSize="12px" textAlign="right" color="textSubtle" mt="4px">
+                  {`~${(parseFloat(amount) * price).toFixed(2)} USD`}
+                </Text>
+              )}
               {isInsufficientBalance && amount && (
                 <Text color="failure" fontSize="14px" mt="8px">
                   {t('Insufficient balance')}
@@ -867,8 +895,7 @@ export const SendAssetForm: React.FC<SendAssetFormProps> = ({ asset, onViewState
       <SolanaPriorityFeeModal
         isOpen={showPriorityFeeModal}
         onDismiss={() => setShowPriorityFeeModal(false)}
-        onSave={(fee) => {
-          console.log('Priority fee updated:', fee)
+        onSave={(_fee) => {
           // Fee updates will automatically trigger estimateTransactionFee re-estimation
         }}
       />
