@@ -7,7 +7,6 @@ import { useEffect, useMemo } from 'react'
 import { useUserShowTestnet } from 'state/user/hooks/useUserShowTestnet'
 import { LiquidityType } from 'utils/types'
 import { useProtocolSupported } from 'views/CreateLiquidityPool/hooks/useProtocolSupported'
-import { monadTestnet } from 'wagmi/chains'
 
 interface NetworkSelectorProps {
   chainId?: number
@@ -34,7 +33,7 @@ export const NetworkSelector = ({
         .filter((chain) => version !== 'v2' || isV2Supported(chain.id))
         .filter((chain) => {
           if (chain.id === chainId) return true
-          if ('testnet' in chain && chain.testnet && chain.id !== monadTestnet.id) return showTestnet
+          if ('testnet' in chain && chain.testnet) return showTestnet
           return true
         }),
     [version, chainId, showTestnet, isInfinitySupported, isStableSwapSupported, isV2Supported, isV3Supported],
