@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 
 import { CHAIN_QUERY_NAME } from 'config/chains'
-import { PERSIST_CHAIN_KEY } from 'config/constants'
 import { chainIdToExplorerInfoChainName, explorerApiClient } from 'state/info/api/client'
 import { multiChainName, multiChainPaths } from 'state/info/constant'
 import { InfoDataSource } from 'state/info/types'
@@ -120,13 +119,13 @@ export function getSwapPath(item: SearchResult) {
       const cakeAddress = CAKE[item.chainId as ChainId]?.address
       const inputCurrency = cakeAddress ?? 'CAKE'
       const outputCurrency = native?.symbol ?? item.symbol
-      return `/swap?inputCurrency=${inputCurrency}&outputCurrency=${outputCurrency}&chain=${chainQueryName}&${PERSIST_CHAIN_KEY}=1`
+      return `/swap?inputCurrency=${inputCurrency}&outputCurrency=${outputCurrency}&chainOut=${chainQueryName}`
     }
 
-    return `/swap?outputCurrency=${item.address}&chain=${chainQueryName}&${PERSIST_CHAIN_KEY}=1`
+    return `/swap?outputCurrency=${item.address}&chainOut=${chainQueryName}`
   }
 
-  return `/swap?inputCurrency=${item.token0Address}&outputCurrency=${item.token1Address}&chain=${chainQueryName}&${PERSIST_CHAIN_KEY}=1`
+  return `/swap?inputCurrency=${item.token0Address}&outputCurrency=${item.token1Address}&chainOut=${chainQueryName}`
 }
 
 export async function getDetailPath(item: SearchResult) {
