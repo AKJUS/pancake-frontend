@@ -5,6 +5,7 @@ import useAllTicksQuery, { TickData } from 'hooks/useAllTicksQuery'
 import { useMemo } from 'react'
 
 import { getActiveTick } from 'utils/getActiveTick'
+import { isAddressEqual } from 'utils'
 import { PoolState, TickProcessed } from './types'
 import { usePool } from './usePools'
 import computeSurroundingTicks from './utils/computeSurroundingTicks'
@@ -148,6 +149,13 @@ export function useActiveLiquidityByPool({
 
     const token0 = currencyA?.wrapped
     const token1 = currencyB?.wrapped
+
+    if (!token0 || !token1 || isAddressEqual(token0.address, token1.address)) {
+      return {
+        data: undefined,
+        activeTick,
+      }
+    }
 
     // find where the active tick would be to partition the array
     // if the active tick is initialized, the pivot will be an element

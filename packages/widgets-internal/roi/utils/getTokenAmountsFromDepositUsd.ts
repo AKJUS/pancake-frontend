@@ -39,6 +39,11 @@ export function getTokenAmountsFromDepositUsd({
   }
 
   const usdAmount = parseFloat(usdValue);
+  const wrappedA = currencyA.wrapped;
+  const wrappedB = currencyB.wrapped;
+  if (wrappedA.address.toLowerCase() === wrappedB.address.toLowerCase()) {
+    return [];
+  }
   const isToken0 = currencyA.wrapped.sortsBefore(currencyB.wrapped);
   const token0 = isToken0 ? currencyA : currencyB;
   const token1 = isToken0 ? currencyB : currencyA;
