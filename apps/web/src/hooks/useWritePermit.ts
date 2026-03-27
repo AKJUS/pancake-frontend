@@ -9,10 +9,19 @@ import { Token } from '@pancakeswap/swap-sdk-core'
 import { Permit2Signature } from '@pancakeswap/universal-router-sdk'
 import { useCallback } from 'react'
 import { publicClient } from 'utils/viem'
-import { Address, isHex } from 'viem'
+import { Address, Hex, isHex, parseSignature, serializeSignature } from 'viem'
 import { useSignTypedData, useWalletClient } from 'wagmi'
 import { useAccountActiveChain } from './useAccountActiveChain'
 import { useIsSmartContract } from './useIsSmartContract'
+
+const normalizeSignatureV = (signature: Hex): Hex => {
+  try {
+    // Canonicalize signature v/yParity to legacy 27/28 encoding.
+    return serializeSignature(parseSignature(signature))
+  } catch {
+    return signature
+  }
+}
 
 const useAllowanceTransferPermit = (overrideChainId?: number) => {
   const { account, chainId: activeChainId } = useAccountActiveChain()
@@ -85,6 +94,7 @@ export const useWritePermit = (token?: Token, spender?: Address, nonce?: number,
 
     // @hack: trust extension wallet doesn't prefix the signature with 0x
     signature = isHex(signature) ? signature : `0x${signature}`
+    signature = normalizeSignatureV(signature)
 
     return {
       ...permit,
