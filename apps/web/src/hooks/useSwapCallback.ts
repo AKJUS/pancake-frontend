@@ -141,6 +141,9 @@ export function useSwapCallback(
               trade.tradeType === TradeType.EXACT_OUTPUT
                 ? trade.outputAmount.toSignificant(3)
                 : trade.minimumAmountOut(pct).toSignificant(3)
+            const quotedInputAmountRaw = trade.inputAmount.toExact()
+            const maximumAmountInRaw =
+              trade.tradeType === TradeType.EXACT_INPUT ? quotedInputAmountRaw : trade.maximumAmountIn(pct).toExact()
             const quotedOutputAmountRaw = trade.outputAmount.toExact()
             const minimumAmountOutRaw =
               trade.tradeType === TradeType.EXACT_OUTPUT ? quotedOutputAmountRaw : trade.minimumAmountOut(pct).toExact()
@@ -189,6 +192,8 @@ export function useSwapCallback(
               chainId,
               inputAmount,
               outputAmount,
+              quotedInputAmountRaw,
+              maximumAmountInRaw,
               quotedOutputAmountRaw,
               minimumAmountOutRaw,
               input: trade.inputAmount.currency,

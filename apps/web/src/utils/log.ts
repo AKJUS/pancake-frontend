@@ -22,6 +22,8 @@ export const logSwap = ({
   output,
   inputAmount,
   outputAmount,
+  quotedInputAmountRaw,
+  maximumAmountInRaw,
   quotedOutputAmountRaw,
   minimumAmountOutRaw,
   chainId,
@@ -36,6 +38,8 @@ export const logSwap = ({
   output: UnifiedCurrency
   inputAmount?: string
   outputAmount?: string
+  quotedInputAmountRaw?: string
+  maximumAmountInRaw?: string
   quotedOutputAmountRaw?: string
   minimumAmountOutRaw?: string
   chainId: number
@@ -51,6 +55,8 @@ export const logSwap = ({
       outputAddress: output.isToken ? output.address.toLowerCase() : output.symbol,
       inputAmount,
       outputAmount,
+      quotedInputAmountRaw,
+      maximumAmountInRaw,
       quotedOutputAmountRaw,
       minimumAmountOutRaw,
       account,

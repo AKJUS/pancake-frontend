@@ -863,6 +863,8 @@ const useConfirmActions = (
             setOrderHash(xOrder.hash)
             const inputAmount = order.trade.maximumAmountIn.toExact()
             const outputAmount = order.trade.minimumAmountOut.toExact()
+            const quotedInputAmountRaw = order.trade.inputAmount.toExact()
+            const maximumAmountInRaw = order.trade.maximumAmountIn.toExact()
             const quotedOutputAmountRaw = order.trade.outputAmount.toExact()
             const minimumAmountOutRaw =
               order.trade.tradeType === TradeType.EXACT_OUTPUT
@@ -878,6 +880,8 @@ const useConfirmActions = (
               hash: xOrder.hash,
               inputAmount,
               outputAmount,
+              quotedInputAmountRaw,
+              maximumAmountInRaw,
               quotedOutputAmountRaw,
               minimumAmountOutRaw,
               input,
@@ -894,6 +898,8 @@ const useConfirmActions = (
                 hash: receipt.transactionHash,
                 inputAmount,
                 outputAmount,
+                quotedInputAmountRaw,
+                maximumAmountInRaw,
                 quotedOutputAmountRaw,
                 minimumAmountOutRaw,
                 input,
