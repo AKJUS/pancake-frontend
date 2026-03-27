@@ -7,6 +7,7 @@ import {
   Menu as UikitMenu,
   MoreIcon,
   footerLinks,
+  useMatchBreakpoints,
   useModal,
 } from '@pancakeswap/uikit'
 import { BIG_ZERO } from '@pancakeswap/utils/bigNumber'
@@ -50,6 +51,7 @@ const EMPTY_ARRAY = []
 const Menu = (props) => {
   const { enabled } = useWebNotifications()
   const { chainId } = useActiveChainId()
+  const { isMobile } = useMatchBreakpoints()
   const { isDark, setTheme } = useTheme()
   const cakePrice = useCakePrice()
   const { currentLanguage, t } = useTranslation()
@@ -119,7 +121,7 @@ const Menu = (props) => {
     <UserMenu />
   ) : (
     <FlexGap alignItems="center" flexShrink={0} gap="6px" style={{ minWidth: 0 }}>
-      <NavbarSearchMobile />
+      {isMobile && <NavbarSearchMobile />}
       {enabled && (
         <Suspense fallback={null}>
           <Notifications />
@@ -143,7 +145,7 @@ const Menu = (props) => {
     />
   )
 
-  const headerSearchSlot = isCakepadBaseRoute ? undefined : <NavbarSearchDesktop />
+  const headerSearchSlot = isCakepadBaseRoute || isMobile ? undefined : <NavbarSearchDesktop />
 
   return (
     <WalletPanelProvider>

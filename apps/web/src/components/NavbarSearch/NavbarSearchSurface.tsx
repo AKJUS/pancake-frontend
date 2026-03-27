@@ -154,6 +154,22 @@ export const NavbarSearchSurface: React.FC<{ mobile?: boolean }> = ({ mobile = f
   }, [])
 
   useEffect(() => {
+    if (mobile) return undefined
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== '/') return
+      const target = event.target
+      if (!(target instanceof HTMLElement)) return
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return
+      event.preventDefault()
+      setOpen(true)
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [mobile])
+
+  useEffect(() => {
     if (!open) return undefined
 
     const timer = window.setTimeout(() => {
