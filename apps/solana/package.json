@@ -168,7 +168,7 @@
     "eslint-plugin-cypress": "^2.12.1",
     "eslint-plugin-lodash": "^7.4.0",
     "eslint-plugin-react": "^7.31.7",
-    "happy-dom": "^13.3.8",
+    "happy-dom": "^20.8.8",
     "lint-staged": "^12.3.4",
     "openapi-typescript": "7.0.0-rc.0",
     "openapi-typescript-helpers": "^0.0.8",
