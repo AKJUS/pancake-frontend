@@ -559,11 +559,31 @@ export const useV3FormDerivedApr = (pool: PoolInfo, inverted?: boolean) => {
     protocolFee,
   })
 
+  const dynamicExternalApr = useMemo(() => {
+    if (!inRange || !_pool?.liquidity || !liquidity) return { merklApr: 0, incentraApr: 0 }
+
+    const poolLiquidity = new BN(_pool.liquidity.toString())
+    const positionLiquidity = new BN(liquidity.toString())
+    const positionShare = positionLiquidity.div(poolLiquidity.plus(positionLiquidity))
+    const poolTvlUsd = new BN(pool.tvlUsd ?? 0)
+
+    const calcDynamic = (poolApr: string | undefined) => {
+      const aprValue = parseFloat(poolApr ?? '0') || 0
+      if (!aprValue || !poolTvlUsd.gt(0)) return aprValue
+      return poolTvlUsd.times(aprValue).times(positionShare).div(userTVLUsd).toNumber()
+    }
+
+    return {
+      merklApr: calcDynamic(merklApr),
+      incentraApr: calcDynamic(incentraApr),
+    }
+  }, [inRange, _pool?.liquidity, liquidity, pool.tvlUsd, merklApr, incentraApr, userTVLUsd])
+
   return {
     lpApr: parseFloat(`${formatPercent(apr, 5) || '0'}`) / 100,
     cakeApr,
-    merklApr: inRange ? parseFloat(merklApr ?? 0) ?? 0 : 0,
-    incentraApr: inRange ? parseFloat(incentraApr ?? 0) ?? 0 : 0,
+    merklApr: dynamicExternalApr.merklApr,
+    incentraApr: dynamicExternalApr.incentraApr,
   }
 }
 
