@@ -37,7 +37,8 @@ export const Kbd = styled(Box)`
 
 export const SearchModalCard = styled.div`
   width: 100%;
-  height: 600px;
+  height: 80vh;
+  min-height: 388px;
   border-radius: 32px 32px 0 0;
   background: ${({ theme }) => theme.colors.cardSecondary};
   overflow: hidden;
@@ -46,7 +47,6 @@ export const SearchModalCard = styled.div`
 
   ${({ theme }) => theme.mediaQueries.md} {
     width: min(440px, calc(100vw - 16px));
-    height: 488px;
     border-radius: 24px;
   }
 `

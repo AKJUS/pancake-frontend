@@ -144,7 +144,7 @@ const LogoWithMoreMenu: React.FC<Props> = ({
           style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}
         >
           {item.label}
-          <OpenNewIcon color="textPrimary" width="18px" />
+          <OpenNewIcon width="18px" />
         </Text>
       )
     }
