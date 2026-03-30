@@ -126,7 +126,7 @@ export const usePoolFarmRewardsFormAPI = ({ chainId, address, poolId, timestamp 
   })
 }
 
-const useClaimedRewardsFromAPI = ({ chainId, address }: UserClaimedRewardsProps) => {
+export const useClaimedRewardsFromAPI = ({ chainId, address }: UserClaimedRewardsProps) => {
   const [latestTxReceipt] = useLatestTxReceipt()
   const { data: claimedHistory } = useQuery({
     queryKey: ['ClaimedRewardsFromAPI', chainId, address, latestTxReceipt?.blockHash],

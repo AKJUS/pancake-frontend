@@ -1,11 +1,11 @@
-import styled from 'styled-components'
-import { AddIcon, Button, Flex, IconButton, MinusIcon, useModalV2 } from '@pancakeswap/uikit'
+import { AddIcon, Button, IconButton, MinusIcon, useModalV2 } from '@pancakeswap/uikit'
 import { useTranslation } from '@pancakeswap/localization'
 import { SolanaV3PoolInfo } from 'state/farmsV4/state/type'
 import { SolanaV3PositionDetail } from 'state/farmsV4/state/accountPositions/type'
-import { useCallback, useMemo, useState, memo } from 'react'
-import { useHarvestRewardCallback } from 'hooks/solana/useHarvestRewardCallback'
+import { useCallback, useMemo, memo } from 'react'
+// import { useHarvestRewardCallback } from 'hooks/solana/useHarvestRewardCallback'
 import { useSolanaV3RewardInfoFromSimulation } from 'views/universalFarms/hooks/useSolanaV3RewardInfoFromSimulation'
+import { useOpenHarvestModal } from 'components/HarvestPositionsModal'
 import SolanaV3RemovePositionModal from '../Modals/solana/SolanaV3RemovePositionModal'
 import { StopPropagation } from '../StopPropagation'
 import { SolanaV3AddPositionModal } from '../Modals/solana/SolanaV3AddPositionModal'
@@ -31,17 +31,23 @@ export const SolanaV3PositionActions: React.FC<ActionPanelProps> = memo(
     const handleRemovePositionClick = useCallback(() => {
       removePositionModal.onOpen()
     }, [removePositionModal])
-    const harvestReward = useHarvestRewardCallback()
-    const [sending, setSending] = useState(false)
-    const handleHarvest = useCallback(async () => {
-      if (!poolInfo) return
-      setSending(true)
-      await harvestReward({
-        params: { poolInfo: poolInfo.rawPool, position },
-        onSent: () => setSending(false),
-        onFinally: () => setSending(false),
-      })
-    }, [harvestReward, poolInfo, position])
+    const openHarvestModal = useOpenHarvestModal()
+    // Inline per-position harvest (direct tx) — replaced by HarvestEarningsModal via useOpenHarvestModal
+    // where HarvestModalContext is provided (universal farms, Solana position page, pool detail).
+    // const harvestReward = useHarvestRewardCallback()
+    // const [sending, setSending] = useState(false)
+    // const handleHarvest = useCallback(async () => {
+    //   if (!poolInfo) return
+    //   setSending(true)
+    //   await harvestReward({
+    //     params: { poolInfo: poolInfo.rawPool, position },
+    //     onSent: () => setSending(false),
+    //     onFinally: () => setSending(false),
+    //   })
+    // }, [harvestReward, poolInfo, position])
+    const handleHarvest = useCallback(() => {
+      openHarvestModal?.('solana')
+    }, [openHarvestModal])
 
     const { breakdownRewardInfo } = useSolanaV3RewardInfoFromSimulation({
       poolInfo,
@@ -70,7 +76,7 @@ export const SolanaV3PositionActions: React.FC<ActionPanelProps> = memo(
               {t('Add')}
             </Button>
             {hasRewards && (
-              <Button variant="primary" id="sol-v3-harvest-btn" isLoading={sending} onClick={handleHarvest}>
+              <Button variant="primary" id="sol-v3-harvest-btn" disabled={!openHarvestModal} onClick={handleHarvest}>
                 {t('Harvest')}
               </Button>
             )}
@@ -100,7 +106,7 @@ export const SolanaV3PositionActions: React.FC<ActionPanelProps> = memo(
             </IconButton>
           )}
           {hasRewards && (
-            <Button variant="primary" id="sol-v3-harvest-btn" isLoading={sending} onClick={handleHarvest}>
+            <Button variant="primary" id="sol-v3-harvest-btn" disabled={!openHarvestModal} onClick={handleHarvest}>
               {t('Harvest')}
             </Button>
           )}

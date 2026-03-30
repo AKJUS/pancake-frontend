@@ -4,7 +4,6 @@ import {
   Flex,
   FlexGap,
   Text,
-  useMatchBreakpoints,
   FeeTier,
   IconButton,
   ChevronUpIcon,
@@ -13,13 +12,12 @@ import {
 } from '@pancakeswap/uikit'
 import { TokenPairLogo } from 'components/TokenImage'
 import { InfinityFeeTierBreakdown } from 'components/FeeTierBreakdown'
-import { MerklTag } from 'components/Merkl/MerklTag'
-import { IncentraTag } from 'components/Incentra/IncentraTag'
+import { MerklTagV2 } from 'components/Merkl/MerklTag'
+import { IncentraTagV2 } from 'components/Incentra/IncentraTag'
 import { useTranslation } from '@pancakeswap/localization'
 import { formatDollarAmount } from 'views/V3Info/utils/numbers'
 import { CurrencyLogo } from '@pancakeswap/widgets-internal'
 import { Tooltips } from 'components/Tooltips'
-import { formatAmount } from '@pancakeswap/utils/formatInfoNumbers'
 import { PriceRangeDisplay } from 'views/PoolDetail/components/ProtocolPositionsTables/PriceRangeDisplay'
 import { UnifiedPositionDetail, SolanaV3PositionDetail } from 'state/farmsV4/state/accountPositions/type'
 import { InfinityPoolInfo, type UnifiedPoolInfo } from 'state/farmsV4/state/type'
@@ -31,9 +29,10 @@ import { CurrencyAmount, UnifiedCurrency, UnifiedCurrencyAmount } from '@pancake
 import { HookData } from '@pancakeswap/infinity-sdk'
 import { BigNumber as BN } from 'bignumber.js'
 import { useRouter } from 'next/router'
-import { useMemo, memo, useState, useCallback, useRef } from 'react'
+import { useMemo, memo, useState, useCallback } from 'react'
 import { formatNumber } from '@pancakeswap/utils/formatNumber'
 import { RangeTag } from 'components/RangeTag'
+import { useOpenHarvestModal } from 'components/HarvestPositionsModal'
 import { useSelectedProtocols } from '../PoolsFilterPanel'
 import { ExpandedRowContent } from './ExpandedRowContent'
 import { PositionDebugView } from '../PositionItem/PositionDebugView'
@@ -161,6 +160,8 @@ export interface PositionDisplayData {
   onHarvest?: () => void
   /** For Infinity positions: whether there are unclaimed rewards to harvest */
   hasUnclaimedRewards?: boolean
+  /** For Infinity positions: whether merkle root is mismatched (claim would revert) */
+  isMerkleRootMismatch?: boolean
   /** V3 SDK Pool for cross-chain fee fetching */
   v3SdkPool?: any
 }
@@ -190,7 +191,6 @@ function hasEarningsBreakdownContent(
 export const PositionRowDisplay: React.FC<PositionRowDisplayProps> = memo(
   ({ position, data, expanded, onToggleExpand, hideEarningsColumn = false }) => {
     const { t } = useTranslation()
-    const { isMobile } = useMatchBreakpoints()
 
     const {
       currency0,
@@ -222,22 +222,31 @@ export const PositionRowDisplay: React.FC<PositionRowDisplayProps> = memo(
       onRemoveLiquidity,
       onHarvest,
       hasUnclaimedRewards,
+      isMerkleRootMismatch,
       v3SdkPool,
     } = data
 
-    const showExpandable = !isMobile && !removed
+    const openHarvestModal = useOpenHarvestModal()
+    const showExpandable = !removed
     const isInfinity = isInfinityProtocol(position.protocol)
-    const showHarvestButton = removed && isInfinity && hasUnclaimedRewards && onHarvest
+    const showHarvestButton =
+      removed && isInfinity && hasUnclaimedRewards && !isMerkleRootMismatch && Boolean(openHarvestModal)
     // const isSolanaPosition = isSolana(chainId)
 
-    // For Solana positions, check pool.isFarming; for others, check position.isStaked
+    // V3 uses position.isStaked (individually staked NFT). Infinity: pool flags (hasFarm) can lag
+    // campaign data; also treat non-zero Farm APR or position.isStaked as farming (same signals
+    // as APR tooltips). Other protocols use hasFarm from pool config / isFarmLive.
     const isFarming = useMemo(() => {
-      if (position.protocol === Protocol.V2 || position.protocol === Protocol.STABLE) return false
-      if (chainId === NonEVMChainId.SOLANA) {
-        return Boolean(pool?.isFarming)
+      if (position.protocol === Protocol.V3 && chainId !== NonEVMChainId.SOLANA) {
+        return Boolean('isStaked' in position ? position.isStaked : false)
       }
-      return Boolean('isStaked' in position ? position.isStaked : false)
-    }, [position.protocol, pool?.isFarming, position, chainId])
+      if (isInfinityProtocol(position.protocol)) {
+        const farmAprNum = typeof farmApr === 'number' ? farmApr : 0
+        const staked = Boolean('isStaked' in position && position.isStaked)
+        return Boolean(hasFarm) || farmAprNum > 0 || staked
+      }
+      return Boolean(hasFarm)
+    }, [position, chainId, hasFarm, farmApr])
 
     // Inverted state for price display - lifted from ExpandedRowContent to share with price range
     const [inverted, setInverted] = useState(false)
@@ -418,8 +427,8 @@ export const PositionRowDisplay: React.FC<PositionRowDisplayProps> = memo(
                         denominator={dataFeeTierBase ?? ('fee' in position ? 1_000_000 : undefined)}
                       />
                     )}
-                    <MerklTag poolAddress={pool?.lpAddress} />
-                    <IncentraTag poolAddress={pool?.lpAddress} />
+                    <MerklTagV2 poolAddress={pool?.lpAddress} />
+                    <IncentraTagV2 poolAddress={pool?.lpAddress} />
                     {isFarming && !removed && !outOfRange && (
                       <Tag variant="primary60" scale="sm" px="6px">
                         {t('Farming')}
@@ -473,7 +482,12 @@ export const PositionRowDisplay: React.FC<PositionRowDisplayProps> = memo(
                           </Text>
                         </FlexGap>
                         <Text fontSize="14px" bold>
-                          {amount0 ? formatAmount(BN(amount0.toExact()).toNumber()) : '-'}
+                          {amount0
+                            ? formatNumber(BN(amount0.toExact()).toNumber(), {
+                                maxDecimalDisplayDigits: 6,
+                                maximumDecimalTrailingZeroes: 3,
+                              })
+                            : '-'}
                         </Text>
                       </FlexGap>
                       <Text color="textSubtle" fontSize="12px" textAlign="right" width="100%">
@@ -491,7 +505,12 @@ export const PositionRowDisplay: React.FC<PositionRowDisplayProps> = memo(
                           </Text>
                         </FlexGap>
                         <Text fontSize="14px" bold>
-                          {amount1 ? formatAmount(BN(amount1.toExact()).toNumber()) : '-'}
+                          {amount1
+                            ? formatNumber(BN(amount1.toExact()).toNumber(), {
+                                maxDecimalDisplayDigits: 6,
+                                maximumDecimalTrailingZeroes: 3,
+                              })
+                            : '-'}
                         </Text>
                       </FlexGap>
                       <Text color="textSubtle" fontSize="12px" textAlign="right" width="100%">
@@ -525,7 +544,10 @@ export const PositionRowDisplay: React.FC<PositionRowDisplayProps> = memo(
                               </Text>
                             </FlexGap>
                             <Text fontSize="14px" bold>
-                              {formatAmount(earningsBreakdown.fee0Amount)}
+                              {formatNumber(earningsBreakdown.fee0Amount, {
+                                maxDecimalDisplayDigits: 6,
+                                maximumDecimalTrailingZeroes: 3,
+                              })}
                             </Text>
                           </FlexGap>
                           {earningsBreakdown.fee0USD !== undefined && (
@@ -545,7 +567,10 @@ export const PositionRowDisplay: React.FC<PositionRowDisplayProps> = memo(
                               </Text>
                             </FlexGap>
                             <Text fontSize="14px" bold>
-                              {formatAmount(earningsBreakdown.fee1Amount)}
+                              {formatNumber(earningsBreakdown.fee1Amount, {
+                                maxDecimalDisplayDigits: 6,
+                                maximumDecimalTrailingZeroes: 3,
+                              })}
                             </Text>
                           </FlexGap>
                           {earningsBreakdown.fee1USD !== undefined && (
@@ -566,7 +591,10 @@ export const PositionRowDisplay: React.FC<PositionRowDisplayProps> = memo(
                                   </Text>
                                 </FlexGap>
                                 <Text fontSize="14px" bold>
-                                  {formatAmount(reward.amount)}
+                                  {formatNumber(reward.amount, {
+                                    maxDecimalDisplayDigits: 6,
+                                    maximumDecimalTrailingZeroes: 3,
+                                  })}
                                 </Text>
                               </FlexGap>
                               <Text color="textSubtle" fontSize="12px" textAlign="right" width="100%">
@@ -586,7 +614,10 @@ export const PositionRowDisplay: React.FC<PositionRowDisplayProps> = memo(
                                   </Text>
                                 </FlexGap>
                                 <Text fontSize="14px" bold>
-                                  {formatAmount(earningsBreakdown.farmRewardsAmount)}
+                                  {formatNumber(earningsBreakdown.farmRewardsAmount, {
+                                    maxDecimalDisplayDigits: 6,
+                                    maximumDecimalTrailingZeroes: 3,
+                                  })}
                                 </Text>
                               </FlexGap>
                               {earningsBreakdown.farmRewardsUSD !== undefined && (
@@ -625,7 +656,7 @@ export const PositionRowDisplay: React.FC<PositionRowDisplayProps> = memo(
           <Cell align="right">
             {showHarvestButton ? (
               <div data-interactive>
-                <Button scale="md" onClick={onHarvest}>
+                <Button scale="md" onClick={() => openHarvestModal?.('evm', chainId)}>
                   {t('Harvest')}
                 </Button>
               </div>
@@ -703,6 +734,9 @@ export const PositionRowDisplay: React.FC<PositionRowDisplayProps> = memo(
       prevData.earnings?.display !== nextData.earnings?.display ||
       prevData.totalApr !== nextData.totalApr ||
       prevData.hasFarm !== nextData.hasFarm ||
+      prevData.farmApr !== nextData.farmApr ||
+      ('isStaked' in prevProps.position ? prevProps.position.isStaked : undefined) !==
+        ('isStaked' in nextProps.position ? nextProps.position.isStaked : undefined) ||
       // Compare currency objects (these resolve asynchronously)
       prevData.currency0?.wrapped?.address !== nextData.currency0?.wrapped?.address ||
       prevData.currency1?.wrapped?.address !== nextData.currency1?.wrapped?.address ||

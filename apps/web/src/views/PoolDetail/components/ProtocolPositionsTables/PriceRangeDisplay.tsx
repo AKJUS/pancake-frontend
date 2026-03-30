@@ -483,12 +483,10 @@ export const PriceRangeDisplay: React.FC<PriceRangeDisplayProps> = ({
       {/* Price range display */}
       {renderPrices()}
 
-      {/* Price range bar */}
-      {showPercentages && (
-        <BarWrapper $maxWidth={maxWidth}>
-          <PriceRangeContainer>{renderBar()}</PriceRangeContainer>
-        </BarWrapper>
-      )}
+      {/* Price range bar — always rendered; showPercentages only gates the percentage labels */}
+      <BarWrapper $maxWidth={maxWidth}>
+        <PriceRangeContainer>{renderBar()}</PriceRangeContainer>
+      </BarWrapper>
 
       {/* Percentage display below the range bar */}
       {renderPercentages()}

@@ -42,13 +42,13 @@ export function formatFiatNumber(
   }
   // If less than 1, keep as many decimal digits as possible
   if (bnValue.lt(1)) {
-    return `${fiatSymbol} ${formatNumber(value, {
+    return `${fiatSymbol}${formatNumber(value, {
       maximumSignificantDigits,
       roundingMode,
     })}`
   }
   // Otherwise, keep more integers and 2 decimals
-  return `${fiatSymbol} ${formatNumber(value, {
+  return `${fiatSymbol}${formatNumber(value, {
     maximumSignificantDigits,
     roundingMode,
     maxDecimalDisplayDigits,

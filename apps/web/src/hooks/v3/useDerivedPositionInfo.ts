@@ -3,12 +3,15 @@ import { useCurrency } from 'hooks/Tokens'
 import { PositionDetails } from '@pancakeswap/farms'
 import { usePool } from './usePools'
 
-export function useDerivedPositionInfo(positionDetails: PositionDetails | undefined): {
+export function useDerivedPositionInfo(
+  positionDetails: PositionDetails | undefined,
+  chainId?: number,
+): {
   position: Position | undefined
   pool: Pool | undefined
 } {
-  const currency0 = useCurrency(positionDetails?.token0)
-  const currency1 = useCurrency(positionDetails?.token1)
+  const currency0 = useCurrency(positionDetails?.token0, chainId)
+  const currency1 = useCurrency(positionDetails?.token1, chainId)
 
   // construct pool data
   const [, pool] = usePool(currency0 ?? undefined, currency1 ?? undefined, positionDetails?.fee)

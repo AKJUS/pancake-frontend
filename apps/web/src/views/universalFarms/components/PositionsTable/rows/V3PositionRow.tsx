@@ -9,7 +9,6 @@ import {
   useV3PoolsLength,
 } from 'state/farmsV4/hooks'
 import { getPoolMultiplier } from 'state/farmsV4/state/utils'
-import { useAccount } from 'wagmi'
 import { useMemo, useState, memo, useCallback } from 'react'
 import type { Currency as CoreCurrency } from '@pancakeswap/swap-sdk-core'
 import { ZERO_ADDRESS } from '@pancakeswap/swap-sdk-core'
@@ -42,13 +41,11 @@ interface V3PositionRowProps {
 export const V3PositionRow: React.FC<V3PositionRowProps> = memo(({ position, chainId, hideEarningsColumn }) => {
   const [expanded, setExpanded] = useState(false)
 
-  // Use useExtraV3PositionInfo which handles resolving token addresses to tokens
   const v3Info = useExtraV3PositionInfo(position)
 
   const { currency0 } = v3Info
   const { currency1 } = v3Info
 
-  // Use usePoolByChainId for V3 pools
   const [, v3Pool] = usePoolByChainId(currency0?.wrapped, currency1?.wrapped, position.fee)
 
   const amount0 = v3Info.position?.amount0
@@ -56,8 +53,6 @@ export const V3PositionRow: React.FC<V3PositionRowProps> = memo(({ position, cha
 
   const removed = v3Info.removed || false
 
-  // Calculate outOfRange from v3Info, but also check price range percentages as fallback
-  // If both percentages have the same sign (both positive or both negative), position is out of range
   const outOfRangeFromPriceRange = useMemo(() => {
     const poolForCalc = v3Pool || v3Info.pool
     if (!poolForCalc) return false
@@ -86,16 +81,12 @@ export const V3PositionRow: React.FC<V3PositionRowProps> = memo(({ position, cha
       isFlipped,
     )
 
-    // Check if both percentages have the same sign, indicating out of range
-    // If one is negative and one is positive, the current price is within range
     if (rangeData.showPercentages && rangeData.minPercentage && rangeData.maxPercentage) {
       const minIsNegative = rangeData.minPercentage.startsWith('-') && rangeData.minPercentage !== '-%'
       const minIsPositive = rangeData.minPercentage.startsWith('+')
       const maxIsNegative = rangeData.maxPercentage.startsWith('-') && rangeData.maxPercentage !== '-%'
       const maxIsPositive = rangeData.maxPercentage.startsWith('+')
 
-      // In range: one negative, one positive
-      // Out of range: both negative or both positive
       const inRange = (minIsNegative && maxIsPositive) || (minIsPositive && maxIsNegative)
       return !inRange && (minIsNegative || minIsPositive) && (maxIsNegative || maxIsPositive)
     }
@@ -286,7 +277,9 @@ export const V3PositionRow: React.FC<V3PositionRowProps> = memo(({ position, cha
       currency1,
       removed,
       outOfRange,
-      pool: pool as PoolInfo | null,
+      // When the pool is not in the farm config (e.g. Monad), `pool` is null but we still need
+      // protocol/lpAddress for expanded actions (+/-) and PositionModal — use APR fallback pool.
+      pool: (pool ?? poolForApr) as PoolInfo | null,
       totalPriceUSD,
       aprButton,
       hookData: undefined,
@@ -313,6 +306,7 @@ export const V3PositionRow: React.FC<V3PositionRowProps> = memo(({ position, cha
       removed,
       outOfRange,
       pool,
+      poolForApr,
       totalPriceUSD,
       aprButton,
       chainId,

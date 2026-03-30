@@ -14,6 +14,7 @@ import {
   Toggle,
   useMatchBreakpoints,
   useModal,
+  useModalV2,
 } from '@pancakeswap/uikit'
 import { Liquidity } from '@pancakeswap/widgets-internal'
 import TransactionsModal from 'components/App/Transactions/TransactionsModal'
@@ -22,14 +23,15 @@ import { V3_MIGRATION_SUPPORTED_CHAINS } from 'config/constants/supportChains'
 import { useAtom } from 'jotai'
 import intersection from 'lodash/intersection'
 import NextLink from 'next/link'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { POSITION_STATUS, UnifiedPositionDetail } from 'state/farmsV4/state/accountPositions/type'
 import styled from 'styled-components'
 import { useAccount } from 'wagmi'
 
 import ConnectWalletButton from 'components/ConnectWalletButton'
+import { HarvestEarningsModal, HarvestModalContext } from 'components/HarvestPositionsModal'
+import type { HarvestTab } from 'components/HarvestPositionsModal'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
-import { INFINITY_PROTOCOLS } from 'config/constants/protocols'
 import {
   AddLiquidityButton,
   Card,
@@ -39,7 +41,6 @@ import {
   CardBody as StyledCardBody,
   CardHeader as StyledCardHeader,
   useSelectedProtocols,
-  PositionCard,
   PositionsTable,
   PositionsList,
 } from './components'
@@ -49,7 +50,6 @@ import { useV3Positions } from './hooks/useV3Positions'
 import { useV2Positions } from './hooks/useV2Positions'
 import { useStablePositions } from './hooks/useStablePositions'
 import { positionEarningAmountAtom } from './hooks/usePositionEarningAmount'
-import { getPositionKey } from './components/PositionItem/PositionCard'
 import { matchPositionSearch } from './utils/matchPositionSearch'
 import { useSolanaV3PositionItems } from './hooks/useSolanaV3Positions'
 import { useStableInfinityPositions } from './hooks/useStableInfinityPositions'
@@ -321,6 +321,12 @@ export const PositionPage = () => {
     [infinityLoading, v3Loading, solanaLoading, v2Loading, stableLoading],
   )
 
+  const harvestModal = useModalV2()
+  const [harvestDefaultTab, setHarvestDefaultTab] = useState<HarvestTab>('evm')
+  const [harvestFocusedChainId, setHarvestFocusedChainId] = useState<number | undefined>()
+  // harvestFocusedChainId only needs to hold the value long enough to pass it as the initial
+  // focused chain to HarvestEarningsModal — the modal manages subsequent chain switches locally.
+
   const mainSection = useMemo(() => {
     if (!account && !solanaAccount) {
       return <EmptyListPlaceholder text={t('Please Connect Wallet to view positions.')} />
@@ -376,6 +382,7 @@ export const PositionPage = () => {
     poolLengthMap,
     solanaAccount,
     isMobile,
+    isMd,
     isAllLoading,
   ])
 
@@ -400,74 +407,90 @@ export const PositionPage = () => {
   }, [account])
 
   return (
-    <StyledCard>
-      <CardHeader p={isMobile ? '16px' : undefined}>
-        <PoolsFilterPanel onChange={handleFilterChange} value={poolsFilter} includeSolana>
-          {(isMobile || isMd) && <AddLiquidityButton scale="sm" height="40px" width="100%" />}
-          {isMobile ? (
-            <ControlWrapper>
-              <ToggleWrapper>
-                <Text>{t('Farms only')}</Text>
-                <Toggle checked={farmsOnly} onChange={toggleFarmsOnly} scale="sm" />
-              </ToggleWrapper>
-              <ButtonWrapper>
-                <IconButton onClick={onPresentTransactionsModal} variant="text" scale="xs">
-                  <HistoryIcon color="textSubtle" width="24px" />
-                </IconButton>
-              </ButtonWrapper>
-            </ControlWrapper>
-          ) : null}
-        </PoolsFilterPanel>
-        <SubPanel>
-          <StyledButtonMenu
-            $positionStatus={positionStatus}
-            activeIndex={positionStatus}
-            onItemClick={setPositionStatus}
-            variant="text"
-            scale="sm"
-          >
-            <ButtonMenuItem>{t('All')}</ButtonMenuItem>
-            <ButtonMenuItem>{t('Active')}</ButtonMenuItem>
-            <ButtonMenuItem>{t('Inactive')}</ButtonMenuItem>
-            <ButtonMenuItem>{t('Closed')}</ButtonMenuItem>
-          </StyledButtonMenu>
-          {!isMobile ? (
-            <ControlWrapper>
-              <ToggleWrapper>
-                <Text>{t('Farms only')}</Text>
-                <Toggle checked={farmsOnly} onChange={toggleFarmsOnly} scale="sm" />
-              </ToggleWrapper>
-              <ButtonWrapper>
-                <IconButton onClick={onPresentTransactionsModal} variant="text" scale="xs">
-                  <HistoryIcon color="textSubtle" width="24px" />
-                </IconButton>
-              </ButtonWrapper>
-            </ControlWrapper>
-          ) : null}
-          {/* <ButtonContainer>
+    <HarvestModalContext.Provider
+      value={(defaultTab, chainId) => {
+        setHarvestDefaultTab(defaultTab ?? 'evm')
+        setHarvestFocusedChainId(chainId)
+        harvestModal.setIsOpen(true)
+      }}
+    >
+      <StyledCard>
+        <CardHeader p={isMobile ? '16px' : undefined}>
+          <PoolsFilterPanel onChange={handleFilterChange} value={poolsFilter} includeSolana>
+            {(isMobile || isMd) && <AddLiquidityButton scale="sm" height="40px" width="100%" />}
+            {isMobile ? (
+              <ControlWrapper>
+                <ToggleWrapper>
+                  <Text>{t('Farms only')}</Text>
+                  <Toggle checked={farmsOnly} onChange={toggleFarmsOnly} scale="sm" />
+                </ToggleWrapper>
+                <ButtonWrapper>
+                  <IconButton onClick={onPresentTransactionsModal} variant="text" scale="xs">
+                    <HistoryIcon color="textSubtle" width="24px" />
+                  </IconButton>
+                </ButtonWrapper>
+              </ControlWrapper>
+            ) : null}
+          </PoolsFilterPanel>
+          <SubPanel>
+            <StyledButtonMenu
+              $positionStatus={positionStatus}
+              activeIndex={positionStatus}
+              onItemClick={setPositionStatus}
+              variant="text"
+              scale="sm"
+            >
+              <ButtonMenuItem>{t('All')}</ButtonMenuItem>
+              <ButtonMenuItem>{t('Active')}</ButtonMenuItem>
+              <ButtonMenuItem>{t('Inactive')}</ButtonMenuItem>
+              <ButtonMenuItem>{t('Closed')}</ButtonMenuItem>
+            </StyledButtonMenu>
+            {!isMobile ? (
+              <ControlWrapper>
+                <ToggleWrapper>
+                  <Text>{t('Farms only')}</Text>
+                  <Toggle checked={farmsOnly} onChange={toggleFarmsOnly} scale="sm" />
+                </ToggleWrapper>
+                <ButtonWrapper>
+                  <IconButton onClick={onPresentTransactionsModal} variant="text" scale="xs">
+                    <HistoryIcon color="textSubtle" width="24px" />
+                  </IconButton>
+                </ButtonWrapper>
+              </ControlWrapper>
+            ) : null}
+            {/* <ButtonContainer>
             <NextLink href={LIQUIDITY_PAGES.infinity.ADD_LIQUIDITY_SELECT}>
               <Button endIcon={<AddIcon color="invertedContrast" />} scale="sm" style={{ whiteSpace: 'nowrap' }}>
                 {t('Add Liquidity')}
               </Button>
             </NextLink>
           </ButtonContainer> */}
-        </SubPanel>
-      </CardHeader>
-      <CardBody>
-        {mainSection}
-        {selectedPoolTypes.length === 1 && selectedPoolTypes.includes(Protocol.V2) ? (
-          <Liquidity.FindOtherLP>
-            {!!intersection(V3_MIGRATION_SUPPORTED_CHAINS, selectedNetwork).length && (
-              <NextLink style={{ marginTop: '8px' }} href="/migration">
-                <Button id="migration-link" variant="secondary" scale="sm">
-                  {t('Migrate to V3')}
-                </Button>
-              </NextLink>
-            )}
-          </Liquidity.FindOtherLP>
-        ) : null}
-        {Array.isArray(visibleList) && visibleList.length > 0 && <div ref={observerRef} />}
-      </CardBody>
-    </StyledCard>
+          </SubPanel>
+        </CardHeader>
+        <CardBody>
+          {mainSection}
+          {selectedPoolTypes.length === 1 && selectedPoolTypes.includes(Protocol.V2) ? (
+            <Liquidity.FindOtherLP>
+              {!!intersection(V3_MIGRATION_SUPPORTED_CHAINS, selectedNetwork).length && (
+                <NextLink style={{ marginTop: '8px' }} href="/migration">
+                  <Button id="migration-link" variant="secondary" scale="sm">
+                    {t('Migrate to V3')}
+                  </Button>
+                </NextLink>
+              )}
+            </Liquidity.FindOtherLP>
+          ) : null}
+          {Array.isArray(visibleList) && visibleList.length > 0 && <div ref={observerRef} />}
+        </CardBody>
+        {harvestModal.isOpen && (
+          <HarvestEarningsModal
+            isOpen={harvestModal.isOpen}
+            onDismiss={harvestModal.onDismiss}
+            defaultTab={harvestDefaultTab}
+            focusedChainId={harvestFocusedChainId}
+          />
+        )}
+      </StyledCard>
+    </HarvestModalContext.Provider>
   )
 }

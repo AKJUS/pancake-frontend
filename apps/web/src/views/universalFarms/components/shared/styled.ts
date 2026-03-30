@@ -10,7 +10,6 @@ import { Flex, Text } from '@pancakeswap/uikit'
 export const ActionPanelContainer = styled(Flex)<{ $detailMode?: boolean }>`
   flex-direction: row;
   gap: 8px;
-  height: 48px;
 
   & button {
     flex: 1;

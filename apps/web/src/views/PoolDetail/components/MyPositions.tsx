@@ -1,8 +1,9 @@
 import { Protocol } from '@pancakeswap/farms'
 import { useTranslation } from '@pancakeswap/localization'
-import { AutoColumn, Box, Card, CardBody, FlexGap, Grid, Text } from '@pancakeswap/uikit'
+import { AutoColumn, Box, Card, CardBody, FlexGap, Grid, Text, useModalV2 } from '@pancakeswap/uikit'
+import { HarvestEarningsModal, HarvestModalContext } from 'components/HarvestPositionsModal'
 import ConnectWalletButton from 'components/ConnectWalletButton'
-import React, { useEffect } from 'react'
+import React, { ReactNode, useEffect } from 'react'
 import {
   InfinityBinPoolInfo,
   InfinityCLPoolInfo,
@@ -26,6 +27,18 @@ import {
   V3PositionsTable,
 } from './ProtocolPositionsTables'
 import { SolanaV3PositionsTable } from './ProtocolPositionsTables/SolanaV3PositionsTable'
+
+const SolanaHarvestModalHost: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const harvestModal = useModalV2()
+  return (
+    <HarvestModalContext.Provider value={(_defaultTab, _chainId) => harvestModal.setIsOpen(true)}>
+      {children}
+      {harvestModal.isOpen && (
+        <HarvestEarningsModal isOpen={harvestModal.isOpen} onDismiss={harvestModal.onDismiss} defaultTab="solana" />
+      )}
+    </HarvestModalContext.Provider>
+  )
+}
 
 export const MyPositions: React.FC<{ poolInfo: PoolInfo }> = ({ poolInfo }) => {
   return (
@@ -69,7 +82,9 @@ const MyPositionsInner: React.FC<{ poolInfo: PoolInfo }> = ({ poolInfo }) => {
   return (
     <AutoColumn gap="lg">
       {isSolanaChain ? (
-        <SolanaV3PositionsTable poolInfo={poolInfo as SolanaV3PoolInfo} />
+        <SolanaHarvestModalHost>
+          <SolanaV3PositionsTable poolInfo={poolInfo as SolanaV3PoolInfo} />
+        </SolanaHarvestModalHost>
       ) : (
         (() => {
           switch (poolInfo.protocol) {

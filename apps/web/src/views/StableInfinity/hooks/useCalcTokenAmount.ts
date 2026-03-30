@@ -9,6 +9,7 @@ interface UseCalcTokenAmountParams {
   amounts: [bigint, bigint]
   deposit?: boolean
   enabled?: boolean
+  chainId?: number
 }
 
 interface UseCalcTokenAmountReturn {
@@ -20,10 +21,11 @@ interface UseCalcTokenAmountReturn {
 interface UseUserLPBalanceParams {
   poolAddress: string
   account?: `0x${string}`
+  chainId?: number
 }
 
-export const useTotalSupply = ({ poolAddress }: { poolAddress: string }): bigint | null => {
-  const publicClient = usePublicClient()
+export const useTotalSupply = ({ poolAddress, chainId }: { poolAddress: string; chainId?: number }): bigint | null => {
+  const publicClient = usePublicClient({ chainId })
 
   const infinityStableHook = useMemo(() => {
     if (!publicClient || !poolAddress) return null
@@ -33,7 +35,7 @@ export const useTotalSupply = ({ poolAddress }: { poolAddress: string }): bigint
   const shouldQuery = !!infinityStableHook
 
   const { data } = useQuery({
-    queryKey: ['infinity-stable-total-supply', poolAddress],
+    queryKey: ['infinity-stable-total-supply', poolAddress, chainId],
     queryFn: async () => {
       if (!infinityStableHook) return null
       return infinityStableHook.totalSupply()
@@ -50,8 +52,9 @@ export const useCalcTokenAmount = ({
   amounts,
   deposit = true,
   enabled = true,
+  chainId,
 }: UseCalcTokenAmountParams): UseCalcTokenAmountReturn => {
-  const publicClient = usePublicClient()
+  const publicClient = usePublicClient({ chainId })
 
   const infinityStableHook = useMemo(() => {
     if (!publicClient || !poolAddress) return null
@@ -61,7 +64,14 @@ export const useCalcTokenAmount = ({
   const shouldQuery = enabled && !!infinityStableHook && (amounts[0] > 0n || amounts[1] > 0n)
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['infinity-stable-calc-token-amount', poolAddress, amounts[0].toString(), amounts[1].toString(), deposit],
+    queryKey: [
+      'infinity-stable-calc-token-amount',
+      poolAddress,
+      amounts[0].toString(),
+      amounts[1].toString(),
+      deposit,
+      chainId,
+    ],
     queryFn: async () => {
       if (!infinityStableHook) return null
       return infinityStableHook.calcTokenAmount(amounts, deposit)
@@ -80,8 +90,8 @@ export const useCalcTokenAmount = ({
   )
 }
 
-export const useUserLPBalance = ({ poolAddress, account }: UseUserLPBalanceParams): bigint | null => {
-  const publicClient = usePublicClient()
+export const useUserLPBalance = ({ poolAddress, account, chainId }: UseUserLPBalanceParams): bigint | null => {
+  const publicClient = usePublicClient({ chainId })
 
   const infinityStableHook = useMemo(() => {
     if (!publicClient || !poolAddress) return null
@@ -91,7 +101,7 @@ export const useUserLPBalance = ({ poolAddress, account }: UseUserLPBalanceParam
   const shouldQuery = !!infinityStableHook && !!account
 
   const { data } = useQuery({
-    queryKey: ['infinity-stable-user-lp-balance', poolAddress, account],
+    queryKey: ['infinity-stable-user-lp-balance', poolAddress, account, chainId],
     queryFn: async () => {
       if (!infinityStableHook || !account) return null
       return infinityStableHook.balanceOf(account)
@@ -108,6 +118,7 @@ interface UseCalcWithdrawOneCoinParams {
   burnAmount: bigint
   index: number
   enabled?: boolean
+  chainId?: number
 }
 
 interface UseCalcWithdrawOneCoinReturn {
@@ -121,8 +132,9 @@ export const useCalcWithdrawOneCoin = ({
   burnAmount,
   index,
   enabled = true,
+  chainId,
 }: UseCalcWithdrawOneCoinParams): UseCalcWithdrawOneCoinReturn => {
-  const publicClient = usePublicClient()
+  const publicClient = usePublicClient({ chainId })
 
   const infinityStableHook = useMemo(() => {
     if (!publicClient || !poolAddress) return null
@@ -132,7 +144,7 @@ export const useCalcWithdrawOneCoin = ({
   const shouldQuery = enabled && !!infinityStableHook && burnAmount > 0n
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['infinity-stable-calc-withdraw-one-coin', poolAddress, burnAmount.toString(), index],
+    queryKey: ['infinity-stable-calc-withdraw-one-coin', poolAddress, burnAmount.toString(), index, chainId],
     queryFn: async () => {
       if (!infinityStableHook) return null
       return infinityStableHook.calcWithdrawOneCoin(burnAmount, index)
@@ -151,8 +163,14 @@ export const useCalcWithdrawOneCoin = ({
   )
 }
 
-export const usePoolBalances = ({ poolAddress }: { poolAddress: string }): [bigint | null, bigint | null] => {
-  const publicClient = usePublicClient()
+export const usePoolBalances = ({
+  poolAddress,
+  chainId,
+}: {
+  poolAddress: string
+  chainId?: number
+}): [bigint | null, bigint | null] => {
+  const publicClient = usePublicClient({ chainId })
 
   const infinityStableHook = useMemo(() => {
     if (!publicClient || !poolAddress) return null
@@ -162,7 +180,7 @@ export const usePoolBalances = ({ poolAddress }: { poolAddress: string }): [bigi
   const shouldQuery = !!infinityStableHook
 
   const { data } = useQuery({
-    queryKey: ['infinity-stable-pool-balances', poolAddress],
+    queryKey: ['infinity-stable-pool-balances', poolAddress, chainId],
     queryFn: async (): Promise<[bigint, bigint] | null> => {
       if (!infinityStableHook) return null
       const [balance0, balance1] = await Promise.all([infinityStableHook.balances(0), infinityStableHook.balances(1)])

@@ -1,6 +1,6 @@
 import { Protocol } from '@pancakeswap/farms'
 import { getPoolId } from '@pancakeswap/infinity-sdk'
-import { Box, Flex, FlexGap, Text, FeeTier, Button, useMatchBreakpoints } from '@pancakeswap/uikit'
+import { Box, Flex, FlexGap, Text, FeeTier, Button, useMatchBreakpoints, useModalV2 } from '@pancakeswap/uikit'
 import { FiatNumberDisplay, NextLinkFromReactRouter } from '@pancakeswap/widgets-internal'
 import { TokenPairLogo } from 'components/TokenImage'
 import { unwrappedToken } from '@pancakeswap/tokens'
@@ -27,7 +27,7 @@ import { formatDollarAmount } from 'views/V3Info/utils/numbers'
 import { Currency } from '@pancakeswap/sdk'
 import { useAccount } from 'wagmi'
 import { getLiquidityDetailURL } from 'config/constants/liquidity'
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { useMemo, useState, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getPoolDetailPageLink } from 'utils/getPoolLink'
 import {
@@ -57,6 +57,8 @@ import {
 } from 'state/farmsV4/state/accountPositions/type'
 import { InfinityPoolInfo, type PoolInfo, V2PoolInfo, StablePoolInfo, SolanaV3PoolInfo } from 'state/farmsV4/state/type'
 import { isInfinityProtocol } from 'utils/protocols'
+import { PositionModal } from 'components/PositionModals'
+import { PositionTabType } from 'components/PositionModals/types'
 import styled from 'styled-components'
 import { isSolana, NonEVMChainId } from '@pancakeswap/chains'
 import { TokenInfo } from '@pancakeswap/solana-core-sdk'
@@ -201,6 +203,21 @@ export const PositionListCard: React.FC<PositionListCardProps> = ({ position, po
     isEVMV3 && 'fee' in position ? position.fee : undefined,
   )
   const poolForFees = isEVMV3 ? v3Info.pool ?? evmV3Pool : undefined
+
+  // Position Modal state (same as desktop ExpandedRowContent)
+  const {
+    isOpen: isPositionModalOpen,
+    setIsOpen: setPositionModalOpen,
+    onDismiss: onPositionModalDismiss,
+  } = useModalV2()
+  const [modalPresetTab, setModalPresetTab] = useState<PositionTabType>('Add')
+  const openPositionModal = useCallback(
+    (tab: PositionTabType) => {
+      setModalPresetTab(tab)
+      setPositionModalOpen(true)
+    },
+    [setPositionModalOpen],
+  )
 
   // Combine Solana price range with EVM price range
   // Extract raw numeric values from formatted strings for inversion support (matching SolanaV3PositionRow)
@@ -364,7 +381,7 @@ export const PositionListCard: React.FC<PositionListCardProps> = ({ position, po
                 )}
                 <MerklTag poolAddress={pool?.lpAddress} />
                 <IncentraTag poolAddress={pool?.lpAddress} />
-                {![Protocol.V2, Protocol.STABLE].includes(position.protocol) && (
+                {![Protocol.V2, Protocol.STABLE, Protocol.InfinitySTABLE].includes(position.protocol) && (
                   <RangeTag lowContrast removed={removed} outOfRange={outOfRange} protocol={position.protocol} />
                 )}
               </FlexGap>
@@ -386,12 +403,14 @@ export const PositionListCard: React.FC<PositionListCardProps> = ({ position, po
               </InfoValue>
             </InfoColumn>
 
-            {position.protocol !== Protocol.V2 && position.protocol !== Protocol.STABLE && (
-              <InfoColumn $align="center">
-                <InfoLabel>{t('Earnings')}</InfoLabel>
-                <InfoValue>{earnings?.display ?? '-'}</InfoValue>
-              </InfoColumn>
-            )}
+            {position.protocol !== Protocol.V2 &&
+              position.protocol !== Protocol.STABLE &&
+              position.protocol !== Protocol.InfinitySTABLE && (
+                <InfoColumn $align="center">
+                  <InfoLabel>{t('Earnings')}</InfoLabel>
+                  <InfoValue>{earnings?.display ?? '-'}</InfoValue>
+                </InfoColumn>
+              )}
 
             <InfoColumn $align="right">
               <InfoLabel>{t('APR')}</InfoLabel>
@@ -400,7 +419,7 @@ export const PositionListCard: React.FC<PositionListCardProps> = ({ position, po
           </InfoRow>
 
           {/* Price Range - only for concentrated liquidity positions and non-removed positions */}
-          {![Protocol.V2, Protocol.STABLE].includes(position.protocol) && !removed && (
+          {![Protocol.V2, Protocol.STABLE, Protocol.InfinitySTABLE].includes(position.protocol) && !removed && (
             <PriceRangeRow>
               <InfoLabel style={{ marginBottom: '8px' }}>{t('Price Range')}</InfoLabel>
               {priceRangeDisplay ? (
@@ -431,6 +450,11 @@ export const PositionListCard: React.FC<PositionListCardProps> = ({ position, po
 
           {/* Action buttons using unified PositionActionButtons component */}
           <ActionsRow>
+            {!removed && pool?.protocol && (
+              <Button width="100%" onClick={() => openPositionModal('Add')}>
+                {t('Add Liquidity')}
+              </Button>
+            )}
             <PositionActionButtons
               position={position}
               pool={pool}
@@ -467,6 +491,16 @@ export const PositionListCard: React.FC<PositionListCardProps> = ({ position, po
           </ActionsRow>
         </CardBody>
       </Card>
+      <PositionModal
+        key={modalPresetTab}
+        isOpen={isPositionModalOpen}
+        onDismiss={onPositionModalDismiss}
+        poolId={pool?.poolId ?? pool?.stableSwapAddress ?? pool?.lpAddress}
+        protocol={pool?.protocol}
+        chainId={pool?.chainId}
+        position={position}
+        presetTab={modalPresetTab}
+      />
     </>
   )
 }
@@ -570,7 +604,10 @@ function usePositionData({ position, poolLength }: { position: UnifiedPositionDe
     if (position.protocol === Protocol.V2 && 'pair' in position) {
       return unwrappedToken((position as V2LPDetail).pair.token0)
     }
-    if (position.protocol === Protocol.STABLE && 'pair' in position) {
+    if (
+      (position.protocol === Protocol.STABLE || position.protocol === Protocol.InfinitySTABLE) &&
+      'pair' in position
+    ) {
       return (position as StableLPDetail).pair.token0
     }
     return undefined
@@ -602,7 +639,10 @@ function usePositionData({ position, poolLength }: { position: UnifiedPositionDe
     if (position.protocol === Protocol.V2 && 'pair' in position) {
       return unwrappedToken((position as V2LPDetail).pair.token1)
     }
-    if (position.protocol === Protocol.STABLE && 'pair' in position) {
+    if (
+      (position.protocol === Protocol.STABLE || position.protocol === Protocol.InfinitySTABLE) &&
+      'pair' in position
+    ) {
       return (position as StableLPDetail).pair.token1
     }
     return undefined
@@ -658,7 +698,10 @@ function usePositionData({ position, poolLength }: { position: UnifiedPositionDe
     if (position.protocol === Protocol.V2 && 'pair' in position) {
       return (position as V2LPDetail).pair.liquidityToken.address
     }
-    if (position.protocol === Protocol.STABLE && 'pair' in position) {
+    if (
+      (position.protocol === Protocol.STABLE || position.protocol === Protocol.InfinitySTABLE) &&
+      'pair' in position
+    ) {
       return (position as StableLPDetail).pair.stableSwapAddress
     }
     return undefined
@@ -750,7 +793,10 @@ function usePositionData({ position, poolLength }: { position: UnifiedPositionDe
       const v2Pos = position as V2LPDetail
       return v2Pos.nativeDeposited0.add(v2Pos.farmingDeposited0)
     }
-    if (position.protocol === Protocol.STABLE && 'nativeDeposited0' in position) {
+    if (
+      (position.protocol === Protocol.STABLE || position.protocol === Protocol.InfinitySTABLE) &&
+      'nativeDeposited0' in position
+    ) {
       const stablePos = position as StableLPDetail
       return stablePos.nativeDeposited0.add(stablePos.farmingDeposited0)
     }
@@ -772,7 +818,10 @@ function usePositionData({ position, poolLength }: { position: UnifiedPositionDe
       const v2Pos = position as V2LPDetail
       return v2Pos.nativeDeposited1.add(v2Pos.farmingDeposited1)
     }
-    if (position.protocol === Protocol.STABLE && 'nativeDeposited1' in position) {
+    if (
+      (position.protocol === Protocol.STABLE || position.protocol === Protocol.InfinitySTABLE) &&
+      'nativeDeposited1' in position
+    ) {
       const stablePos = position as StableLPDetail
       return stablePos.nativeDeposited1.add(stablePos.farmingDeposited1)
     }
@@ -869,7 +918,11 @@ function usePositionData({ position, poolLength }: { position: UnifiedPositionDe
   // Calculate earnings display
   const earnings = useMemo(() => {
     // V2/Stable - no earnings
-    if (position.protocol === Protocol.V2 || position.protocol === Protocol.STABLE) {
+    if (
+      position.protocol === Protocol.V2 ||
+      position.protocol === Protocol.STABLE ||
+      position.protocol === Protocol.InfinitySTABLE
+    ) {
       return null
     }
 
@@ -968,7 +1021,11 @@ function usePositionData({ position, poolLength }: { position: UnifiedPositionDe
   }
 
   const isV2OrStablePool = (p: PoolInfo | null | undefined): p is V2PoolInfo | StablePoolInfo => {
-    return p !== null && p !== undefined && (p.protocol === Protocol.V2 || p.protocol === Protocol.STABLE)
+    return (
+      p !== null &&
+      p !== undefined &&
+      (p.protocol === Protocol.V2 || p.protocol === Protocol.STABLE || p.protocol === Protocol.InfinitySTABLE)
+    )
   }
 
   const infinityPool = isInfinityPool(pool) ? pool : null
@@ -1030,7 +1087,10 @@ function usePositionData({ position, poolLength }: { position: UnifiedPositionDe
   // Fee tier
   const feeTier = useMemo(() => {
     if (position.protocol === Protocol.V2) return V2_FEE_TIER
-    if (position.protocol === Protocol.STABLE && 'pair' in position) {
+    if (
+      (position.protocol === Protocol.STABLE || position.protocol === Protocol.InfinitySTABLE) &&
+      'pair' in position
+    ) {
       return Number((position as StableLPDetail).pair.stableTotalFee ?? 0) * V2_FEE_TIER_BASE
     }
     if (isSolanaPosition && solanaPoolInfo?.feeRate) {
@@ -1040,7 +1100,12 @@ function usePositionData({ position, poolLength }: { position: UnifiedPositionDe
   }, [position, isSolanaPosition, solanaPoolInfo])
 
   const feeTierBase = useMemo(() => {
-    if (position.protocol === Protocol.V2 || position.protocol === Protocol.STABLE) return V2_FEE_TIER_BASE
+    if (
+      position.protocol === Protocol.V2 ||
+      position.protocol === Protocol.STABLE ||
+      position.protocol === Protocol.InfinitySTABLE
+    )
+      return V2_FEE_TIER_BASE
     if (isSolanaPosition) return SOLANA_FEE_TIER_BASE
     return undefined
   }, [position.protocol, isSolanaPosition])
@@ -1048,7 +1113,11 @@ function usePositionData({ position, poolLength }: { position: UnifiedPositionDe
   // Price range display calculation (Solana handled separately in component)
   const priceRangeDisplay = useMemo(() => {
     // V2/Stable - full range, no price range
-    if (position.protocol === Protocol.V2 || position.protocol === Protocol.STABLE) {
+    if (
+      position.protocol === Protocol.V2 ||
+      position.protocol === Protocol.STABLE ||
+      position.protocol === Protocol.InfinitySTABLE
+    ) {
       return null
     }
 

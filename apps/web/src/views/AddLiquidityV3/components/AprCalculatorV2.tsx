@@ -1,3 +1,4 @@
+import { Protocol } from '@pancakeswap/farms'
 import { useTranslation } from '@pancakeswap/localization'
 import { Column, Skeleton, Text } from '@pancakeswap/uikit'
 import React, { useMemo } from 'react'
@@ -86,6 +87,10 @@ const DerivedAprCalculator: React.FC<AprCalculatorV2Props> = ({
 }) => {
   if (!pool) {
     return <Skeleton height="40px" />
+  }
+
+  if (pool.protocol !== Protocol.V3) {
+    return <GlobalAprCalculator pool={pool} showTitle={showTitle} />
   }
 
   return showTitle ? (

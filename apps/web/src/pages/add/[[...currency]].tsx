@@ -1,5 +1,5 @@
 import { isStableFarm } from '@pancakeswap/farms'
-import { useCurrency, useUnifiedCurrency } from 'hooks/Tokens'
+import { useUnifiedCurrency } from 'hooks/Tokens'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'

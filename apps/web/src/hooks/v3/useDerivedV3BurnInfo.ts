@@ -14,6 +14,7 @@ export function useDerivedV3BurnInfo(
   position?: PositionDetails,
   percent?: number,
   asWNATIVE = false,
+  chainId?: number,
 ): {
   position?: Position
   liquidityPercentage?: Percent
@@ -27,8 +28,8 @@ export function useDerivedV3BurnInfo(
   const { t } = useTranslation()
   const { address: account } = useAccount()
 
-  const token0 = useToken(position?.token0)
-  const token1 = useToken(position?.token1)
+  const token0 = useToken(position?.token0, chainId)
+  const token1 = useToken(position?.token1, chainId)
 
   const [, pool] = usePool(token0 ?? undefined, token1 ?? undefined, position?.fee)
 

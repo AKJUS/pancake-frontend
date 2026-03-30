@@ -11,10 +11,16 @@ import { useCallback, useMemo, useState } from 'react'
 import { Address } from 'viem/accounts'
 import { useSolanaPoolInfo } from 'views/PoolDetail/hooks/useSolanaPoolInfo'
 
+import { safeGetAddress } from 'utils'
 import { useLatestTxReceipt } from '../accountPositions/hooks/useLatestTxReceipt'
 import type { PoolInfo } from '../type'
 import { DEFAULT_QUERIES, ExtendPoolsQuery, FetchPoolsProps, useExtendPoolsAtom } from './atom'
-import { fetchExplorerPoolInfo, fetchExplorerPoolsList, queryInfinityPoolInfoOnChain } from './fetcher'
+import {
+  fetchExplorerPoolInfo,
+  fetchExplorerPoolsList,
+  queryInfinityPoolInfoOnChain,
+  queryV3PoolInfoOnChain,
+} from './fetcher'
 
 const RESET_QUERY_KEYS = ['protocols', 'orderBy', 'chains', 'pools', 'tokens'] as Array<keyof ExtendPoolsQuery>
 
@@ -143,7 +149,7 @@ export const getPoolAddressByToken = memoize(
 )
 
 export const usePoolInfo = <TPoolType extends PoolInfo>({
-  poolAddress,
+  poolAddress: poolAddress_,
   chainId,
 }: {
   poolAddress: string | undefined
@@ -151,6 +157,7 @@ export const usePoolInfo = <TPoolType extends PoolInfo>({
 }): TPoolType | undefined | null => {
   const [latestTxReceipt] = useLatestTxReceipt()
   const isEvmChain = isEvm(chainId)
+  const poolAddress = poolAddress_ && isEvmChain ? safeGetAddress(poolAddress_) ?? poolAddress_ : poolAddress_
   const { data: solanaPoolInfo } = useSolanaPoolInfo(poolAddress, chainId)
 
   const { data: evmPoolInfo } = useQuery({
@@ -163,13 +170,22 @@ export const usePoolInfo = <TPoolType extends PoolInfo>({
       try {
         result = await fetchExplorerPoolInfo(poolAddress ?? '', chainId)
       } catch (error) {
-        try {
-          console.warn('error fetch from api', error)
-          result = await queryInfinityPoolInfoOnChain(poolAddress ?? '', chainId)
-        } catch (error) {
-          console.warn('error [usePoolInfo] queryInfinityPoolInfoOnChain', error)
+        console.warn('error fetch from api', error)
+
+        // Check infinity poolId
+        if (!safeGetAddress(poolAddress)) {
+          result = await queryInfinityPoolInfoOnChain(poolAddress ?? '', chainId).catch((e) => {
+            console.warn('error [usePoolInfo] queryInfinityPoolInfoOnChain', e)
+            return null
+          })
+        } else {
+          result = await queryV3PoolInfoOnChain(poolAddress ?? '', chainId).catch((e) => {
+            console.warn('error [usePoolInfo] queryV3PoolInfoOnChain', e)
+            return null
+          })
         }
       }
+
       if (!result) {
         throw new Error('no pool found')
       }

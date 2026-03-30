@@ -32,27 +32,30 @@ export function useDerivedBurnInfo(
 
   const { t } = useTranslation()
 
-  // pair + totalsupply
-  const [, pair] = useV2Pair(currencyA, currencyB)
+  const [, pairFromHook] = useV2Pair(currencyA, currencyB)
+  const pair = pairFromHook
 
-  // balances
   const [relevantTokenBalances] = useTokenBalancesWithLoadingIndicator(
     account ?? undefined,
-    useMemo(() => [pair?.liquidityToken], [pair?.liquidityToken]),
+    useMemo(() => [pairFromHook?.liquidityToken], [pairFromHook?.liquidityToken]),
   )
-  const userLiquidity: undefined | CurrencyAmount<Token> = pair?.liquidityToken
-    ? relevantTokenBalances?.[`${pair.liquidityToken.chainId}-${pair.liquidityToken.address}`]
+  const userLiquidityFromBalance: undefined | CurrencyAmount<Token> = pairFromHook?.liquidityToken
+    ? relevantTokenBalances?.[`${pairFromHook.liquidityToken.chainId}-${pairFromHook.liquidityToken.address}`]
     : undefined
 
-  const [tokenA, tokenB] = [wrappedCurrency(currencyA, chainId), wrappedCurrency(currencyB, chainId)]
+  const userLiquidity = userLiquidityFromBalance
+
+  const totalSupplyFromHook = useTotalSupply(pairFromHook?.liquidityToken)
+  const totalSupply = totalSupplyFromHook
+
+  const effectiveChainId = chainId
+  const [tokenA, tokenB] = [wrappedCurrency(currencyA, effectiveChainId), wrappedCurrency(currencyB, effectiveChainId)]
   const tokens = {
     [Field.CURRENCY_A]: tokenA,
     [Field.CURRENCY_B]: tokenB,
     [Field.LIQUIDITY]: pair?.liquidityToken,
   }
 
-  // liquidity values
-  const totalSupply = useTotalSupply(pair?.liquidityToken)
   const liquidityValueA =
     pair && totalSupply && userLiquidity && tokenA && totalSupply.quotient >= userLiquidity.quotient
       ? CurrencyAmount.fromRawAmount(tokenA, pair.getLiquidityValue(tokenA, totalSupply, userLiquidity, false).quotient)
@@ -68,21 +71,16 @@ export function useDerivedBurnInfo(
   }
 
   let percentToRemove: Percent = new Percent('0', '100')
-  // user specified a %
   if (independentField === Field.LIQUIDITY_PERCENT) {
     percentToRemove = new Percent(typedValue, '100')
-  }
-  // user specified a specific amount of liquidity tokens
-  else if (independentField === Field.LIQUIDITY) {
+  } else if (independentField === Field.LIQUIDITY) {
     if (pair?.liquidityToken) {
       const independentAmount = tryParseAmount(typedValue, pair.liquidityToken)
       if (independentAmount && userLiquidity && !independentAmount.greaterThan(userLiquidity)) {
         percentToRemove = new Percent(independentAmount.quotient, userLiquidity.quotient)
       }
     }
-  }
-  // user specified a specific amount of token a or b
-  else if (tokens[independentField]) {
+  } else if (tokens[independentField]) {
     const independentAmount = tryParseAmount(typedValue, tokens[independentField])
     const liquidityValue = liquidityValues[independentField]
     if (independentAmount && liquidityValue && !independentAmount.greaterThan(liquidityValue)) {

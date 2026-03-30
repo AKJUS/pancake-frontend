@@ -14,18 +14,15 @@ import {
   Skeleton,
   SwapVertIcon,
   Text,
+  useModalV2,
 } from '@pancakeswap/uikit'
-import { formatAmount } from '@pancakeswap/utils/formatInfoNumbers'
 import { formatNumber } from '@pancakeswap/utils/formatNumber'
 import { displayApr } from '@pancakeswap/utils/displayApr'
 import { CurrencyLogo } from 'components/Logo'
-import { CHAIN_QUERY_NAME } from 'config/chains'
-import { PERSIST_CHAIN_KEY } from 'config/constants'
-import { $path } from 'next-typesafe-url'
 import { NextLinkFromReactRouter } from '@pancakeswap/widgets-internal'
 import { getPoolAddLiquidityLink, getPoolDetailPageLink } from 'utils/getPoolLink'
-import { currencyId } from 'utils/currencyId'
 import { useCurrencyUsdPrice } from 'hooks/useCurrencyUsdPrice'
+import { usePoolByChainId } from 'hooks/v3/usePools'
 import { useMemo, useState, memo, useCallback } from 'react'
 import { useExtraInfinityPositionInfo, useExtraV3PositionInfo } from 'state/farmsV4/hooks'
 import {
@@ -38,9 +35,17 @@ import type { PoolInfo, UnifiedPoolInfo } from 'state/farmsV4/state/type'
 import styled from 'styled-components'
 import { isInfinityProtocol } from 'utils/protocols'
 import { formatDollarAmount } from 'views/V3Info/utils/numbers'
+import {
+  calculateTickBasedPriceRange,
+  calculateTickLimits,
+  getTickAtLimitStatus,
+  getTickSpacing,
+} from 'views/PoolDetail/utils'
 import { BigNumber as BN } from 'bignumber.js'
 import { isSolana } from '@pancakeswap/chains'
 import { useQuery } from '@tanstack/react-query'
+import { PositionModal } from 'components/PositionModals'
+import { PositionTabType } from 'components/PositionModals/types'
 import { getPositionChainId } from '../../utils'
 import { PositionChartByProtocol } from './charts'
 import { PositionActionButtons } from './PositionActionButtons'
@@ -368,103 +373,6 @@ export const ExpandedRowContent: React.FC<ExpandedRowContentProps> = memo(
       },
     })
 
-    const increaseLiquidityUrl = useMemo(() => {
-      if (!chainId) return undefined
-
-      // Handle each protocol separately for proper type narrowing
-      // InfinityBIN uses string tokenId
-      if (position.protocol === Protocol.InfinityBIN && tokenId) {
-        return $path({
-          route: '/liquidity/position/[[...positionId]]',
-          routeParams: { positionId: [Protocol.InfinityBIN, String(tokenId), 'increase'] },
-          // @ts-ignore
-          searchParams: { chain: CHAIN_QUERY_NAME[chainId], [PERSIST_CHAIN_KEY]: '1' },
-        })
-      }
-
-      // InfinityCLAMM uses number tokenId
-      if (position.protocol === Protocol.InfinityCLAMM && tokenId) {
-        return $path({
-          route: '/liquidity/position/[[...positionId]]',
-          routeParams: { positionId: [Protocol.InfinityCLAMM, Number(tokenId), 'increase'] },
-          // @ts-ignore
-          searchParams: { chain: CHAIN_QUERY_NAME[chainId], [PERSIST_CHAIN_KEY]: '1' },
-        })
-      }
-
-      // V3 positions use a different URL structure
-      if (
-        position.protocol === Protocol.V3 &&
-        tokenId &&
-        v3Pool &&
-        currency0 &&
-        currency1 &&
-        'token0' in v3Pool &&
-        v3Pool.token0 &&
-        v3Pool.token1
-      ) {
-        const token0Id = currencyId(currency0)
-        const token1Id = currencyId(currency1)
-        const feeTier = 'fee' in position ? position.fee : v3Pool.fee
-        return `/increase/${token0Id}/${token1Id}/${feeTier.toString()}/${tokenId.toString()}?chain=${
-          CHAIN_QUERY_NAME[chainId]
-        }&${PERSIST_CHAIN_KEY}=1`
-      }
-
-      // V2 and STABLE are handled by addLiquidityUrl
-      return undefined
-    }, [chainId, tokenId, position.protocol, position, v3Pool, currency0, currency1])
-
-    const removeLiquidityUrl = useMemo(() => {
-      if (!chainId) return undefined
-
-      // Handle each protocol separately for proper type narrowing
-      // InfinityBIN uses string tokenId
-      if (position.protocol === Protocol.InfinityBIN && poolId) {
-        return $path({
-          route: '/liquidity/position/[[...positionId]]',
-          routeParams: { positionId: [Protocol.InfinityBIN, poolId?.toString() ?? '', 'decrease'] },
-          // @ts-ignore
-          searchParams: { chain: CHAIN_QUERY_NAME[chainId], [PERSIST_CHAIN_KEY]: '1' },
-        })
-      }
-
-      // InfinityCLAMM uses number tokenId
-      if (position.protocol === Protocol.InfinityCLAMM && tokenId) {
-        return $path({
-          route: '/liquidity/position/[[...positionId]]',
-          routeParams: { positionId: [Protocol.InfinityCLAMM, Number(tokenId), 'decrease'] },
-          // @ts-ignore
-          searchParams: { chain: CHAIN_QUERY_NAME[chainId], [PERSIST_CHAIN_KEY]: '1' },
-        })
-      }
-
-      // V3 positions use a different URL structure
-      if (position.protocol === Protocol.V3 && tokenId) {
-        return `/remove/${tokenId.toString()}?chain=${CHAIN_QUERY_NAME[chainId]}&${PERSIST_CHAIN_KEY}=1`
-      }
-
-      // V2 and STABLE positions use token addresses in URL
-      if (
-        (position.protocol === Protocol.V2 || position.protocol === Protocol.STABLE) &&
-        pool &&
-        'token0' in pool &&
-        pool.token0 &&
-        pool.token1
-      ) {
-        const token0Id = currencyId(pool.token0)
-        const token1Id = currencyId(pool.token1)
-        const prefix = position.protocol === Protocol.STABLE ? 'stable' : 'v2'
-        return `/${prefix}/remove/${token0Id}/${token1Id}?chain=${CHAIN_QUERY_NAME[chainId]}&${PERSIST_CHAIN_KEY}=1`
-      }
-
-      if (position.protocol === Protocol.InfinitySTABLE && pool?.poolId) {
-        return `/infinityStable/remove/${pool?.poolId}?chain=${CHAIN_QUERY_NAME[chainId]}&${PERSIST_CHAIN_KEY}=1`
-      }
-
-      return undefined
-    }, [chainId, tokenId, position.protocol, pool, poolId])
-
     const addLiquidityUrl = useMemo(() => {
       if (!pool || !('token0' in pool && pool.token0)) return undefined
       try {
@@ -481,10 +389,22 @@ export const ExpandedRowContent: React.FC<ExpandedRowContentProps> = memo(
 
     // Hide hardcoded plus/minus buttons for Solana V3 positions (they have their own action buttons)
     const isSolanaV3Position = position.protocol === Protocol.V3 && isSolana(chainId)
+    // Prefer pool.protocol; when pool is missing from farm config (e.g. Monad), use position.protocol so +/- still show
+    const protocolForActions = pool?.protocol ?? position.protocol
     const isV2OrStablePosition =
       position.protocol === Protocol.V2 ||
       position.protocol === Protocol.STABLE ||
       position.protocol === Protocol.InfinitySTABLE
+
+    const { isOpen, setIsOpen, onDismiss } = useModalV2()
+    const [modalPresetTab, setModalPresetTab] = useState<PositionTabType>('Add')
+    const openModal = useCallback(
+      (tab: PositionTabType) => {
+        setModalPresetTab(tab)
+        setIsOpen(true)
+      },
+      [setIsOpen],
+    )
 
     return (
       <Container>
@@ -543,7 +463,11 @@ export const ExpandedRowContent: React.FC<ExpandedRowContentProps> = memo(
                     {currency0 && <CurrencyLogo currency={currency0} size="16px" />}
                     <FlexGap flexDirection="column" gap="0px">
                       <TokenValue>
-                        {formatAmount(BN(depositDisplay.amount0Str).toNumber())} {currency0?.symbol}
+                        {formatNumber(BN(depositDisplay.amount0Str).toNumber(), {
+                          maxDecimalDisplayDigits: 6,
+                          maximumDecimalTrailingZeroes: 3,
+                        })}{' '}
+                        {currency0?.symbol}
                       </TokenValue>
                       <TokenUsdValue>~{formatDollarAmount(depositDisplay.amount0Usd)}</TokenUsdValue>
                     </FlexGap>
@@ -552,7 +476,11 @@ export const ExpandedRowContent: React.FC<ExpandedRowContentProps> = memo(
                     {currency1 && <CurrencyLogo currency={currency1} size="16px" />}
                     <FlexGap flexDirection="column" gap="0px">
                       <TokenValue>
-                        {formatAmount(BN(depositDisplay.amount1Str).toNumber())} {currency1?.symbol}
+                        {formatNumber(BN(depositDisplay.amount1Str).toNumber(), {
+                          maxDecimalDisplayDigits: 6,
+                          maximumDecimalTrailingZeroes: 3,
+                        })}{' '}
+                        {currency1?.symbol}
                       </TokenValue>
                       <TokenUsdValue>~{formatDollarAmount(depositDisplay.amount1Usd)}</TokenUsdValue>
                     </FlexGap>
@@ -575,7 +503,12 @@ export const ExpandedRowContent: React.FC<ExpandedRowContentProps> = memo(
                     {currency0 && <CurrencyLogo currency={currency0} size="16px" />}
                     <FlexGap flexDirection="column" gap="0px">
                       <TokenValue>
-                        {earningsDisplay?.fee0Amount ? formatAmount(earningsDisplay.fee0Amount) : '0'}{' '}
+                        {earningsDisplay?.fee0Amount
+                          ? formatNumber(earningsDisplay.fee0Amount, {
+                              maxDecimalDisplayDigits: 6,
+                              maximumDecimalTrailingZeroes: 3,
+                            })
+                          : '0'}{' '}
                         {currency0?.symbol}
                       </TokenValue>
                       <TokenUsdValue>~{formatDollarAmount(earningsDisplay?.fee0USD ?? 0)}</TokenUsdValue>
@@ -585,7 +518,12 @@ export const ExpandedRowContent: React.FC<ExpandedRowContentProps> = memo(
                     {currency1 && <CurrencyLogo currency={currency1} size="16px" />}
                     <FlexGap flexDirection="column" gap="0px">
                       <TokenValue>
-                        {earningsDisplay?.fee1Amount ? formatAmount(earningsDisplay.fee1Amount) : '0'}{' '}
+                        {earningsDisplay?.fee1Amount
+                          ? formatNumber(earningsDisplay.fee1Amount, {
+                              maxDecimalDisplayDigits: 6,
+                              maximumDecimalTrailingZeroes: 3,
+                            })
+                          : '0'}{' '}
                         {currency1?.symbol}
                       </TokenValue>
                       <TokenUsdValue>~{formatDollarAmount(earningsDisplay?.fee1USD ?? 0)}</TokenUsdValue>
@@ -604,7 +542,11 @@ export const ExpandedRowContent: React.FC<ExpandedRowContentProps> = memo(
                               <CurrencyLogo currency={reward.currency} size="16px" />
                               <FlexGap flexDirection="column" gap="0px">
                                 <TokenValue>
-                                  {formatAmount(reward.amount)} {reward.currency.symbol}
+                                  {formatNumber(reward.amount, {
+                                    maxDecimalDisplayDigits: 6,
+                                    maximumDecimalTrailingZeroes: 3,
+                                  })}{' '}
+                                  {reward.currency.symbol}
                                 </TokenValue>
                                 <TokenUsdValue>~{formatDollarAmount(reward.amountUSD)}</TokenUsdValue>
                               </FlexGap>
@@ -616,7 +558,10 @@ export const ExpandedRowContent: React.FC<ExpandedRowContentProps> = memo(
                               <CurrencyLogo currency={earningsDisplay.rewardCurrency} size="16px" />
                               <FlexGap flexDirection="column" gap="0px">
                                 <TokenValue>
-                                  {formatAmount(earningsDisplay.farmRewardsAmount)}{' '}
+                                  {formatNumber(earningsDisplay.farmRewardsAmount, {
+                                    maxDecimalDisplayDigits: 6,
+                                    maximumDecimalTrailingZeroes: 3,
+                                  })}{' '}
                                   {earningsDisplay.rewardCurrency.symbol}
                                 </TokenValue>
                                 <TokenUsdValue>
@@ -664,6 +609,16 @@ export const ExpandedRowContent: React.FC<ExpandedRowContentProps> = memo(
           </Column>
         </MainContent>
 
+        <PositionModal
+          isOpen={isOpen}
+          onDismiss={onDismiss}
+          poolId={pool?.poolId ?? pool?.stableSwapAddress ?? pool?.lpAddress}
+          protocol={pool?.protocol}
+          chainId={pool?.chainId}
+          position={position}
+          presetTab={modalPresetTab}
+        />
+
         {/* Action Buttons */}
         <ActionButtonsContainer>
           {poolDetailUrl && (
@@ -679,28 +634,14 @@ export const ExpandedRowContent: React.FC<ExpandedRowContentProps> = memo(
               {t('Full Page')}
             </Button>
           )}
-          {removeLiquidityUrl && !isSolanaV3Position && !(isV2OrStablePosition && position?.isStaked) && (
-            <Button
-              variant="primary60"
-              scale="md"
-              as={NextLinkFromReactRouter}
-              to={removeLiquidityUrl}
-              width="48px"
-              p="0"
-            >
+          {!isSolanaV3Position && protocolForActions && (
+            <Button variant="primary60" scale="md" onClick={() => openModal('Remove')} width="48px" p="0">
               <MinusIcon width="24px" color="primary60" />
             </Button>
           )}
           {/* Hide plus button for V2 and STABLE positions and Solana V3 positions */}
-          {!isV2OrStablePosition && !isSolanaV3Position && (increaseLiquidityUrl || addLiquidityUrl) && (
-            <Button
-              variant="primary60"
-              scale="md"
-              as={NextLinkFromReactRouter}
-              to={increaseLiquidityUrl || addLiquidityUrl}
-              width="48px"
-              p="0"
-            >
+          {!isSolanaV3Position && protocolForActions && (
+            <Button variant="primary60" scale="md" onClick={() => openModal('Add')} width="48px" p="0">
               <AddIcon width="24px" color="primary60" />
             </Button>
           )}
@@ -739,6 +680,57 @@ function useExpandedData(position: UnifiedPositionDetail) {
   const v3Info = useExtraV3PositionInfo(
     position.protocol === Protocol.V3 && !isSolana(chainId) ? (position as PositionDetail) : undefined,
   )
+
+  const isEvmV3 = position.protocol === Protocol.V3 && !isSolana(chainId)
+  const v3PositionDetail = isEvmV3 ? (position as PositionDetail) : undefined
+  const [, v3PoolForRange] = usePoolByChainId(
+    isEvmV3 ? v3Info.currency0 : undefined,
+    isEvmV3 ? v3Info.currency1 : undefined,
+    isEvmV3 ? v3PositionDetail?.fee : undefined,
+  )
+
+  const v3OutOfRangeFromPriceRange = useMemo(() => {
+    if (!isEvmV3 || !v3PositionDetail) return false
+    const poolForCalc = v3PoolForRange || v3Info.pool
+    if (!poolForCalc) return false
+
+    const { tickLower, tickUpper, fee } = v3PositionDetail
+    if (tickLower === undefined || tickUpper === undefined) return false
+
+    const tickSpacing = getTickSpacing(poolForCalc, fee)
+    const ticksLimit = calculateTickLimits(tickSpacing)
+    const isTickAtLimit = getTickAtLimitStatus(tickLower, tickUpper, ticksLimit)
+
+    const c0 = v3Info.currency0
+    const c1 = v3Info.currency1
+    const isFlipped = Boolean(
+      c0?.wrapped?.address &&
+        poolForCalc.token1?.address &&
+        c0.wrapped.address.toLowerCase() === poolForCalc.token1.address.toLowerCase(),
+    )
+
+    const rangeData = calculateTickBasedPriceRange(
+      tickLower,
+      tickUpper,
+      c0?.wrapped,
+      c1?.wrapped,
+      poolForCalc,
+      isTickAtLimit,
+      isFlipped,
+    )
+
+    if (rangeData.showPercentages && rangeData.minPercentage && rangeData.maxPercentage) {
+      const minIsNegative = rangeData.minPercentage.startsWith('-') && rangeData.minPercentage !== '-%'
+      const minIsPositive = rangeData.minPercentage.startsWith('+')
+      const maxIsNegative = rangeData.maxPercentage.startsWith('-') && rangeData.maxPercentage !== '-%'
+      const maxIsPositive = rangeData.maxPercentage.startsWith('+')
+
+      const inRange = (minIsNegative && maxIsPositive) || (minIsPositive && maxIsNegative)
+      return !inRange && (minIsNegative || minIsPositive) && (maxIsNegative || maxIsPositive)
+    }
+
+    return false
+  }, [isEvmV3, v3PositionDetail, v3PoolForRange, v3Info.pool, v3Info.currency0, v3Info.currency1])
 
   const poolId = useMemo((): `0x${string}` | undefined => {
     if (position.protocol === Protocol.InfinityCLAMM || position.protocol === Protocol.InfinityBIN) {
@@ -785,7 +777,7 @@ function useExpandedData(position: UnifiedPositionDetail) {
   }, [infinityInfo, v3Info])
 
   const removed = infinityInfo.removed || v3Info.removed
-  const outOfRange = infinityInfo.outOfRange || v3Info.outOfRange
+  const outOfRange = infinityInfo.outOfRange || v3Info.outOfRange || v3OutOfRangeFromPriceRange
 
   // Extract priceLower/priceUpper as numbers for chart fallback (PAN-10696).
   // useExtraInfinityPositionInfo returns Price objects; convert to numeric here.

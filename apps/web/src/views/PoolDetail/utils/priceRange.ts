@@ -257,7 +257,7 @@ export const calculateTickBasedPriceRange = (
   token0: any,
   token1: any,
   pool: any,
-  isTickAtLimit: { [bound in Bound]: boolean },
+  isTickAtLimit: { [bound in Bound]?: boolean | undefined },
   isFlipped?: boolean,
 ): PriceRangeData => {
   let minPriceFormatted = '-'
@@ -388,8 +388,11 @@ export const calculateTickBasedPriceRange = (
       }
 
       // Use higher precision (18 significant digits) to avoid precision loss for small numbers
-      const currentPrice = parseFloat(basePrice.toFixed(18))
-      currentPriceString = basePrice.toFixed(18)
+      // basePrice may be an SDK Price object (has .toFixed) or a plain numeric string (from poolInfo)
+      const currentPriceHighPrecision =
+        typeof basePrice?.toFixed === 'function' ? basePrice.toFixed(18) : String(basePrice)
+      const currentPrice = parseFloat(currentPriceHighPrecision)
+      currentPriceString = currentPriceHighPrecision
 
       if (
         currentPrice > 0 &&

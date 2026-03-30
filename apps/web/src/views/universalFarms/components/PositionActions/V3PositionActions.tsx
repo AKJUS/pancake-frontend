@@ -26,6 +26,7 @@ import useFarmV3Actions from 'views/Farms/hooks/v3/useFarmV3Actions'
 import { useCheckShouldSwitchNetwork } from 'views/universalFarms/hooks'
 import { useV3CakeEarning } from 'views/universalFarms/hooks/useCakeEarning'
 import useV3CollectFeeAction from 'views/universalFarms/hooks/useV3CollectFeeAction'
+import { useOpenHarvestModal } from 'components/HarvestPositionsModal'
 import { V3StakeModal } from '../Modals/V3StakeModal'
 import { StopPropagation } from '../StopPropagation'
 import { ActionPanelContainer } from '../shared/styled'
@@ -73,7 +74,8 @@ export const V3PositionActions = memo(
       currentLanguage: { locale },
     } = useTranslation()
     const [, setLatestTxReceipt] = useLatestTxReceipt()
-    const { onStake, onUnstake, onHarvest, attemptingTxn } = useFarmV3Actions({
+    const openHarvestModal = useOpenHarvestModal()
+    const { onStake, onUnstake, attemptingTxn } = useFarmV3Actions({
       tokenId: tokenId?.toString() ?? '',
       onDone: setLatestTxReceipt,
     })
@@ -123,13 +125,6 @@ export const V3PositionActions = memo(
         stakeModal.onDismiss()
       }
     }, [onUnstake, switchNetworkIfNecessary, chainId, stakeModal])
-
-    const handleHarvest = useCallback(async () => {
-      const shouldSwitch = await switchNetworkIfNecessary(chainId)
-      if (!shouldSwitch) {
-        await onHarvest()
-      }
-    }, [onHarvest, switchNetworkIfNecessary, chainId])
 
     const handleCollect = useCallback(async () => {
       if (!pool || !tokenId) return
@@ -313,10 +308,10 @@ export const V3PositionActions = memo(
             <Button
               width={['100px']}
               scale="md"
-              disabled={attemptingTxn || isSwitchingNetwork || isEarningsLoading || !hasEarnings}
-              onClick={handleHarvest}
+              disabled={isEarningsLoading || !hasEarnings}
+              onClick={() => openHarvestModal?.('evm', chainId)}
             >
-              {attemptingTxn ? t('Harvesting') : t('Harvest')}
+              {t('Harvest')}
             </Button>
           ) : null}
         </ActionPanelContainer>

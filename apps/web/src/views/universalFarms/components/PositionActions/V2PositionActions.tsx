@@ -1,5 +1,5 @@
 import { useTranslation } from '@pancakeswap/localization'
-import { AutoRow, useModal, useToast } from '@pancakeswap/uikit'
+import { AddIcon, IconButton, AutoRow, useModal, useToast, MinusIcon, Button } from '@pancakeswap/uikit'
 import { BIG_ZERO } from '@pancakeswap/utils/bigNumber'
 import { FarmWidget } from '@pancakeswap/widgets-internal'
 import BigNumber from 'bignumber.js'
@@ -24,8 +24,9 @@ import { sumApr } from 'views/universalFarms/utils/sumApr'
 import { useAccount } from 'wagmi'
 import { getCurrencyAddress } from '@pancakeswap/swap-sdk-core'
 import { fetchAllUniversalFarmsMap } from '@pancakeswap/farms'
+import { useOpenHarvestModal } from 'components/HarvestPositionsModal'
 import { StopPropagation } from '../StopPropagation'
-import { DepositStakeAction, HarvestAction, ModifyStakeActions } from './StakeActions'
+import { DepositStakeAction, HarvestAction } from './StakeActions'
 
 type V2PositionActionsProps = {
   data: V2LPDetail | StableLPDetail
@@ -41,12 +42,47 @@ type V2PositionActionsProps = {
 const StyledAutoRow = styled(AutoRow)`
   flex-direction: row;
   gap: 8px;
-  height: 48px;
 
   & button {
     flex: 1;
   }
 `
+
+interface StakeActionsProps {
+  compact?: boolean
+  increaseDisabled?: boolean
+  decreaseDisabled?: boolean
+  showIncreaseBtn?: boolean
+  showDecreaseBtn?: boolean
+  onIncrease: () => void
+  onDecrease?: () => void
+}
+const StakeActions: React.FC<StakeActionsProps> = ({
+  compact = false,
+  increaseDisabled = false,
+  decreaseDisabled = false,
+  showIncreaseBtn = true,
+  showDecreaseBtn = true,
+  onIncrease,
+  onDecrease,
+}) => {
+  const { t } = useTranslation()
+  return (
+    <>
+      {showDecreaseBtn && (
+        <Button variant="primary60Outline" scale="md" disabled={decreaseDisabled} onClick={onDecrease}>
+          {compact ? <MinusIcon color="primary" width="24px" /> : t('Unstake')}
+        </Button>
+      )}
+      {showIncreaseBtn && (
+        <Button variant="primary60Outline" scale="md" disabled={increaseDisabled} onClick={onIncrease}>
+          {compact ? <AddIcon color="primary" width="24px" /> : t('Stake')}
+        </Button>
+      )}
+    </>
+  )
+}
+
 export const V2PositionActions: React.FC<V2PositionActionsProps> = memo(({ isStaked, ...props }) => {
   return (
     <StopPropagation>
@@ -250,7 +286,16 @@ const V2FarmingAction: React.FC<V2PositionActionsProps> = (props) => {
     }
   }, [chainId, onPresentWithdraw, switchNetworkIfNecessary])
 
-  return <ModifyStakeActions showIncreaseBtn={isFarmLive} onIncrease={handleIncrease} onDecrease={handleDecrease} />
+  const hasStakedBalance = data.farmingBalance.greaterThan(0)
+
+  return (
+    <StakeActions
+      showIncreaseBtn={isFarmLive}
+      showDecreaseBtn={hasStakedBalance}
+      onIncrease={handleIncrease}
+      onDecrease={handleDecrease}
+    />
+  )
 }
 
 const V2NativeAction: React.FC<V2PositionActionsProps> = (props) => {
@@ -270,12 +315,8 @@ const V2NativeAction: React.FC<V2PositionActionsProps> = (props) => {
 }
 
 const V2HarvestAction: React.FC<V2PositionActionsProps> = ({ chainId, lpAddress, poolInfo }) => {
-  const { t } = useTranslation()
-  const { onHarvest } = useV2FarmActions(lpAddress, poolInfo.bCakeWrapperAddress)
-  const { toastSuccess } = useToast()
-  const { fetchWithCatchTxError, loading: pendingTx } = useCatchTxError()
   const { address: account } = useAccount()
-  const { switchNetworkIfNecessary } = useCheckShouldSwitchNetwork()
+  const openHarvestModal = useOpenHarvestModal()
   const { data: pendingReward_ } = useAccountV2PendingCakeReward(account, {
     chainId,
     lpAddress,
@@ -284,31 +325,10 @@ const V2HarvestAction: React.FC<V2PositionActionsProps> = ({ chainId, lpAddress,
   const pendingReward = useMemo(() => {
     return new BigNumber(pendingReward_?.toString() ?? '0')
   }, [pendingReward_])
-  const [, setLatestTxReceipt] = useLatestTxReceipt()
-  const handleHarvest = useCallback(async () => {
-    const shouldSwitch = await switchNetworkIfNecessary(chainId)
-    if (shouldSwitch) {
-      return
-    }
-    const receipt = await fetchWithCatchTxError(() => onHarvest())
-    if (receipt?.status) {
-      setLatestTxReceipt(receipt)
-      toastSuccess(
-        `${t('Harvested')}!`,
-        <ToastDescriptionWithTx txHash={receipt.transactionHash}>
-          {t('Your %symbol% earnings have been sent to your wallet!', { symbol: 'CAKE' })}
-        </ToastDescriptionWithTx>,
-      )
-    }
-  }, [setLatestTxReceipt, chainId, switchNetworkIfNecessary, fetchWithCatchTxError, onHarvest, t, toastSuccess])
-
-  const { hasEarnings, isLoading } = useV2CakeEarning(poolInfo)
 
   if (!pendingReward || pendingReward.isZero()) {
     return null
   }
 
-  return (
-    <HarvestAction onHarvest={handleHarvest} executing={pendingTx} disabled={pendingTx || isLoading || !hasEarnings} />
-  )
+  return <HarvestAction onHarvest={() => openHarvestModal?.('evm', chainId)} />
 }

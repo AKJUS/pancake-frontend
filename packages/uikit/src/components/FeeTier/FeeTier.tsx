@@ -28,6 +28,18 @@ export const FeeTier = forwardRef<HTMLSpanElement, FeeTierProps>(
                 <span style={{ opacity: 0.5 }}>|</span>
                 <span style={{ textTransform: "capitalize" }}>SS</span>
               </>
+            ) : type === "infinityCl" ? (
+              <>
+                <span>Infinity</span>
+                <span style={{ opacity: 0.5 }}>|</span>
+                <span>CLAMM</span>
+              </>
+            ) : type === "infinityBin" ? (
+              <>
+                <span>Infinity</span>
+                <span style={{ opacity: 0.5 }}>|</span>
+                <span>LBAMM</span>
+              </>
             ) : (
               <span style={{ textTransform: "capitalize" }}>{type}</span>
             )}

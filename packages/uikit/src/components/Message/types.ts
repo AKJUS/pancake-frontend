@@ -3,11 +3,13 @@ import { SpaceProps } from "styled-system";
 
 export const variants = {
   WARNING: "warning",
+  WARNING60: "warning60",
   DANGER: "danger",
   SUCCESS: "success",
   PRIMARY: "primary",
   PRIMARY60: "primary60",
   SECONDARY: "secondary",
+  SECONDARY60: "secondary60",
 } as const;
 
 export type Variant = (typeof variants)[keyof typeof variants];

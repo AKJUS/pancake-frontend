@@ -11,11 +11,13 @@ const MessageContext = React.createContext<MessageProps>({ variant: "success" })
 
 const Icons = {
   warning: WarningIcon,
+  warning60: WarningIcon,
   danger: ErrorIcon,
   success: CheckmarkCircleIcon,
   primary: InfoFilledIcon,
   primary60: InfoFilledIcon,
   secondary: ErrorIcon,
+  secondary60: ErrorIcon,
 };
 
 const MessageContainer = styled.div<MessageProps>`
@@ -23,6 +25,7 @@ const MessageContainer = styled.div<MessageProps>`
   padding: 16px;
   border-radius: 16px;
   border: solid 1px;
+  line-height: 1.4;
 
   ${space}
   ${systemVariant({
@@ -42,6 +45,8 @@ const colors = {
   success: "#129E7D",
   danger: "failure",
   secondary: "#D67E0A",
+  secondary60: "text",
+  warning60: "text",
 };
 
 export const MessageText: React.FC<React.PropsWithChildren<TextProps>> = ({ children, ...props }) => {
@@ -68,7 +73,20 @@ const Message: React.FC<React.PropsWithChildren<MessageProps>> = ({
     <MessageContext.Provider value={providerValue}>
       <MessageContainer variant={variant} {...props}>
         <Flex>
-          {showIcon && <Box mr="12px">{icon ?? <Icon color={variants[variant].borderColor} width="24px" />}</Box>}
+          {showIcon && (
+            <Box mr="12px">
+              {icon ?? (
+                <Icon
+                  color={
+                    "iconColor" in variants[variant]
+                      ? (variants[variant].iconColor as string)
+                      : (variants[variant].borderColor as string)
+                  }
+                  width="24px"
+                />
+              )}
+            </Box>
+          )}
           {children}
           {actionInline && action}
         </Flex>

@@ -156,9 +156,9 @@ export const PositionActionButtons = memo(function PositionActionButtons({
   // V2 and StableSwap Protocols
   if (protocol === Protocol.V2 || protocol === Protocol.STABLE) {
     const v2Data = position as any
-    // Get lpAddress from pool first, then fallback to position data
+    // Prefer stableSwapAddress (hook / pool contract) over lpAddress when both exist
     const v2Pool = pool as any
-    const lpAddressFromPool = (v2Pool?.lpAddress ?? v2Pool?.stableSwapAddress) as Address | undefined
+    const lpAddressFromPool = (v2Pool?.stableSwapAddress ?? v2Pool?.lpAddress) as Address | undefined
     const lpAddressFromPosition =
       protocol === Protocol.V2
         ? (v2Data.pair?.liquidityToken?.address as Address | undefined)

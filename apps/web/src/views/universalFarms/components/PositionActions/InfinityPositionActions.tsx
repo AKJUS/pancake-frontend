@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import { Protocol } from '@pancakeswap/farms'
 import { getPoolId, PoolKey } from '@pancakeswap/infinity-sdk'
 import { useTranslation } from '@pancakeswap/localization'
-import { AutoColumn, AutoRow, Button, Flex, Text, useModal, useModalV2 } from '@pancakeswap/uikit'
+import { AutoColumn, AutoRow, Button, Flex, Text, useModal } from '@pancakeswap/uikit'
 import { ConfirmationModalContent } from '@pancakeswap/widgets-internal'
 import { LightGreyCard } from 'components/Card'
 import { CurrencyLogo, DoubleCurrencyLogo } from 'components/Logo'
@@ -18,11 +18,15 @@ import useFarmInfinityActions from 'views/universalFarms/hooks/useFarmInfinityAc
 import useInfinityCollectFeeAction from 'views/universalFarms/hooks/useInfinityCollectFeeAction'
 import { useInfinityPositionsData } from 'views/universalFarms/hooks/useInfinityPositions'
 
-import { InfinityHarvestModal, type InfinityHarvestProps } from '../Modals/InfinityHarvestModal'
+import { useOpenHarvestModal } from 'components/HarvestPositionsModal'
 import { StopPropagation } from '../StopPropagation'
 import { ActionPanelContainer } from '../shared/styled'
 
-interface ActionPanelProps extends Omit<InfinityHarvestProps, 'currency0' | 'currency1'> {
+interface ActionPanelProps {
+  pos?: InfinityCLPositionDetail | InfinityBinPositionDetail
+  positionList?: (InfinityCLPositionDetail | InfinityBinPositionDetail)[]
+  chainId?: number
+  showPositionFees?: boolean
   /** Show Collect (LP fees) button - only used in universalFarms PositionsTable */
   showCollectButton?: boolean
 }
@@ -40,7 +44,7 @@ export const InfinityPositionActions = memo(
       currentLanguage: { locale },
     } = useTranslation()
     const [, setLatestTxReceipt] = useLatestTxReceipt()
-    const modalState = useModalV2()
+    const openHarvestModal = useOpenHarvestModal()
 
     // Fetch all infinity positions if not provided via props
     const { data: allInfinityPositions } = useInfinityPositionsData()
@@ -54,13 +58,7 @@ export const InfinityPositionActions = memo(
 
     const chainId = chainId_ ?? pos?.chainId ?? 0
 
-    const {
-      onHarvest,
-      attemptingTx: harvestAttemptingTxn,
-      isMerkleRootMismatch,
-      hasRewards,
-      hasUnclaimedRewards,
-    } = useFarmInfinityActions({
+    const { isMerkleRootMismatch, hasRewards, hasUnclaimedRewards } = useFarmInfinityActions({
       chainId,
       onDone: setLatestTxReceipt,
     })
@@ -102,33 +100,6 @@ export const InfinityPositionActions = memo(
     }, [pos?.protocol, feeAmount0, feeAmount1])
 
     const [collectErrorMessage, setCollectErrorMessage] = useState<string | undefined>()
-
-    const harvestList = useMemo(() => {
-      // Add null check to prevent crashes when positions are loading
-      if (!effectivePositionList) return []
-
-      const isSamePosition = (p: InfinityCLPositionDetail | InfinityBinPositionDetail): boolean => {
-        if (!pos) return false
-        if (p.chainId !== pos.chainId || p.protocol !== pos.protocol) return false
-
-        // Type narrowing: both have same protocol, so we can safely compare
-        if (p.protocol === Protocol.InfinityCLAMM) {
-          return p.tokenId === (pos as InfinityCLPositionDetail).tokenId
-        }
-        // Both are InfinityBIN
-        return (p as InfinityBinPositionDetail).activeId === (pos as InfinityBinPositionDetail).activeId
-      }
-
-      const filtered = effectivePositionList
-        .filter((p) => p.chainId === chainId) // Filter by chainId
-        .filter((p) => p !== pos && !isSamePosition(p)) // Exclude the current position and same position
-
-      if (pos) {
-        filtered.unshift(pos)
-      }
-
-      return filtered
-    }, [effectivePositionList, pos, chainId])
 
     const handleCollect = useCallback(async () => {
       if (pos?.protocol !== Protocol.InfinityCLAMM || !pos.poolKey) {
@@ -221,8 +192,6 @@ export const InfinityPositionActions = memo(
       `TransactionConfirmationModalCollectFees-${chainId}-${positionKey}`,
     )
 
-    const isAttemptingTx = harvestAttemptingTxn
-
     if (!currency0 || !currency1) {
       return null
     }
@@ -238,26 +207,12 @@ export const InfinityPositionActions = memo(
           <Button
             width={['100px']}
             scale="md"
-            disabled={isAttemptingTx || isMerkleRootMismatch || !hasRewards || !hasUnclaimedRewards}
-            onClick={modalState.onOpen}
+            disabled={isMerkleRootMismatch || !hasRewards || !hasUnclaimedRewards}
+            onClick={() => openHarvestModal?.('evm', chainId)}
           >
-            {isAttemptingTx ? t('Harvesting') : t('Harvest')}
+            {t('Harvest')}
           </Button>
         </ActionPanelContainer>
-        {modalState.isOpen ? (
-          <InfinityHarvestModal
-            {...modalState}
-            positionList={harvestList}
-            currency0={currency0}
-            currency1={currency1}
-            chainId={chainId}
-            onHarvest={onHarvest}
-            onCollect={handleCollect}
-            pos={pos}
-            showPositionFees={showPositionFees}
-            closeOnOverlayClick
-          />
-        ) : null}
       </StopPropagation>
     )
   },

@@ -52,6 +52,7 @@ export const InfinityBinPositionRow: React.FC<InfinityBinPositionRowProps> = mem
     const {
       onHarvest,
       hasUnclaimedRewards,
+      isMerkleRootMismatch,
       attemptingTx: harvestAttemptingTxn,
     } = useFarmInfinityActions({
       chainId,
@@ -306,6 +307,7 @@ export const InfinityBinPositionRow: React.FC<InfinityBinPositionRowProps> = mem
         totalApr,
         hasFarm,
         hasUnclaimedRewards,
+        isMerkleRootMismatch,
         onHarvest: removed && hasUnclaimedRewards ? handleOpenHarvestModal : undefined,
       }),
       [
@@ -332,6 +334,7 @@ export const InfinityBinPositionRow: React.FC<InfinityBinPositionRowProps> = mem
         totalApr,
         hasFarm,
         hasUnclaimedRewards,
+        isMerkleRootMismatch,
         handleOpenHarvestModal,
       ],
     )

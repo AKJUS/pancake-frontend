@@ -100,8 +100,10 @@ export function useV3PositionFromTokenId(tokenId: bigint | undefined): UseV3Posi
 export function useV3TokenIdsByAccount(
   contractAddress?: Address,
   account?: Address | null | undefined,
+  overrideChainId?: number,
 ): { tokenIds: bigint[]; loading: boolean } {
-  const { chainId } = useActiveChainId()
+  const { chainId: activeChainId } = useActiveChainId()
+  const chainId = overrideChainId ?? activeChainId
 
   const {
     isLoading: balanceLoading,

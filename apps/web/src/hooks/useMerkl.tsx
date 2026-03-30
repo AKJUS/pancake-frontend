@@ -16,14 +16,18 @@ import { useAllLists } from 'state/lists/hooks'
 import { getContract } from 'utils/contractHelpers'
 import { Address } from 'viem'
 import { useWalletClient } from 'wagmi'
-import { useMasterchefV3 } from 'hooks/useContract'
+import { useMasterchefV3ByChain } from 'hooks/useContract'
 import { isAddressEqual } from 'utils'
-import { useCurrentBlockTimestamp as useBlockTimestamp } from 'state/block/hooks'
+import { useCurrentBlockTimestamp } from 'state/block/hooks'
 import { merklSupportedChainId, supportedChainIdV4 } from '@pancakeswap/farms'
+import { ChainId } from '@pancakeswap/chains'
 
 export const MERKL_API_V4 = 'https://api.merkl.xyz/v4'
 
-export function useMerklInfo(poolAddress?: string): {
+export function useMerklInfo(
+  poolAddress?: string,
+  chainId?: number,
+): {
   rewardsPerToken: CurrencyAmount<Currency>[]
   isPending: boolean
   transactionData: {
@@ -36,11 +40,12 @@ export function useMerklInfo(poolAddress?: string): {
   refreshData: () => void
   merklApr?: number
 } {
-  const { account, chainId } = useAccountActiveChain()
-  const currentTimestamp = useBlockTimestamp()
-  const masterChefV3Address = useMasterchefV3()?.address as Address
+  const { account, chainId: activeChainId } = useAccountActiveChain()
+  const resolvedChainId = chainId ?? activeChainId
+  const currentTimestamp = useCurrentBlockTimestamp(resolvedChainId)
+  const masterChefV3Address = useMasterchefV3ByChain(resolvedChainId as ChainId)?.address as Address
   const lists = useAllLists()
-  const chainIds = supportedChainIdV4.filter((chainId) => merklSupportedChainId.includes(chainId))
+  const chainIds = supportedChainIdV4.filter((id) => merklSupportedChainId.includes(id))
 
   const { data, isPending, refetch } = useQuery({
     queryKey: [`fetchMerklPools`],
@@ -85,11 +90,11 @@ export function useMerklInfo(poolAddress?: string): {
   })
 
   const { data: userData } = useQuery({
-    queryKey: [`fetchMerkl-${chainId}-${account}`],
+    queryKey: [`fetchMerkl-user-${resolvedChainId}-${account}`],
     queryFn: async () => {
-      if (!chainId) return undefined
+      if (!resolvedChainId) return undefined
 
-      const responsev4 = await fetch(`${MERKL_API_V4}/users/${account}/rewards?chainId=${chainId}`)
+      const responsev4 = await fetch(`${MERKL_API_V4}/users/${account}/rewards?chainId=${resolvedChainId}`)
 
       if (!responsev4.ok) {
         throw responsev4
@@ -101,7 +106,7 @@ export function useMerklInfo(poolAddress?: string): {
 
       return merklDataV4
     },
-    enabled: Boolean(data && chainId && account && poolAddress),
+    enabled: Boolean(data && resolvedChainId && account && poolAddress),
     staleTime: FAST_INTERVAL,
     retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 30000),
   })
@@ -176,7 +181,7 @@ export function useMerklInfo(poolAddress?: string): {
                 token: { address, decimals, symbol },
               } = tokenInfo
 
-              const token = new Token(chainId as number, address as Address, decimals, symbol)
+              const token = new Token(resolvedChainId as number, address as Address, decimals, symbol)
               const unclaimed = BigInt(amount || 0) - BigInt(claimed || 0)
               return CurrencyAmount.fromRawAmount(token, unclaimed)
             })
@@ -204,7 +209,7 @@ export function useMerklInfo(poolAddress?: string): {
             return result
           }, [])
           .map((info) => {
-            const t = new Token(chainId as number, info.address, info.decimals, info.symbol)
+            const t = new Token(resolvedChainId as number, info.address, info.decimals, info.symbol)
 
             return CurrencyAmount.fromRawAmount(t, '0')
           })
@@ -217,15 +222,27 @@ export function useMerklInfo(poolAddress?: string): {
       refreshData: refetch,
       merklApr,
     }
-  }, [chainId, data, lists, refetch, isPending, poolAddress, account, masterChefV3Address, currentTimestamp, userData])
+  }, [
+    resolvedChainId,
+    data,
+    lists,
+    refetch,
+    isPending,
+    poolAddress,
+    account,
+    masterChefV3Address,
+    currentTimestamp,
+    userData,
+  ])
 }
 
-export default function useMerkl(poolAddress?: string) {
-  const { account, chainId } = useAccountActiveChain()
+export default function useMerkl(poolAddress?: string, chainId?: number) {
+  const { account, chainId: activeChainId } = useAccountActiveChain()
+  const resolvedChainId = chainId ?? activeChainId
 
   const { data: signer } = useWalletClient()
 
-  const { transactionData, rewardsPerToken, refreshData, hasMerkl } = useMerklInfo(poolAddress)
+  const { transactionData, rewardsPerToken, refreshData, hasMerkl } = useMerklInfo(poolAddress, chainId)
 
   const { callWithGasPrice } = useCallWithGasPrice()
   const { fetchWithCatchTxError, loading: isTxPending } = useCatchTxError()
@@ -233,7 +250,7 @@ export default function useMerkl(poolAddress?: string) {
   const { t } = useTranslation()
 
   const claimTokenReward = useCallback(async () => {
-    const contractAddress = chainId ? DISTRIBUTOR_ADDRESSES[chainId] : undefined
+    const contractAddress = resolvedChainId ? DISTRIBUTOR_ADDRESSES[resolvedChainId] : undefined
 
     if (!account || !contractAddress || !signer) return undefined
 
@@ -282,7 +299,7 @@ export default function useMerkl(poolAddress?: string) {
     // Fix eslint warning
     return undefined
   }, [
-    chainId,
+    resolvedChainId,
     account,
     signer,
     transactionData,

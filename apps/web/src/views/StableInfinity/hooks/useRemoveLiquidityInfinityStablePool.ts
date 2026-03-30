@@ -5,10 +5,14 @@ import { InfinityStableHook } from '@pancakeswap/infinity-stable-sdk'
 
 interface UseRemoveLiquidityInfinityStablePoolParams {
   poolAddress: string
+  chainId?: number
 }
 
-export const useRemoveLiquidityInfinityStablePool = ({ poolAddress }: UseRemoveLiquidityInfinityStablePoolParams) => {
-  const publicClient = usePublicClient()
+export const useRemoveLiquidityInfinityStablePool = ({
+  poolAddress,
+  chainId,
+}: UseRemoveLiquidityInfinityStablePoolParams) => {
+  const publicClient = usePublicClient({ chainId })
   const { sendTransactionAsync } = useSendTransaction()
   const { address: account } = useAccount()
 

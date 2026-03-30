@@ -55,6 +55,7 @@ export const InfinityCLPositionRow: React.FC<InfinityCLPositionRowProps> = memo(
     const {
       onHarvest,
       hasUnclaimedRewards,
+      isMerkleRootMismatch,
       attemptingTx: harvestAttemptingTxn,
     } = useFarmInfinityActions({
       chainId,
@@ -342,6 +343,7 @@ export const InfinityCLPositionRow: React.FC<InfinityCLPositionRowProps> = memo(
         totalApr,
         hasFarm,
         hasUnclaimedRewards,
+        isMerkleRootMismatch,
         onHarvest: removed && hasUnclaimedRewards ? handleOpenHarvestModal : undefined,
       }),
       [
@@ -368,6 +370,7 @@ export const InfinityCLPositionRow: React.FC<InfinityCLPositionRowProps> = memo(
         totalApr,
         hasFarm,
         hasUnclaimedRewards,
+        isMerkleRootMismatch,
         handleOpenHarvestModal,
       ],
     )
