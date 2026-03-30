@@ -65,6 +65,7 @@ import { TokenInfo } from '@pancakeswap/solana-core-sdk'
 import { convertRawTokenInfoIntoSPLToken } from 'config/solana-list'
 import { useSolanaV3Pool, SolanaV3Pool } from 'state/pools/solana'
 import { SOLANA_FEE_TIER_BASE } from 'utils/normalizeSolanaPoolInfo'
+import { SolanaV3AddPositionModal } from '../Modals/solana/SolanaV3AddPositionModal'
 import { getPositionChainId } from '../../utils'
 import {
   InfinityCLPoolPositionAprButton,
@@ -218,6 +219,16 @@ export const PositionListCard: React.FC<PositionListCardProps> = ({ position, po
     },
     [setPositionModalOpen],
   )
+
+  const isSolanaV3 = isSolanaPosition && position.protocol === Protocol.V3
+  const solanaV3PoolForAdd =
+    isSolanaV3 && pool && 'rawPool' in pool && pool.rawPool ? (pool as SolanaV3PoolInfo) : undefined
+
+  const {
+    isOpen: isSolanaAddModalOpen,
+    onOpen: onSolanaAddModalOpen,
+    onDismiss: onSolanaAddModalDismiss,
+  } = useModalV2()
 
   // Combine Solana price range with EVM price range
   // Extract raw numeric values from formatted strings for inversion support (matching SolanaV3PositionRow)
@@ -450,8 +461,17 @@ export const PositionListCard: React.FC<PositionListCardProps> = ({ position, po
 
           {/* Action buttons using unified PositionActionButtons component */}
           <ActionsRow>
-            {!removed && pool?.protocol && (
-              <Button width="100%" onClick={() => openPositionModal('Add')}>
+            {!removed && pool?.protocol && (!isSolanaV3 || solanaV3PoolForAdd) && (
+              <Button
+                width="100%"
+                onClick={() => {
+                  if (isSolanaV3 && solanaV3PoolForAdd) {
+                    onSolanaAddModalOpen()
+                  } else {
+                    openPositionModal('Add')
+                  }
+                }}
+              >
                 {t('Add Liquidity')}
               </Button>
             )}
@@ -491,16 +511,26 @@ export const PositionListCard: React.FC<PositionListCardProps> = ({ position, po
           </ActionsRow>
         </CardBody>
       </Card>
-      <PositionModal
-        key={modalPresetTab}
-        isOpen={isPositionModalOpen}
-        onDismiss={onPositionModalDismiss}
-        poolId={pool?.poolId ?? pool?.stableSwapAddress ?? pool?.lpAddress}
-        protocol={pool?.protocol}
-        chainId={pool?.chainId}
-        position={position}
-        presetTab={modalPresetTab}
-      />
+      {solanaV3PoolForAdd && (
+        <SolanaV3AddPositionModal
+          isOpen={isSolanaAddModalOpen}
+          onClose={onSolanaAddModalDismiss}
+          pool={solanaV3PoolForAdd}
+          position={position as SolanaV3PositionDetail}
+        />
+      )}
+      {!isSolanaV3 && (
+        <PositionModal
+          key={modalPresetTab}
+          isOpen={isPositionModalOpen}
+          onDismiss={onPositionModalDismiss}
+          poolId={pool?.poolId ?? pool?.stableSwapAddress ?? pool?.lpAddress}
+          protocol={pool?.protocol}
+          chainId={pool?.chainId ?? chainId}
+          position={position}
+          presetTab={modalPresetTab}
+        />
+      )}
     </>
   )
 }

@@ -609,15 +609,17 @@ export const ExpandedRowContent: React.FC<ExpandedRowContentProps> = memo(
           </Column>
         </MainContent>
 
-        <PositionModal
-          isOpen={isOpen}
-          onDismiss={onDismiss}
-          poolId={pool?.poolId ?? pool?.stableSwapAddress ?? pool?.lpAddress}
-          protocol={pool?.protocol}
-          chainId={pool?.chainId}
-          position={position}
-          presetTab={modalPresetTab}
-        />
+        {!isSolanaV3Position && (
+          <PositionModal
+            isOpen={isOpen}
+            onDismiss={onDismiss}
+            poolId={pool?.poolId ?? pool?.stableSwapAddress ?? pool?.lpAddress}
+            protocol={pool?.protocol}
+            chainId={pool?.chainId ?? chainId}
+            position={position}
+            presetTab={modalPresetTab}
+          />
+        )}
 
         {/* Action Buttons */}
         <ActionButtonsContainer>
