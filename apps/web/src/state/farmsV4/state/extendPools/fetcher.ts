@@ -22,12 +22,14 @@ import { ExtendPoolsQuery } from './atom'
 
 /** @TODO: patch isDynamic for Infinity pools */
 export const fetchExplorerPoolsList = async (query: Required<ExtendPoolsQuery>, signal?: AbortSignal) => {
+  // NOTE: Infinity Stable pools are no longer shown in the pool list
+  const protocols = query.protocols.filter((p) => p !== Protocol.InfinitySTABLE)
   const resp = await explorerApiClient.GET('/cached/pools/list', {
     signal,
     params: {
       query: {
         chains: query.chains.map((chain) => chainIdToExplorerInfoChainName[chain]),
-        protocols: query.protocols,
+        protocols,
         orderBy: query.orderBy,
         pools: query.pools,
         tokens: query.tokens,

@@ -1,7 +1,7 @@
 import { chainNames, getChainName } from '@pancakeswap/chains'
 import { Protocol } from '@pancakeswap/farms'
 import { INFINITY_SUPPORTED_CHAINS } from '@pancakeswap/infinity-sdk'
-import { CAKE, USD1, USDC, USDT } from '@pancakeswap/tokens'
+import { CAKE, USDC } from '@pancakeswap/tokens'
 import { SelectIdRoute, zSelectId } from 'dynamicRoute'
 import { useActiveChainId } from 'hooks/useActiveChainId'
 import { useUnifiedNativeCurrency } from 'hooks/useNativeCurrency'
@@ -46,14 +46,8 @@ export const useSelectIdRoute = () => {
 
     const chainName = getChainName(activeChainId)
 
-    const currencyA =
-      protocolName === LiquidityType.StableSwap
-        ? USD1[activeChainId]?.address ?? USDC[activeChainId]?.address ?? ''
-        : native.symbol
-    const currencyB: string =
-      protocolName === LiquidityType.StableSwap
-        ? USDT[activeChainId]?.address ?? ''
-        : CAKE[activeChainId]?.address ?? USDC[activeChainId]?.address ?? ''
+    const currencyA = native.symbol
+    const currencyB: string = CAKE[activeChainId]?.address ?? USDC[activeChainId]?.address ?? ''
 
     router.replace(
       {

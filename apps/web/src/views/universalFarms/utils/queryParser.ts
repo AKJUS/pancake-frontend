@@ -8,29 +8,20 @@ import { PoolInfo } from 'state/farmsV4/state/type'
 
 export function getProtocolsByIndex(index?: number): Protocol[] {
   if (!index || index === 0) return DEFAULT_PROTOCOLS
-  if (index === 1) return [...INFINITY_PROTOCOLS, Protocol.InfinitySTABLE]
+  if (index === 1) return INFINITY_PROTOCOLS
   if (index === 2) return [Protocol.V3]
   if (index === 3) return [Protocol.V2]
-  if (index === 4) return [Protocol.STABLE, Protocol.InfinitySTABLE]
-  if (index === 5) return [Protocol.InfinitySTABLE]
+  if (index === 4) return [Protocol.STABLE]
   return Object.values(Protocol)
 }
 
 export function getIndexByProtocols(protocols: Protocol[]): number {
-  if (
-    protocols.length === 3 &&
-    (protocols[0] === Protocol.InfinityCLAMM ||
-      protocols[0] === Protocol.InfinityBIN ||
-      protocols[0] === Protocol.InfinitySTABLE)
-  ) {
+  if (protocols.length === 2 && (protocols[0] === Protocol.InfinityCLAMM || protocols[0] === Protocol.InfinityBIN)) {
     return 1
   }
   if (protocols.length === 1 && protocols[0] === Protocol.V3) return 2
   if (protocols.length === 1 && protocols[0] === Protocol.V2) return 3
-  if (protocols.length === 2 && protocols.includes(Protocol.STABLE) && protocols.includes(Protocol.InfinitySTABLE)) {
-    return 4
-  }
-  if (protocols.length === 1 && protocols[0] === Protocol.InfinitySTABLE) return 5
+  if (protocols.length === 1 && protocols[0] === Protocol.STABLE) return 4
   return 0
 }
 

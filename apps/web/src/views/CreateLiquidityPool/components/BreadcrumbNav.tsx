@@ -9,7 +9,6 @@ import { TabMenu } from 'views/BurnDashboard/components/TabMenu'
 import { useActiveChainId } from 'hooks/useActiveChainId'
 import { getChainName } from '@pancakeswap/chains'
 import { LiquidityType } from 'utils/types'
-import { isInfinityStableSupported } from '@pancakeswap/infinity-stable-sdk'
 import { useProtocolSupported } from '../hooks/useProtocolSupported'
 
 const StyledLink = styled(NextLinkFromReactRouter)`
@@ -61,8 +60,6 @@ export const BreadcrumbNav: React.FC = () => {
             { value: LiquidityType.Infinity, label: 'Infinity', disabled: !isInfinitySupported },
             { value: LiquidityType.V3, label: 'V3' },
             { value: LiquidityType.V2, label: 'V2', disabled: !isV2Supported(chainId) },
-            // NOTE: SS Tab is only supported for Infinity Stable
-            { value: LiquidityType.StableSwap, label: 'SS', disabled: !isInfinityStableSupported(chainId) },
           ]}
           defaultTab={{
             value: protocolName,

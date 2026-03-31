@@ -216,11 +216,13 @@ function getOrder(sortBy?: FarmQuery['sortBy']): 'tvlUSD' | 'volumeUSD24h' {
 async function fetchAllExplorerPools(query: FarmQuery, signal?: AbortSignal) {
   const { protocols, chains, sortBy } = query
   const chainIds = chains.length > 0 ? chains : supportedChainIdV4
+  const filteredProtocols = (protocols.length > 0 ? protocols : DEFAULT_PROTOCOLS).filter(
+    (p) => p !== Protocol.InfinitySTABLE,
+  )
   const poolQuery = {
     baseUrl: `${process.env.NEXT_PUBLIC_EXPLORE_API_ENDPOINT}/cached/pools/list`,
-    protocols: protocols.length > 0 ? protocols : DEFAULT_PROTOCOLS,
+    protocols: filteredProtocols,
     chains: chainIds.map((chain) => getEdgeChainName(chain as ChainId)),
-    // Infinity Stable pools may appear beyond page 2 for popular token queries.
     maxPages: 3,
     orderBy: getOrder(sortBy),
     signal,
@@ -232,7 +234,9 @@ async function fetchAllExplorerPools(query: FarmQuery, signal?: AbortSignal) {
 async function fetchAllExplorerPoolsByAddress(query: FarmQuery, isPool: boolean = false, signal?: AbortSignal) {
   const { protocols, chains, tokens, sortBy } = query
   const chainIds = chains.length > 0 ? chains : supportedChainIdV4
-  const protocolList = protocols.length > 0 ? protocols : DEFAULT_PROTOCOLS
+  const protocolList = (protocols.length > 0 ? protocols : DEFAULT_PROTOCOLS).filter(
+    (p) => p !== Protocol.InfinitySTABLE,
+  )
 
   if (!protocolList.length) return []
   const baseUrl = `${process.env.NEXT_PUBLIC_EXPLORE_API_ENDPOINT}/cached/pools/list`
@@ -268,7 +272,8 @@ async function fetchAllExplorerPoolsBySymbols(
   sortBy?: FarmQuery['sortBy'],
   signal?: AbortSignal,
 ) {
-  if (!protocols.length) return []
+  const filteredProtocols = protocols.filter((p) => p !== Protocol.InfinitySTABLE)
+  if (!filteredProtocols.length) return []
   if (!symbols.length) return []
 
   const baseUrl = `${process.env.NEXT_PUBLIC_EXPLORE_API_ENDPOINT}/cached/pools/list`
@@ -279,7 +284,7 @@ async function fetchAllExplorerPoolsBySymbols(
     chunks.map((symbolChunk) => {
       return edgeQueries.fetchAllPools({
         baseUrl,
-        protocols,
+        protocols: filteredProtocols,
         chains: chainNames,
         symbols: symbolChunk,
         maxPages: 3,

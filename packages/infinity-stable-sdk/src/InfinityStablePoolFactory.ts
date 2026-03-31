@@ -188,7 +188,7 @@ export abstract class InfinityStablePoolFactory {
     const oracles = [options.oracles?.[0] ?? ADDRESS_ZERO, options.oracles?.[1] ?? ADDRESS_ZERO]
 
     // Determine which amounts to use based on token order
-    const isSorted = tokenA.wrapped.sortsBefore(tokenB.wrapped)
+    const isSorted = options.tokenA.wrapped.sortsBefore(options.tokenB.wrapped)
     const amount0 = isSorted ? options.amount0 : options.amount1
     const amount1 = isSorted ? options.amount1 : options.amount0
 

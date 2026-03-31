@@ -1,6 +1,7 @@
 {
   "name": "@pancakeswap/infinity-stable-sdk",
   "version": "1.0.1",
+  "private": true,
   "description": "SDK for Pancakeswap Infinity Stable Swap",
   "repository": {
     "type": "git",

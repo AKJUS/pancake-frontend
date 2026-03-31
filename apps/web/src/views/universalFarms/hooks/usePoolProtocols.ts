@@ -15,7 +15,7 @@ export const usePoolProtocols = () => {
       },
       {
         label: 'Infinity',
-        value: [...INFINITY_PROTOCOLS, Protocol.InfinitySTABLE],
+        value: INFINITY_PROTOCOLS,
       },
       {
         label: 'V3',
@@ -27,7 +27,7 @@ export const usePoolProtocols = () => {
       },
       {
         label: isMobile ? t('SS') : t('StableSwap'),
-        value: [Protocol.STABLE, Protocol.InfinitySTABLE],
+        value: [Protocol.STABLE],
       },
     ],
     [isMobile, t],
