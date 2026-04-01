@@ -1,26 +1,24 @@
 import { describe, expect, it } from 'vitest'
-import { getWalletEnv, WalletEnv } from './useWalletEnv'
+import { detectBaseMiniAppHost } from '../runtime'
 
-describe('getWalletEnv', () => {
-  it('returns other outside mini app', () => {
-    expect(getWalletEnv({ host: 'pancakeswap.finance', isInMiniApp: false })).toBe(WalletEnv.Other)
+describe('detectBaseMiniAppHost', () => {
+  it('returns false outside mini app', () => {
+    expect(detectBaseMiniAppHost({ host: 'pancakeswap.finance', isInMiniApp: false })).toBe(false)
   })
 
-  it('returns base pcs mini app on pancakeswap.finance inside mini app', () => {
-    expect(getWalletEnv({ host: 'pancakeswap.finance', isInMiniApp: true })).toBe(WalletEnv.BasePcsMiniApp)
+  it('returns true on pancakeswap.finance inside mini app', () => {
+    expect(detectBaseMiniAppHost({ host: 'pancakeswap.finance', isInMiniApp: true })).toBe(true)
   })
 
-  it('returns base cakepad mini app on cakepad host inside mini app', () => {
-    expect(getWalletEnv({ host: 'cakepad.pancakeswap.finance', isInMiniApp: true })).toBe(WalletEnv.BaseCakepadMiniApp)
+  it('returns true on cakepad host inside mini app', () => {
+    expect(detectBaseMiniAppHost({ host: 'cakepad.pancakeswap.finance', isInMiniApp: true })).toBe(true)
   })
 
   it('normalizes hosts with ports', () => {
-    expect(getWalletEnv({ host: 'cakepad.pancakeswap.finance:3000', isInMiniApp: true })).toBe(
-      WalletEnv.BaseCakepadMiniApp,
-    )
+    expect(detectBaseMiniAppHost({ host: 'cakepad.pancakeswap.finance:3000', isInMiniApp: true })).toBe(true)
   })
 
-  it('falls back to other for unsupported hosts even inside mini app', () => {
-    expect(getWalletEnv({ host: 'example.com', isInMiniApp: true })).toBe(WalletEnv.Other)
+  it('returns false for unsupported hosts even inside mini app', () => {
+    expect(detectBaseMiniAppHost({ host: 'example.com', isInMiniApp: true })).toBe(false)
   })
 })

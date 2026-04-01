@@ -1,4 +1,5 @@
 import { ChainId } from '@pancakeswap/chains'
+import { WalletIds } from '@pancakeswap/ui-wallets'
 import { useActiveChainId } from 'hooks/useAccountActiveChain'
 import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
 import { useSetAtom, useAtomValue } from 'jotai'
@@ -6,7 +7,7 @@ import { useEffect, useRef } from 'react'
 import { baseMiniAppAutoConnectRetryAtom, baseMiniAppAutoConnectStatusAtom } from 'state/wallet/atom'
 import { useAccount, useConnect } from 'wagmi'
 import { baseAccountConnector } from 'utils/wagmi'
-import { isBaseMiniAppWalletEnv, useWalletEnv } from './useWalletEnv'
+import { useWalletRuntime } from './useWalletEnv'
 
 const CONNECT_DELAY_MS = 500
 const CONNECT_ATTEMPTS = 5
@@ -18,8 +19,8 @@ export const useBaseMiniAppAutoConnect = () => {
   const { switchNetwork, canSwitch, isLoading: isSwitching } = useSwitchNetwork()
   const retryCount = useAtomValue(baseMiniAppAutoConnectRetryAtom)
   const setStatus = useSetAtom(baseMiniAppAutoConnectStatusAtom)
-  const walletEnv = useWalletEnv()
-  const isBaseMiniApp = isBaseMiniAppWalletEnv(walletEnv)
+  const { env, wallet } = useWalletRuntime()
+  const isBaseMiniApp = env === 'wallet_app' && wallet === WalletIds.BaseApp
   const checkedRef = useRef(false)
   const inFlightRef = useRef(false)
   const switchAttemptedRef = useRef(false)

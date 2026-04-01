@@ -3,7 +3,7 @@ import { useSetAtom } from 'jotai'
 import { useEffect, useRef } from 'react'
 
 import { getQueryChainId } from 'wallet/util/getQueryChainId'
-import { accountActiveChainAtom } from 'wallet/atoms/accountStateAtoms'
+import { accountActiveChainAtom, currentConnectorAtom } from 'wallet/atoms/accountStateAtoms'
 import { useAccount } from 'wagmi'
 import { usePrivyWalletAddress } from 'wallet/Privy/hooks'
 import { useSwitchNetworkV2 } from './useSwitchNetworkV2'
@@ -11,6 +11,7 @@ import { useSwitchNetworkV2 } from './useSwitchNetworkV2'
 export function useSyncWagmiState() {
   const { chainId: wagmiChainId, address: evmAccount, connector } = useAccount()
   const updAccountState = useSetAtom(accountActiveChainAtom)
+  const setCurrentConnector = useSetAtom(currentConnectorAtom)
   const { switchNetwork } = useSwitchNetworkV2()
   const { ready, authenticated } = usePrivy()
   const { address: privyAddress, isLoading: isPrivyAddressLoading } = usePrivyWalletAddress()
@@ -39,6 +40,10 @@ export function useSyncWagmiState() {
     }
     verifyWalletChainId()
   }, [wagmiChainId, switchNetwork])
+
+  useEffect(() => {
+    setCurrentConnector(connector ?? null)
+  }, [connector, setCurrentConnector])
 
   useEffect(() => {
     if (!ready) {

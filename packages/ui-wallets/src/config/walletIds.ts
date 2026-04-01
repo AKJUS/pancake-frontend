@@ -1,4 +1,6 @@
 export enum WalletIds {
+  Unknown = 'unknown',
+  BaseApp = 'base_app',
   Injected = 'injected',
 
   // Multi-Chain Wallets (EVM + Solana)

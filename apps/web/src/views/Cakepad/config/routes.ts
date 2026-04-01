@@ -1,4 +1,5 @@
-import { WalletEnv } from 'wallet/hook/useWalletEnv'
+import { WalletIds } from '@pancakeswap/ui-wallets'
+import { WalletRuntimeEnv } from 'wallet/runtime'
 
 export const CAKEPAD_URL = '/cakepad'
 export const CAKEPAD_DEPOSIT_URL = `${CAKEPAD_URL}/deposit`
@@ -20,13 +21,15 @@ export const isCakepadRoute = ({ pathname, host }: { pathname?: string; host?: s
 export const isCakepadBaseExperience = ({
   pathname,
   chain,
-  walletEnv,
+  env,
+  wallet,
 }: {
   pathname?: string
   chain?: string | string[]
-  walletEnv?: WalletEnv | null
+  env?: WalletRuntimeEnv | null
+  wallet?: WalletIds | null
 }) =>
   Boolean(
     ((pathname?.startsWith(CAKEPAD_URL) ?? false) && normalizeChainQuery(chain) === CAKEPAD_BASE_CHAIN_QUERY) ||
-      walletEnv === WalletEnv.BaseCakepadMiniApp,
+      (env === 'wallet_app' && wallet === WalletIds.BaseApp),
   )

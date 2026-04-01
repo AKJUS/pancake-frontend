@@ -5,9 +5,10 @@ import { QRCodeSVG } from 'qrcode.react'
 import React, { createContext, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { styled } from 'styled-components'
+import { WalletIds } from '@pancakeswap/ui-wallets'
 import { ASSET_CDN } from 'config/constants/endpoints'
 import { baseMiniAppAutoConnectRetryAtom, baseMiniAppAutoConnectStatusAtom } from 'state/wallet/atom'
-import { WalletEnv, useWalletEnv } from 'wallet/hook/useWalletEnv'
+import { useWalletRuntime } from 'wallet/hook/useWalletEnv'
 
 const QRCodeWrapper = styled(Box)`
   padding: 0px;
@@ -60,8 +61,8 @@ const BaseMiniAppProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   const { isMobile } = useMatchBreakpoints()
   const autoConnectStatus = useAtomValue(baseMiniAppAutoConnectStatusAtom)
   const retryBaseWallet = useSetAtom(baseMiniAppAutoConnectRetryAtom)
-  const walletEnv = useWalletEnv()
-  const isInMiniApp = walletEnv === WalletEnv.BaseCakepadMiniApp
+  const { env, wallet } = useWalletRuntime()
+  const isInMiniApp = env === 'wallet_app' && wallet === WalletIds.BaseApp
   const contextValue = useMemo(() => ({ isInMiniApp }), [isInMiniApp])
   const portal = useMemo(() => (typeof window === 'undefined' ? null : getPortalRoot()), [])
 

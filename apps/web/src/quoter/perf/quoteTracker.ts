@@ -1,4 +1,5 @@
 import { getIsMobile, isInBinance } from '@binance/w3w-utils'
+import { WalletIds, selectedWalletAtom } from '@pancakeswap/ui-wallets'
 import { getCurrencyAddress, TradeType } from '@pancakeswap/swap-sdk-core'
 import { atom } from 'jotai'
 import { atomFamily } from 'jotai/utils'
@@ -6,7 +7,8 @@ import { QuoteQuery } from 'quoter/quoter.types'
 
 import { BasePerf, PerfTracker } from 'utils/PerfTracker'
 import { InterfaceOrder } from 'views/Swap/utils'
-import { accountActiveChainAtom } from 'wallet/atoms/accountStateAtoms'
+import { accountActiveChainAtom, currentConnectorAtom } from 'wallet/atoms/accountStateAtoms'
+import { walletRuntimeAtom } from 'wallet/atoms/runtimeAtom'
 
 type QuoteTrace = BasePerf & {
   quoteHash: string
@@ -24,6 +26,10 @@ type QuoteTrace = BasePerf & {
   account?: `0x${string}`
   route?: string
   app: string
+  env: string
+  wallet: WalletIds
+  connectorId?: string
+  selectedWalletId?: WalletIds
   quote: string
 }
 
@@ -78,6 +84,9 @@ export const quoteTraceAtom = atomFamily(
   (params: QuoteQuery) => {
     return atom((get) => {
       const { account } = get(accountActiveChainAtom)
+      const runtime = get(walletRuntimeAtom)
+      const connector = get(currentConnectorAtom)
+      const selectedWallet = get(selectedWalletAtom)
       const trace: QuoteTrace = {
         quoteHash: params.hash,
         createAt: Date.now(),
@@ -103,6 +112,10 @@ export const quoteTraceAtom = atomFamily(
         },
         flags: {},
         app: detectApp() || 'web',
+        env: runtime.env,
+        wallet: runtime.wallet,
+        connectorId: connector?.id,
+        selectedWalletId: selectedWallet?.id,
         quote: '',
         error: '',
       }

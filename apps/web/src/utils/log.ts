@@ -1,4 +1,5 @@
 import { TradeType, UnifiedCurrency } from '@pancakeswap/swap-sdk-core'
+import { WalletIds } from '@pancakeswap/ui-wallets'
 
 import { logger } from './datadog'
 
@@ -32,6 +33,8 @@ export const logSwap = ({
   type,
   tradeType,
   isMultisig = false,
+  env,
+  wallet,
 }: {
   tradeType?: TradeType
   input: UnifiedCurrency
@@ -47,6 +50,8 @@ export const logSwap = ({
   hash: `0x${string}`
   type: LogTradeType
   isMultisig?: boolean
+  env?: string
+  wallet?: WalletIds
 }) => {
   try {
     logger.info(type, {
@@ -63,6 +68,8 @@ export const logSwap = ({
       hash,
       chainId,
       isMultisig,
+      env,
+      wallet,
     })
   } catch (error) {
     //

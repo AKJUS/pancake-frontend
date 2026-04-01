@@ -2,6 +2,9 @@ import { SvgProps } from '@pancakeswap/uikit'
 import { WalletName } from '@solana/wallet-adapter-base'
 import { WalletIds as LegacyWalletIds } from './components/LegacyWalletModal/legacyWalletIds'
 import { EvmConnectorNames, SolanaConnectorNames } from './config/connectorNames'
+import { WalletIds } from './config/walletIds'
+
+export { WalletIds } from './config/walletIds'
 
 type LinkOfTextAndLink = string | { text: string; url: string }
 
@@ -15,44 +18,6 @@ export type LinkOfDevice = string | DeviceLink
 export enum WalletAdaptedNetwork {
   EVM = 'evm',
   Solana = 'solana',
-}
-
-export enum WalletIds {
-  Injected = 'injected',
-
-  // Multi-Chain Wallets (EVM + Solana)
-  Metamask = 'metamask',
-  Okx = 'okx',
-  BinanceW3W = 'BinanceW3W',
-  Trust = 'trust',
-  Tokenpocket = 'tokenpocket',
-  Coin98 = 'coin98',
-  SafePal = 'safePal',
-  Walletconnect = 'walletconnect',
-  Coinbase = 'coinbase',
-  Math = 'math',
-
-  // EVM Only Wallets
-  Opera = 'opera',
-  Brave = 'brave',
-  Rabby = 'rabby',
-  // Blocto = 'blocto',
-  Cyberwallet = 'cyberwallet',
-  Petra = 'petra',
-  Martian = 'martian',
-  Pontem = 'pontem',
-  Fewcha = 'fewcha',
-  Rise = 'rise',
-  Msafe = 'msafe',
-
-  // Solana Only Wallets
-  Phantom = 'phantom',
-  Solflare = 'solflare',
-  Slope = 'slope',
-  Glow = 'glow',
-  BitGet = 'bitget',
-  Exodus = 'exodus',
-  Backpack = 'backpack',
 }
 
 type WalletConfigBase = {

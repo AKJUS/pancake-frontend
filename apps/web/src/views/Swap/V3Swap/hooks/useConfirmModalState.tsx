@@ -37,6 +37,7 @@ import { BridgeOrderWithCommands, isBridgeOrder, isClassicOrder, isSVMOrder, isX
 import { waitForXOrderReceipt } from 'views/Swap/x/api'
 import { useSendXOrder } from 'views/Swap/x/useSendXOrder'
 import { useAccount, useSendTransaction } from 'wagmi'
+import { useWalletRuntime } from 'wallet/hook/useWalletEnv'
 
 import { useSetAtom } from 'jotai'
 import { getBridgeCalldata, getSolanaToEVMBridgeCalldata } from 'views/Swap/Bridge/api'
@@ -146,6 +147,7 @@ const useConfirmActions = (
 ) => {
   const { t } = useTranslation()
   const { chainId, account, solanaAccount } = useAccountActiveChain()
+  const { env, wallet } = useWalletRuntime()
   const { refreshOrder, resumeQuoting } = useAllTypeBestTrade()
 
   const [deadline] = useTransactionDeadline()
@@ -887,6 +889,8 @@ const useConfirmActions = (
               input,
               output,
               type: 'X',
+              env,
+              wallet,
             })
             const receipt = await waitForXOrderReceipt(xOrder)
 
@@ -905,6 +909,8 @@ const useConfirmActions = (
                 input,
                 output,
                 type: 'X-Filled',
+                env,
+                wallet,
               })
               setTxHash(receipt.transactionHash)
               setConfirmState(ConfirmModalState.COMPLETED)
@@ -929,7 +935,7 @@ const useConfirmActions = (
       },
       showIndicator: false,
     }
-  }, [account, t, order, resetState, sendXOrder, showError, nativeCurrency, toastSuccess, toastError])
+  }, [account, t, order, resetState, sendXOrder, showError, nativeCurrency, toastSuccess, toastError, env, wallet])
 
   const orderSubmittedStep = useMemo(() => {
     return {

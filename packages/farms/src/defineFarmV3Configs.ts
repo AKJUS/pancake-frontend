@@ -49,7 +49,7 @@ export function defineFarmV3Configs(farmConfig: FarmConfigV3[]): ComputedFarmCon
 
 export function defineFarmV3ConfigsFromUniversalFarm(farms: UniversalFarmConfigV3[]): ComputedFarmConfigV3[] {
   return farms
-    .filter((f) => !!f.pid)
+    .filter((f) => typeof f.pid === 'number' && f.pid >= 0)
     .map((farm) => {
       const [token, quoteToken] = sortFarmLP(farm.token0, farm.token1)
       const unwrappedToken0 = unwrappedToken(token)

@@ -1,41 +1,21 @@
-import { createContext, useContext, useEffect, useState } from 'react'
-import { CAKEPAD_HOST, PANCAKESWAP_HOST, normalizeHost } from 'utils/domainMiniAppMeta'
+import { WalletIds } from '@pancakeswap/ui-wallets/src/config/walletIds'
+import { selectedWalletAtom } from '@pancakeswap/ui-wallets/src/state/atom'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { useAccount } from 'wagmi'
+import { walletRuntimeAtom } from 'wallet/atoms/runtimeAtom'
+import { buildWalletRuntimeState, DEFAULT_WALLET_RUNTIME_STATE, WalletRuntimeState } from 'wallet/runtime'
 
-export enum WalletEnv {
-  BasePcsMiniApp = 'basepcsminiapp',
-  BaseCakepadMiniApp = 'basecakepadminiapp',
-  Other = 'other',
-}
+type WalletRuntimeContextValue = WalletRuntimeState
 
-const WalletEnvContext = createContext<WalletEnv | null>(null)
+const WalletEnvContext = createContext<WalletRuntimeContextValue | null>(null)
 
-export const getWalletEnv = ({ host, isInMiniApp }: { host?: string | string[]; isInMiniApp: boolean }): WalletEnv => {
-  if (!isInMiniApp) {
-    return WalletEnv.Other
-  }
-
-  const normalizedHost = normalizeHost(host)
-
-  if (normalizedHost === CAKEPAD_HOST) {
-    return WalletEnv.BaseCakepadMiniApp
-  }
-
-  if (normalizedHost === PANCAKESWAP_HOST) {
-    return WalletEnv.BasePcsMiniApp
-  }
-
-  return WalletEnv.Other
-}
-
-export const isBaseMiniAppWalletEnv = (walletEnv: WalletEnv | null) =>
-  walletEnv === WalletEnv.BasePcsMiniApp || walletEnv === WalletEnv.BaseCakepadMiniApp
-
-const useWalletEnvDetect = () => {
-  const [walletEnv, setWalletEnv] = useState<WalletEnv | null>(null)
+const useFarcasterMiniAppSignal = () => {
+  const [isInMiniApp, setIsInMiniApp] = useState<boolean | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined
-    if (walletEnv !== null) return undefined
+    if (isInMiniApp !== null) return undefined
 
     let cancelled = false
 
@@ -48,19 +28,14 @@ const useWalletEnvDetect = () => {
         } catch (error) {
           console.warn('[wallet] Base miniapp ready() failed', error)
         }
-        const isInMiniApp = await sdk.isInMiniApp()
+        const nextIsInMiniApp = await sdk.isInMiniApp()
         if (!cancelled) {
-          setWalletEnv(
-            getWalletEnv({
-              host: window.location.host,
-              isInMiniApp,
-            }),
-          )
+          setIsInMiniApp(nextIsInMiniApp)
         }
       } catch (error) {
         if (!cancelled) {
           console.warn('[wallet] Base miniapp env check failed', error)
-          setWalletEnv(WalletEnv.Other)
+          setIsInMiniApp(false)
         }
       }
     }
@@ -70,27 +45,49 @@ const useWalletEnvDetect = () => {
     return () => {
       cancelled = true
     }
-  }, [walletEnv])
+  }, [isInMiniApp])
 
-  return walletEnv
+  return isInMiniApp
 }
 
 export const WalletEnvProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const walletEnv = useWalletEnvDetect()
+  const isInMiniApp = useFarcasterMiniAppSignal()
+  const { connector } = useAccount()
+  const selectedWallet = useAtomValue(selectedWalletAtom)
+  const setWalletRuntime = useSetAtom(walletRuntimeAtom)
 
-  if (walletEnv === null) {
+  const runtime = useMemo(() => {
+    if (isInMiniApp === null) {
+      return DEFAULT_WALLET_RUNTIME_STATE
+    }
+
+    return buildWalletRuntimeState({
+      host: typeof window === 'undefined' ? undefined : window.location.host,
+      isInMiniApp,
+      connectorId: connector?.id ?? null,
+      selectedWalletId: (selectedWallet?.id as WalletIds | undefined) ?? null,
+    })
+  }, [isInMiniApp, connector?.id, selectedWallet?.id])
+
+  useEffect(() => {
+    if (isInMiniApp !== null) {
+      setWalletRuntime(runtime)
+    }
+  }, [runtime, setWalletRuntime, isInMiniApp])
+
+  if (isInMiniApp === null) {
     return null
   }
 
-  return <WalletEnvContext.Provider value={walletEnv}>{children}</WalletEnvContext.Provider>
+  return <WalletEnvContext.Provider value={runtime}>{children}</WalletEnvContext.Provider>
 }
 
-export const useWalletEnv = () => {
-  const walletEnv = useContext(WalletEnvContext)
+export const useWalletRuntime = () => {
+  const runtime = useContext(WalletEnvContext)
 
-  if (walletEnv === null) {
-    throw new Error('useWalletEnv must be used within WalletEnvProvider')
+  if (runtime === null) {
+    throw new Error('useWalletRuntime must be used within WalletEnvProvider')
   }
 
-  return walletEnv
+  return runtime
 }

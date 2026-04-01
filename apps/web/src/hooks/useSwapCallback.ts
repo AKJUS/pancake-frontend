@@ -8,6 +8,7 @@ import { useGasPrice } from 'state/user/hooks'
 import { logSwap, logTx } from 'utils/log'
 import { isUserRejected } from 'utils/sentry'
 import { Hash, isAddress } from 'viem'
+import { useWalletRuntime } from 'wallet/hook/useWalletEnv'
 
 import { INITIAL_ALLOWED_SLIPPAGE } from 'config/constants'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
@@ -50,6 +51,7 @@ export function useSwapCallback(
 ): { state: SwapCallbackState; callback: null | (() => Promise<string>); error: string | null } {
   const { account, chainId } = useAccountActiveChain()
   const gasPrice = useGasPrice()
+  const { env, wallet } = useWalletRuntime()
 
   const { t } = useTranslation()
 
@@ -199,6 +201,8 @@ export function useSwapCallback(
               input: trade.inputAmount.currency,
               output: trade.outputAmount.currency,
               type: isStableSwap(trade) ? 'StableSwap' : 'V2Swap',
+              env,
+              wallet,
             })
             logTx({ account, chainId, hash: response })
 
@@ -217,5 +221,18 @@ export function useSwapCallback(
       },
       error: null,
     }
-  }, [trade, account, chainId, recipient, recipientAddress, swapCalls, gasPrice, t, addTransaction, allowedSlippage])
+  }, [
+    trade,
+    account,
+    chainId,
+    recipient,
+    recipientAddress,
+    swapCalls,
+    gasPrice,
+    t,
+    addTransaction,
+    allowedSlippage,
+    env,
+    wallet,
+  ])
 }

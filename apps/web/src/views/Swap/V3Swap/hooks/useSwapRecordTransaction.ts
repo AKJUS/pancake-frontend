@@ -15,9 +15,11 @@ import { useAtomValue } from 'jotai'
 import { isSolana } from '@pancakeswap/chains'
 import { InterfaceOrder } from 'views/Swap/utils'
 import { SerializableTransactionReceipt } from 'state/transactions/actions'
+import { useWalletRuntime } from 'wallet/hook/useWalletEnv'
 
 export default function useSwapRecordTransaction(chainId?: number, account?: string) {
   const addTransaction = useTransactionAdder()
+  const { env, wallet } = useWalletRuntime()
   const { recipient } = useSwapState()
   const recipientAddress = recipient === null ? account : recipient
   // @ts-ignore
@@ -129,9 +131,21 @@ export default function useSwapRecordTransaction(chainId?: number, account?: str
         output: trade.outputAmount.currency,
         type,
         isMultisig,
+        env,
+        wallet,
       })
       logTx({ account, chainId, hash })
     },
-    [account, chainId, allowedSlippage, userSlippageTolerance, recipient, recipientAddress, addTransaction],
+    [
+      account,
+      chainId,
+      allowedSlippage,
+      userSlippageTolerance,
+      recipient,
+      recipientAddress,
+      addTransaction,
+      env,
+      wallet,
+    ],
   )
 }
