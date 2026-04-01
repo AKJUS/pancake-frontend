@@ -33,7 +33,6 @@ import { LIQUIDITY_TYPES, LiquidityType } from 'utils/types'
 import { arbitrumTokens, ethereumTokens, USDT } from '@pancakeswap/tokens'
 import { PERSIST_CHAIN_KEY } from 'config/constants'
 import { useStableInfinitySupportedTokens } from 'views/StableInfinity/hooks/useStableInfinitySupportedTokens'
-import { isInfinityStableSupported } from '@pancakeswap/infinity-stable-sdk'
 import { usePoolTypeQuery } from './hooks/usePoolTypeQuery'
 import { STABLE_POOL_OPTIONS, STABLE_POOL_TYPE, useStablePoolTypeQuery } from './hooks/useStablePoolTypeQuery'
 
@@ -224,13 +223,7 @@ export const AddLiquiditySelector = () => {
     return index
   }, [protocol])
 
-  const stablePoolOptions = useMemo(
-    () =>
-      chainId && isInfinityStableSupported(chainId)
-        ? STABLE_POOL_OPTIONS
-        : STABLE_POOL_OPTIONS.filter((option) => option.value === STABLE_POOL_TYPE.classic),
-    [chainId],
-  )
+  const stablePoolOptions = useMemo(() => STABLE_POOL_OPTIONS, [])
 
   const stablePoolTypeData = useMemo(
     () => [
@@ -269,7 +262,7 @@ export const AddLiquiditySelector = () => {
       }
       const values = toSelectedNodes(stablePoolTypeData, e.value)
         .map((node) => node.data)
-        .filter((v): v is string => v === STABLE_POOL_TYPE.classic || v === STABLE_POOL_TYPE.infinity)
+        .filter((v): v is string => v === STABLE_POOL_TYPE.classic)
       setStablePoolType(values)
     },
     [setStablePoolType, stablePoolTypeData],

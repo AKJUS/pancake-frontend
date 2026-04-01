@@ -29,7 +29,11 @@ import styled from 'styled-components'
 import { getHookByAddress } from 'utils/getHookByAddress'
 import { Address, zeroAddress } from 'viem'
 import { usePoolFeatureAndType, usePoolTypeQuery } from 'views/AddLiquiditySelector/hooks/usePoolTypeQuery'
-import { STABLE_POOL_TYPE, useStablePoolTypeQuery } from 'views/AddLiquiditySelector/hooks/useStablePoolTypeQuery'
+import {
+  STABLE_POOL_OPTIONS,
+  STABLE_POOL_TYPE,
+  useStablePoolTypeQuery,
+} from 'views/AddLiquiditySelector/hooks/useStablePoolTypeQuery'
 import { Card, CardBody, CardHeader, ListView, useColumnConfig } from 'views/universalFarms/components'
 import { getPoolDetailPageLink } from 'utils/getPoolLink'
 import { usePoolTypes } from 'views/universalFarms/hooks'
@@ -150,25 +154,19 @@ export const PoolList = () => {
         key: '0',
         label: t('Pool Type'),
         data: 'stableSwapPoolType',
-        children: [
-          {
-            key: '0-0',
-            label: t('Classic'),
-            data: STABLE_POOL_TYPE.classic,
-          },
-          {
-            key: '0-1',
-            label: t('Infinity'),
-            data: STABLE_POOL_TYPE.infinity,
-          },
-        ],
+        children: STABLE_POOL_OPTIONS.map((option, index) => ({
+          key: `0-${index}`,
+          label: t(option.label),
+          data: option.value,
+        })),
       },
     ],
     [t],
   )
   const stablePoolTypeSelectedValues = useMemo(() => {
+    const childValues = STABLE_POOL_OPTIONS.map((option) => option.value)
     const allChildrenSelected =
-      stablePoolTypeQuery.includes(STABLE_POOL_TYPE.classic) && stablePoolTypeQuery.includes(STABLE_POOL_TYPE.infinity)
+      childValues.length > 0 && childValues.every((value) => stablePoolTypeQuery.includes(value))
     return allChildrenSelected ? ['stableSwapPoolType', ...stablePoolTypeQuery] : stablePoolTypeQuery
   }, [stablePoolTypeQuery])
   const stablePoolType = useMemo(
@@ -176,20 +174,16 @@ export const PoolList = () => {
     [stablePoolTypeData, stablePoolTypeSelectedValues],
   )
 
-  const [clOnly, binOnly, stableOnly] = useMemo(() => {
+  const [clOnly, binOnly] = useMemo(() => {
     const queries = (Array.isArray(poolTypeQuery) ? poolTypeQuery : [poolTypeQuery]).filter(
       (p) => typeof p === 'string',
     )
     const protocols = queries.filter((p) => ALL_PROTOCOLS.includes(p as Protocol))
 
     if (protocols.length !== 1) {
-      return [false, false, false]
+      return [false, false]
     }
-    return [
-      protocols[0] === Protocol.InfinityCLAMM,
-      protocols[0] === Protocol.InfinityBIN,
-      protocols[0] === Protocol.InfinitySTABLE,
-    ]
+    return [protocols[0] === Protocol.InfinityCLAMM, protocols[0] === Protocol.InfinityBIN]
   }, [poolTypeQuery])
 
   const fetchQueries = useMemo(() => {
@@ -202,9 +196,6 @@ export const PoolList = () => {
       : [...INFINITY_PROTOCOLS, Protocol.InfinitySTABLE]
     if (isStableMode) {
       protocols = []
-      if (stablePoolTypeQuery.includes(STABLE_POOL_TYPE.infinity)) {
-        protocols.push(Protocol.InfinitySTABLE)
-      }
       if (stablePoolTypeQuery.includes(STABLE_POOL_TYPE.classic)) {
         protocols.push(Protocol.STABLE)
       }
@@ -215,9 +206,6 @@ export const PoolList = () => {
       if (binOnly) {
         protocols = [Protocol.InfinityBIN]
       }
-      if (stableOnly) {
-        protocols = [Protocol.InfinitySTABLE]
-      }
     }
     return {
       tokens: [toTokenValue({ chainId, address: currencyIdA }), toTokenValue({ chainId, address: currencyIdB })],
@@ -226,7 +214,7 @@ export const PoolList = () => {
       protocols,
       pageNo: nextPage,
     } as FetchPoolsProps
-  }, [binOnly, chainId, clOnly, currencyIdA, currencyIdB, isStableMode, nextPage, stableOnly, stablePoolTypeQuery])
+  }, [binOnly, chainId, clOnly, currencyIdA, currencyIdB, isStableMode, nextPage, stablePoolTypeQuery])
 
   const { isLoading, data: poolList, pageNo, resetExtendPools, hasNextPage } = useFetchPools(fetchQueries, !!chainId)
 
@@ -301,7 +289,7 @@ export const PoolList = () => {
       }
       const values = toSelectedNodes(stablePoolTypeData, e.value)
         .map((node) => node.data)
-        .filter((v): v is string => v === STABLE_POOL_TYPE.classic || v === STABLE_POOL_TYPE.infinity)
+        .filter((v): v is string => v === STABLE_POOL_TYPE.classic)
       setStablePoolType(values)
     },
     [setStablePoolType, stablePoolTypeData],
