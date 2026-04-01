@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 import { TokenPairLogo } from 'components/TokenImage'
 import { ASSET_CDN } from 'config/constants/endpoints'
@@ -15,6 +16,7 @@ import { ChainId, UnifiedChainId } from '@pancakeswap/chains'
 import { useDebounce } from '@pancakeswap/hooks'
 import { useTranslation } from '@pancakeswap/localization'
 import { Native, NATIVE, Token, WNATIVE } from '@pancakeswap/sdk'
+import { ZERO_ADDRESS } from '@pancakeswap/swap-sdk-core'
 import {
   ArrowFirstIcon,
   ArrowForwardIcon,
@@ -158,7 +160,7 @@ export const NavbarSearchSurface: React.FC<{ mobile?: boolean }> = ({ mobile = f
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== '/') return
-      const target = event.target
+      const { target } = event
       if (!(target instanceof HTMLElement)) return
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return
       event.preventDefault()
@@ -382,7 +384,9 @@ export const NavbarSearchSurface: React.FC<{ mobile?: boolean }> = ({ mobile = f
 
       openWalletPanel(
         action,
-        action === 'send' && item.kind === 'token' ? { chainId: item.chainId, tokenAddress: item.address } : undefined,
+        action === 'send' && item.kind === 'token'
+          ? { chainId: item.chainId, tokenAddress: item.isNative ? ZERO_ADDRESS : item.address }
+          : undefined,
       )
     },
     [closeOverlay, openWalletPanel, recordRecentItem, router],
@@ -521,29 +525,31 @@ export const NavbarSearchSurface: React.FC<{ mobile?: boolean }> = ({ mobile = f
             ) : null}
             <MoreButton type="button" aria-label={t('Open search result actions')} onClick={handleMoreButtonClick}>
               <EllipsisIcon width="18px" color="textSubtle" />
-              {isActionOpen && (
-                <ActionMenu
-                  $flipUp={actionMenuFlipUp}
-                  $top={actionMenuPos.top}
-                  $right={actionMenuPos.right}
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <ActionMenuButton
-                    type="button"
-                    onClick={async () => {
-                      const path = await getDetailPath(item)
-                      if (path) {
-                        await navigator.clipboard.writeText(`${window.location.origin}${path}`)
-                        setActiveActionMenuKey(null)
-                        toastSuccess(t('Copied!'))
-                      }
-                    }}
+              {isActionOpen &&
+                createPortal(
+                  <ActionMenu
+                    $flipUp={actionMenuFlipUp}
+                    $top={actionMenuPos.top}
+                    $right={actionMenuPos.right}
+                    onClick={(event) => event.stopPropagation()}
                   >
-                    <CopyIcon width="16px" color="textSubtle" />
-                    {t('Copy address')}
-                  </ActionMenuButton>
-                </ActionMenu>
-              )}
+                    <ActionMenuButton
+                      type="button"
+                      onClick={async () => {
+                        const path = await getDetailPath(item)
+                        if (path) {
+                          await navigator.clipboard.writeText(`${window.location.origin}${path}`)
+                          setActiveActionMenuKey(null)
+                          toastSuccess(t('Copied!'))
+                        }
+                      }}
+                    >
+                      <CopyIcon width="16px" color="textSubtle" />
+                      {t('Copy address')}
+                    </ActionMenuButton>
+                  </ActionMenu>,
+                  document.body,
+                )}
             </MoreButton>
           </ResultRow>
         )
@@ -586,49 +592,51 @@ export const NavbarSearchSurface: React.FC<{ mobile?: boolean }> = ({ mobile = f
           </ResultMeta>
           <MoreButton type="button" aria-label={t('Open search result actions')} onClick={handleMoreButtonClick}>
             <EllipsisIcon width="18px" color="textSubtle" />
-            {isActionOpen && (
-              <ActionMenu
-                $flipUp={actionMenuFlipUp}
-                $top={actionMenuPos.top}
-                $right={actionMenuPos.right}
-                onClick={(event) => event.stopPropagation()}
-              >
-                <ActionMenuButton
-                  type="button"
-                  onClick={() => {
-                    setActiveActionMenuKey(null)
-                    runAction(item, 'swap')
-                  }}
+            {isActionOpen &&
+              createPortal(
+                <ActionMenu
+                  $flipUp={actionMenuFlipUp}
+                  $top={actionMenuPos.top}
+                  $right={actionMenuPos.right}
+                  onClick={(event) => event.stopPropagation()}
                 >
-                  <TradeIcon width="16px" color="textSubtle" />
-                  {t('Swap')}
-                </ActionMenuButton>
-                {canOpenWalletActions && (
                   <ActionMenuButton
                     type="button"
                     onClick={() => {
                       setActiveActionMenuKey(null)
-                      runAction(item, 'send')
+                      runAction(item, 'swap')
                     }}
                   >
-                    <ArrowForwardIcon width="16px" color="textSubtle" />
-                    {t('Send')}
+                    <TradeIcon width="16px" color="textSubtle" />
+                    {t('Swap')}
                   </ActionMenuButton>
-                )}
-                {canOpenWalletActions && (
-                  <ActionMenuButton
-                    type="button"
-                    onClick={() => {
-                      setActiveActionMenuKey(null)
-                      runAction(item, 'receive')
-                    }}
-                  >
-                    <ArrowFirstIcon width="16px" color="textSubtle" style={{ transform: 'rotate(-90deg)' }} />
-                    {t('Receive')}
-                  </ActionMenuButton>
-                )}
-              </ActionMenu>
-            )}
+                  {canOpenWalletActions && (
+                    <ActionMenuButton
+                      type="button"
+                      onClick={() => {
+                        setActiveActionMenuKey(null)
+                        runAction(item, 'send')
+                      }}
+                    >
+                      <ArrowForwardIcon width="16px" color="textSubtle" />
+                      {t('Send')}
+                    </ActionMenuButton>
+                  )}
+                  {canOpenWalletActions && (
+                    <ActionMenuButton
+                      type="button"
+                      onClick={() => {
+                        setActiveActionMenuKey(null)
+                        runAction(item, 'receive')
+                      }}
+                    >
+                      <ArrowFirstIcon width="16px" color="textSubtle" style={{ transform: 'rotate(-90deg)' }} />
+                      {t('Receive')}
+                    </ActionMenuButton>
+                  )}
+                </ActionMenu>,
+                document.body,
+              )}
           </MoreButton>
         </ResultRow>
       )

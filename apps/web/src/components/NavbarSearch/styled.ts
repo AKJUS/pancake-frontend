@@ -238,7 +238,7 @@ export const ActionMenu = styled.div<{ $flipUp: boolean; $top: number; $right: n
   position: fixed;
   ${({ $flipUp, $top }) => ($flipUp ? `bottom: calc(100vh - ${$top}px + 8px);` : `top: calc(${$top}px + 8px);`)}
   right: ${({ $right }) => $right}px;
-  z-index: 100;
+  z-index: ${({ theme }) => theme.zIndices.modal + 1};
   width: max-content;
   min-width: 148px;
   padding: 8px;
