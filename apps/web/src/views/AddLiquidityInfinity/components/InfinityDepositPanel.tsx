@@ -1,7 +1,6 @@
 import { Box, Card, CardBody } from '@pancakeswap/uikit'
-import { PoolType } from '@kyberswap/pancake-liquidity-widgets'
 import { ZAP_INFINITY_CL_SUPPORTED_CHAINS } from 'config/constants/zap'
-import { ZapLiquidityWidget } from 'components/ZapLiquidityWidget'
+import { ZapLiquidityWidget, ZapPoolType } from 'components/ZapLiquidityWidget'
 import { usePoolKeyByPoolId } from 'hooks/infinity/usePoolKeyByPoolId'
 import { useCurrencyByPoolId } from 'hooks/infinity/useCurrencyByPoolId'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
@@ -95,7 +94,7 @@ export const InfinityDepositPanel = ({ poolId, chainId }: InfinityDepositPanelPr
           <Box mb="16px">
             <ZapLiquidityWidget
               poolId={poolId}
-              poolType={PoolType.DEX_PANCAKE_INFINITY_CL}
+              poolType={ZapPoolType.DEX_PANCAKE_INFINITY_CL}
               tickLower={lowerTick ?? undefined}
               tickUpper={upperTick ?? undefined}
               baseCurrency={currency0}
