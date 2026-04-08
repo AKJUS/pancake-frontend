@@ -9,6 +9,7 @@ export const useCakepadBaseExperience = () => {
   return isCakepadBaseExperience({
     pathname: router.pathname,
     chain: router.query.chain,
+    host: typeof window === 'undefined' ? undefined : window.location.host,
     env,
     wallet,
   })
