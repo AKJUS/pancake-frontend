@@ -1,9 +1,8 @@
 import { Protocol } from '@pancakeswap/farms'
 import { useTranslation } from '@pancakeswap/localization'
-import { Dot } from 'views/Notifications/styles'
 import { Box, FlexGap, PreTitle, Text, useMatchBreakpoints } from '@pancakeswap/uikit'
 import { getPriceOfCurrency } from '@pancakeswap/v3-sdk'
-import { Card, Liquidity, PricePeriodRangeChart } from '@pancakeswap/widgets-internal'
+import { Liquidity, PricePeriodRangeChart } from '@pancakeswap/widgets-internal'
 import { CLRangeSelector } from 'components/Liquidity/Form/CLRangeSelector'
 import { Bound } from 'config/constants/types'
 import { useInfinityPoolIdRouteParams } from 'hooks/dynamicRoute/usePoolIdRoute'
@@ -12,11 +11,20 @@ import { useCLPriceRangeCallback } from 'hooks/infinity/useCLPriceRangeCallback'
 import { useCurrencyByPoolId } from 'hooks/infinity/useCurrencyByPoolId'
 import { useCallback, useMemo, useState } from 'react'
 import { useInverted } from 'state/infinity/shared'
+import { styled } from 'styled-components'
 import { useCLDensityChartData } from '../hooks/useDensityChartData'
 import { usePool } from '../hooks/usePool'
 import { useTicksAtLimit } from '../hooks/useTicksAtLimit'
 import { getAxisTicks } from '../utils'
 import { useTokenRateData } from './useTokenToTokenRateData'
+
+const LegendDot = styled.span<{ $color: 'primary' | 'secondary' | 'input' }>`
+  display: inline-flex;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: ${({ theme, $color }) => theme.colors[$color]};
+`
 
 export const CLPriceRangePanel = () => {
   const { t } = useTranslation()
@@ -134,19 +142,19 @@ export const CLPriceRangePanel = () => {
         <PreTitle>{t('Set position range')}</PreTitle>
         <FlexGap gap="8px" alignItems="center" flexWrap="wrap">
           <FlexGap gap="8px" alignItems="center">
-            <Dot color="primary" show />
+            <LegendDot $color="primary" />
             <Text color="textSubtle" small>
               {t('Current Price')}
             </Text>
           </FlexGap>
           <FlexGap gap="8px" alignItems="center">
-            <Dot color="secondary" show />
+            <LegendDot $color="secondary" />
             <Text color="textSubtle" small>
               {t('Position Range')}
             </Text>
           </FlexGap>
           <FlexGap gap="8px" alignItems="center">
-            <Dot color="input" show />
+            <LegendDot $color="input" />
             <Text color="textSubtle" small>
               {t('Liquidity Depth')}
             </Text>

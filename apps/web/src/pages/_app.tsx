@@ -32,7 +32,6 @@ import { ZKSyncAirdropModalWithAutoPopup } from 'components/ClaimZksyncAirdropMo
 import { useEmbeddedSmartAccountConnectorV2 } from 'wallet/Privy/hooks/usePrivySmartAccountConnector'
 import { useDataDogRUM } from 'hooks/useDataDogRUM'
 import { useLoadExperimentalFeatures } from 'hooks/useExperimentalFeatureEnabled'
-import useInitNotificationsClient from 'hooks/useInitNotificationsClient'
 import { useWalletConnectRouterSync } from 'hooks/useWalletConnectRouterSync'
 import { useWeb3WalletView } from 'hooks/useWeb3WalletView'
 import { useInitGlobalWorker } from 'hooks/useWorker'
@@ -78,25 +77,12 @@ function GlobalHooks() {
   useSentryUser()
   useThemeCookie()
   useLockedEndNotification()
-  useInitNotificationsClient()
   useWalletConnectRouterSync()
   useEmbeddedSmartAccountConnectorV2()
   useGlobalLinkHandler()
   useInitSolanaExplorer()
   return null
 }
-
-function MPGlobalHooks() {
-  usePollBlockNumber()
-  useUserAgent()
-  useAccountEventListener()
-  useSentryUser()
-  useLockedEndNotification()
-  useInitNotificationsClient()
-  return null
-}
-
-const LoadVConsole = dynamic(() => import('components/vConsole'), { ssr: false })
 
 type ExtendedPageProps = {
   initialReduxState: any

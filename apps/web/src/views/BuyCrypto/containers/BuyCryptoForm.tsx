@@ -1,22 +1,9 @@
 import { useDebounce } from '@pancakeswap/hooks'
 import { useTranslation } from '@pancakeswap/localization'
-import {
-  AutoColumn,
-  AutoRow,
-  Box,
-  CloseIcon,
-  Flex,
-  IconButton,
-  Link,
-  Row,
-  Text,
-  useMatchBreakpoints,
-} from '@pancakeswap/uikit'
+import { AutoColumn, AutoRow, Box, Flex, Link, Row, Text, useMatchBreakpoints } from '@pancakeswap/uikit'
 import { Swap as SwapUI } from '@pancakeswap/widgets-internal'
 import { FiatOnRampModalButton } from 'components/FiatOnRampModal/FiatOnRampModal'
 import {
-  Suspense,
-  lazy,
   useCallback,
   useEffect,
   useMemo,
@@ -31,14 +18,13 @@ import { Field } from 'state/swap/actions'
 import { useTheme } from 'styled-components'
 import { v4 } from 'uuid'
 import { OnRampUnit, type OnRampProviderQuote } from 'views/BuyCrypto/types'
-import OnBoardingView from 'views/Notifications/containers/OnBoardingView'
 import { useBuyCryptoFormState } from 'state/buyCrypto/reducer'
 import { useAccount } from 'wagmi'
 import { requireLogout } from 'wallet/hook/useSwitchNetworkV2'
 import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
+import { PopOverScreenContainer } from '../components/PopOverScreen/PopOverScreen'
 import { BuyCryptoSelector } from '../components/OnRampCurrencySelect'
 import { OnRampFlipButton } from '../components/OnRampFlipButton/OnRampFlipButton'
-import { PopOverScreenContainer } from '../components/PopOverScreen/PopOverScreen'
 import ProviderCampaign from '../components/ProviderCampaign/ProviderCampaign'
 import { ProviderGroupItem } from '../components/ProviderSelector/ProviderGroupItem'
 import { ProviderSelector } from '../components/ProviderSelector/ProviderSelector'
@@ -54,15 +40,6 @@ import type { ProviderAvailabilities } from '../hooks/useProviderAvailabilities'
 import InputExtended, { StyledVerticalLine } from '../styles'
 import { FormContainer } from './FormContainer'
 import { FormHeader } from './FormHeader'
-
-const EnableNotificationsTooltip = lazy(
-  () => import('../components/EnableNotificationTooltip/EnableNotificationsTooltip'),
-)
-
-interface NotificationsOnboardPopOverProps {
-  setShowNotificationsPopOver: Dispatch<SetStateAction<boolean>>
-  showNotificationsPopOver: boolean
-}
 
 interface OnRampCurrencySelectPopOverProps {
   quotes: OnRampProviderQuote[] | undefined
@@ -86,7 +63,6 @@ export function BuyCryptoForm({ providerAvailabilities }: { providerAvailabiliti
 
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [showProvidersPopOver, setShowProvidersPopOver] = useState<boolean>(false)
-  const [showNotificationsPopOver, setShowNotificationsPopOver] = useState<boolean>(false)
   const [selectedQuote, setSelectedQuote] = useState<OnRampProviderQuote | undefined>(undefined)
   const [unit, setUnit] = useState<OnRampUnit>(OnRampUnit.Fiat)
 
@@ -194,10 +170,6 @@ export function BuyCryptoForm({ providerAvailabilities }: { providerAvailabiliti
         setShowProvidersPopOver={setShowProvidersPopOver}
         showProvidersPopOver={showProvidersPopOver}
       />
-      <NotificationsOnboardPopover
-        setShowNotificationsPopOver={setShowNotificationsPopOver}
-        showNotificationsPopOver={showNotificationsPopOver}
-      />
       <FormContainer>
         <StyledVerticalLine />
 
@@ -252,15 +224,6 @@ export function BuyCryptoForm({ providerAvailabilities }: { providerAvailabiliti
 
         <ProviderCampaign />
         <Box>
-          {Boolean(!inputError && !isInValidBtcAddress && !quotesError) && (
-            <Suspense fallback={null}>
-              <EnableNotificationsTooltip
-                showNotificationsPopOver={showNotificationsPopOver}
-                setShowNotificationsPopOver={setShowNotificationsPopOver}
-              />
-            </Suspense>
-          )}
-
           <FiatOnRampModalButton
             externalTxIdRef={externalTxIdRef}
             cryptoCurrency={cryptoCurrency}
@@ -289,29 +252,6 @@ export function BuyCryptoForm({ providerAvailabilities }: { providerAvailabiliti
         </Box>
       </FormContainer>
     </AutoColumn>
-  )
-}
-
-const NotificationsOnboardPopover = ({
-  setShowNotificationsPopOver,
-  showNotificationsPopOver,
-}: NotificationsOnboardPopOverProps) => {
-  const showProvidersOnClick = useCallback(() => {
-    setShowNotificationsPopOver((p: boolean) => !p)
-  }, [setShowNotificationsPopOver])
-
-  return (
-    <PopOverScreenContainer showPopover={showNotificationsPopOver} onClick={showProvidersOnClick}>
-      <Box minHeight="552px">
-        <AutoRow borderBottom="1" paddingX="8px" justifyContent="flex-end">
-          <IconButton onClick={showProvidersOnClick} variant="text">
-            <CloseIcon color="primary" />
-          </IconButton>
-        </AutoRow>
-
-        <OnBoardingView onExternalDismiss={showProvidersOnClick} />
-      </Box>
-    </PopOverScreenContainer>
   )
 }
 

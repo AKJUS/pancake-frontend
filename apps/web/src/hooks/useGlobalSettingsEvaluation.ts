@@ -8,7 +8,6 @@ import {
 
 import { useFeatureFlagEvaluation } from 'hooks/useDataDogRUM'
 import useTheme from 'hooks/useTheme'
-import { useWebNotifications } from 'hooks/useWebNotifications'
 import { useGasPriceManager, useSubgraphHealthIndicatorManager, useUserUsernameVisibility } from 'state/user/hooks'
 import { useUserChart } from 'state/user/hooks/useUserChart'
 import { useUserTokenRisk } from 'state/user/hooks/useUserTokenRisk'
@@ -31,14 +30,12 @@ export function useGlobalSettingsEvaluation() {
   const [audioPlay] = useAudioPlay()
   const [subgraphHealth] = useSubgraphHealthIndicatorManager()
   const [userUsernameVisibility] = useUserUsernameVisibility()
-  const { enabled } = useWebNotifications()
   const [userChart] = useUserChart(false)
   const isSwapHotTokenDisplay = useIsSwapHotTokenDisplayFlag()
   useFeatureFlagEvaluation('global-settings-expert-mode', expertMode)
   useFeatureFlagEvaluation('global-settings-audio-play', audioPlay)
   useFeatureFlagEvaluation('global-settings-subgraph-health-indicator', subgraphHealth)
   useFeatureFlagEvaluation('global-settings-user-name', userUsernameVisibility)
-  useFeatureFlagEvaluation('global-settings-web-notification', enabled)
   useFeatureFlagEvaluation('global-settings-chart', userChart)
   useFeatureFlagEvaluation('global-settings-hot-token-display', isSwapHotTokenDisplay)
 

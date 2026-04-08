@@ -26,7 +26,6 @@ import { chains } from 'utils/wagmi'
 import { PopOverScreenContainer } from 'views/BuyCrypto/components/PopOverScreen/PopOverScreen'
 import { selectCurrencyField, type OnRampChainId as ChainId } from 'views/BuyCrypto/constants'
 import type { FiatCurrency, OnRampUnit } from 'views/BuyCrypto/types'
-import { Dot } from 'views/Notifications/styles'
 import OnRampCurrencySearch from './OnRampCurrencySearch'
 
 const Footer = styled.div`
@@ -65,6 +64,14 @@ const NetworkItem = styled(RowBetween)<{ selected: boolean }>`
     cursor: pointer;
   }
   opacity: ${({ selected }) => (!selected ? 0.8 : 1)};
+`
+
+const StatusDot = styled.span`
+  display: inline-flex;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: ${({ theme }) => theme.colors.success};
 `
 
 export interface CurrencySearchModalProps extends InjectedModalProps {
@@ -139,7 +146,7 @@ const SearchModalNetworkPopOver = ({
 
                     {isActive && (
                       <Box paddingRight="18px">
-                        <Dot style={{ height: '12px', width: '12px' }} show color="success" className="dot" />
+                        <StatusDot className="dot" />
                       </Box>
                     )}
                   </NetworkItem>

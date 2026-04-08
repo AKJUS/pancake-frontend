@@ -18,9 +18,8 @@ import { useCakePrice } from 'hooks/useCakePrice'
 import { usePerpUrl } from 'hooks/usePerpUrl'
 import useTheme from 'hooks/useTheme'
 import { IdType, useUserNotUsCitizenAcknowledgement } from 'hooks/useUserIsUsCitizenAcknowledgement'
-import { useWebNotifications } from 'hooks/useWebNotifications'
 import { useRouter } from 'next/router'
-import { Suspense, lazy, useCallback, useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { styled } from 'styled-components'
 import { useCakepadBaseExperience } from 'views/Cakepad/hooks/useCakepadBaseExperience'
 import GlobalSettings from './GlobalSettings'
@@ -30,8 +29,6 @@ import UserMenu from './UserMenu'
 import { WalletPanelProvider } from './WalletPanelContext'
 import { UseMenuItemsParams, useMenuItems } from './hooks/useMenuItems'
 import { getActiveMenuItem, getActiveSubMenuChildItem, getActiveSubMenuItem } from './utils'
-
-const Notifications = lazy(() => import('views/Notifications'))
 
 const LinkComponent = (linkProps) => {
   const { href, type, ...props } = linkProps
@@ -49,7 +46,6 @@ const LinkComponent = (linkProps) => {
 const EMPTY_ARRAY = []
 
 const Menu = (props) => {
-  const { enabled } = useWebNotifications()
   const { chainId } = useActiveChainId()
   const { isMobile } = useMatchBreakpoints()
   const { isDark, setTheme } = useTheme()
@@ -122,11 +118,6 @@ const Menu = (props) => {
   ) : (
     <FlexGap alignItems="center" flexShrink={0} gap="6px" style={{ minWidth: 0 }}>
       {isMobile && <NavbarSearchMobile />}
-      {enabled && (
-        <Suspense fallback={null}>
-          <Notifications />
-        </Suspense>
-      )}
       <GlobalSettings />
       <UserMenu />
     </FlexGap>
@@ -230,7 +221,6 @@ const StaticLogo: React.FC = () => (
 )
 
 export const SharedComponentWithOutMenu: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const { enabled } = useWebNotifications()
   const isCakepadBaseRoute = useCakepadBaseExperience()
   return (
     <>
@@ -238,11 +228,6 @@ export const SharedComponentWithOutMenu: React.FC<React.PropsWithChildren> = ({ 
         {!isCakepadBaseRoute && (
           <>
             <GlobalSettings />
-            {enabled && (
-              <Suspense fallback={null}>
-                <Notifications />
-              </Suspense>
-            )}
           </>
         )}
         <UserMenu />

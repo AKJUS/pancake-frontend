@@ -1,33 +1,13 @@
-import { lazy, Suspense } from 'react'
-
 import { TOKEN_RISK } from 'components/AccessRisk'
 import AccessRiskTooltips from 'components/AccessRisk/AccessRiskTooltips'
 import { useActiveChainId } from 'hooks/useActiveChainId'
 import useTheme from 'hooks/useTheme'
-import { useWebNotifications } from 'hooks/useWebNotifications'
 import { useSubgraphHealthIndicatorManager, useUserUsernameVisibility } from 'state/user/hooks'
 import { useUserShowTestnet } from 'state/user/hooks/useUserShowTestnet'
 import { useUserTokenRisk } from 'state/user/hooks/useUserTokenRisk'
-import { styled } from 'styled-components'
-
 import { ChainId } from '@pancakeswap/chains'
 import { languageList, useTranslation } from '@pancakeswap/localization'
 import { Flex, LangSelectorV2, QuestionHelper, Text, ThemeSwitcher, Toggle } from '@pancakeswap/uikit'
-
-const WebNotiToggle = lazy(() => import('./WebNotiToggle'))
-
-const BetaTag = styled.div`
-  border: 2px solid ${({ theme }) => theme.colors.success};
-  border-radius: 16px;
-  padding-left: 6px;
-  padding-right: 6px;
-  padding-top: 3px;
-  padding-bottom: 3px;
-  color: ${({ theme }) => theme.colors.success};
-  margin-left: 6px;
-  font-weight: bold;
-  font-size: 14px;
-`
 
 type GlobalSettingsTabProps = {
   /** Tighter spacing for navbar hover panel */
@@ -39,8 +19,6 @@ export const GlobalSettingsTab: React.FC<GlobalSettingsTabProps> = ({ compact })
 
   const { isDark, setTheme } = useTheme()
   const { chainId } = useActiveChainId()
-  const { enabled } = useWebNotifications()
-
   const rowMb = compact ? '16px' : '24px'
 
   // Global-specific state
@@ -76,23 +54,6 @@ export const GlobalSettingsTab: React.FC<GlobalSettingsTabProps> = ({ compact })
             setUserUsernameVisibility(!userUsernameVisibility)
           }}
         />
-      </Flex>
-
-      <Flex justifyContent="space-between" alignItems="center" mb={rowMb}>
-        <Flex alignItems="center">
-          <Text {...labelProps}>{t('Allow notifications')}</Text>
-          <QuestionHelper
-            text={t(
-              'Enables the web notifications feature. If turned off you will be automatically unsubscribed and the notification bell will not be visible',
-            )}
-            placement="top"
-            ml="4px"
-          />
-          <BetaTag>{t('BETA')}</BetaTag>
-        </Flex>
-        <Suspense fallback={null}>
-          <WebNotiToggle enabled={enabled} />
-        </Suspense>
       </Flex>
 
       <Flex justifyContent="space-between" alignItems="center" mb={rowMb}>

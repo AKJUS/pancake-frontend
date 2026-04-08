@@ -7,12 +7,11 @@ import farmsReducer from './farms'
 import { updateVersion } from './global/actions'
 import globalReducer from './global/reducer'
 import lotteryReducer from './lottery'
-import notifications from './notifications/reducer'
 import poolsReducer from './pools'
 import transactions from './transactions/reducer'
 import user from './user/reducer'
 
-const PERSISTED_KEYS: string[] = ['user', 'transactions', 'notifications']
+const PERSISTED_KEYS: string[] = ['user', 'transactions']
 
 const persistConfig = {
   key: 'primary',
@@ -33,7 +32,6 @@ const persistedReducer = persistReducer(
     // Exchange
     user,
     transactions,
-    notifications,
   }),
 )
 

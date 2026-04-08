@@ -79,7 +79,6 @@ import { useNativeCurrencyInstead } from 'views/AddLiquidityV3/hooks/useNativeCu
 import { HandleFeePoolSelectFn, QUICK_ACTION_CONFIGS } from 'views/AddLiquidityV3/types'
 import { MarketPriceSlippageWarning } from 'views/CreateLiquidityPool/components/SubmitCreateButton'
 import { MevProtectToggle } from 'views/Mev/MevProtectToggle'
-import { Dot } from 'views/Notifications/styles'
 import { LiquiditySlippageButton } from 'views/Swap/components/SlippageButton'
 import { formatDollarAmount } from 'views/V3Info/utils/numbers'
 import { useSendTransaction, useWalletClient } from 'wagmi'
@@ -101,6 +100,14 @@ const StyledInput = styled(NumericalInput)`
   font-size: 16px;
   width: 100%;
   margin-bottom: 16px;
+`
+
+const LegendDot = styled.span<{ $color: 'primary' | 'secondary' | 'input' }>`
+  display: inline-flex;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: ${({ theme, $color }) => theme.colors[$color]};
 `
 
 export const LeftContainer = styled(AutoColumn)`
@@ -801,19 +808,19 @@ export default function V3FormView({
                   {!noLiquidity && (
                     <FlexGap gap="8px" alignItems="center" flexWrap="wrap">
                       <FlexGap gap="8px" alignItems="center">
-                        <Dot color="primary" show />
+                        <LegendDot $color="primary" />
                         <Text color="textSubtle" small>
                           {t('Current Price')}
                         </Text>
                       </FlexGap>
                       <FlexGap gap="8px" alignItems="center">
-                        <Dot color="secondary" show />
+                        <LegendDot $color="secondary" />
                         <Text color="textSubtle" small>
                           {t('Position Range')}
                         </Text>
                       </FlexGap>
                       <FlexGap gap="8px" alignItems="center">
-                        <Dot color="input" show />
+                        <LegendDot $color="input" />
                         <Text color="textSubtle" small>
                           {t('Liquidity Depth')}
                         </Text>

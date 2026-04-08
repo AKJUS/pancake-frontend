@@ -76,7 +76,6 @@ import {
   useHeaderInvertCurrencies,
 } from 'views/AddLiquidityV3/hooks/useHeaderInvertCurrencies'
 import { MarketPriceSlippageWarning } from 'views/CreateLiquidityPool/components/SubmitCreateButton'
-import { Dot } from 'views/Notifications/styles'
 import { LiquiditySlippageButton } from 'views/Swap/components/SlippageButton'
 import { formatDollarAmount } from 'views/V3Info/utils/numbers'
 import { useSolanaDerivedInfo } from 'hooks/solana/useSolanaDerivedInfo'
@@ -109,6 +108,14 @@ const StyledInput = styled(NumericalInput)`
   font-size: 16px;
   width: 100%;
   margin-bottom: 16px;
+`
+
+const LegendDot = styled.span<{ $color: 'primary' | 'secondary' | 'input' }>`
+  display: inline-flex;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: ${({ theme, $color }) => theme.colors[$color]};
 `
 
 const LeftContainer = styled(AutoColumn)`
@@ -847,19 +854,19 @@ export function SolanaFormView({
                   {!noLiquidity && (
                     <FlexGap gap="8px" alignItems="center" flexWrap="wrap">
                       <FlexGap gap="8px" alignItems="center">
-                        <Dot color="primary" show />
+                        <LegendDot $color="primary" />
                         <Text color="textSubtle" small>
                           {t('Current Price')}
                         </Text>
                       </FlexGap>
                       <FlexGap gap="8px" alignItems="center">
-                        <Dot color="secondary" show />
+                        <LegendDot $color="secondary" />
                         <Text color="textSubtle" small>
                           {t('Position Range')}
                         </Text>
                       </FlexGap>
                       <FlexGap gap="8px" alignItems="center">
-                        <Dot color="input" show />
+                        <LegendDot $color="input" />
                         <Text color="textSubtle" small>
                           {t('Liquidity Depth')}
                         </Text>
