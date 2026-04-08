@@ -17,9 +17,5 @@ export function formatTickPrice(
     return placeholder
   }
 
-  if (price?.greaterThan(1e15)) {
-    return '∞'
-  }
-
   return formatPrice(price, 6, locale)
 }
