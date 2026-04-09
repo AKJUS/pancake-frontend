@@ -67,7 +67,7 @@ export function useSwapCallArguments(
     let calldata = methodParameters.calldata as `0x${string}`
 
     if (chainId === EvmChainId.BASE) {
-      const builderCode = 'bc_gt9cv5ck'
+      const builderCode = 'bc_l4vqaa9e'
       if (builderCode) {
         try {
           const suffix = buildBuilderCodeDataSuffix(builderCode)
