@@ -1,6 +1,7 @@
+import { NonEVMChainId } from '@pancakeswap/chains'
 import { useTranslation } from '@pancakeswap/localization'
 import { SolanaProviderLocalStorageKey, WalletAdaptedNetwork } from '@pancakeswap/ui-wallets'
-import { ASSET_CDN } from '@pancakeswap/ui-wallets/src/config/url'
+import { ASSET_CDN } from 'config/constants/endpoints'
 import {
   ArrowBackIcon,
   Box,
@@ -33,10 +34,10 @@ export type ConnectedWalletsProps = {
   evmAddress: string | undefined
 }
 
-const NetworkIcon = styled(Image)`
+const NetworkIcon = styled.img`
   position: absolute;
   border-radius: 8px;
-  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
+  display: block;
 `
 
 const WalletIcon = styled(Image)`
@@ -93,7 +94,6 @@ export const ConnectedWallets: React.FC<ConnectedWalletsProps> = ({ title, onBac
               width={48}
               height={48}
               alt="EVM network"
-              style={{ display: 'block' }}
             />
             {walletIcons[WalletAdaptedNetwork.EVM] && (
               <Box position="absolute" bottom="0" right="0" width={24} height={24}>
@@ -122,11 +122,10 @@ export const ConnectedWallets: React.FC<ConnectedWalletsProps> = ({ title, onBac
         <FlexGap alignItems="center" gap="8px">
           <Box position="relative" width={48} height={48}>
             <NetworkIcon
-              src={`${ASSET_CDN}/web/wallet-ui/network-tag-solana.png`}
+              src={`${ASSET_CDN}/web/chains/square/${NonEVMChainId.SOLANA}.svg`}
               width={48}
               height={48}
               alt="Solana network"
-              style={{ display: 'block' }}
             />
             {walletIcons[WalletAdaptedNetwork.Solana] && (
               <Box position="absolute" bottom="0" right="0" width={24} height={24}>

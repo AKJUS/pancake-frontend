@@ -13,8 +13,22 @@ const blink = keyframes`
   50% { transform:  scaleY(0.1); }
 `;
 
-const StyledLink = styled("a")`
+export const LogoWithHover = styled.div`
   display: flex;
+  .eye {
+    animation-delay: 20ms;
+  }
+  &:hover {
+    .eye {
+      transform-origin: center 60%;
+      animation-name: ${blink};
+      animation-duration: 350ms;
+      animation-iteration-count: 1;
+    }
+  }
+`;
+
+const StyledLink = styled(LogoWithHover).attrs({ as: "a" })`
   .mobile-icon {
     width: 32px;
     ${({ theme }) => theme.mediaQueries.xl} {
@@ -26,17 +40,6 @@ const StyledLink = styled("a")`
     display: none;
     ${({ theme }) => theme.mediaQueries.xl} {
       display: block;
-    }
-  }
-  .eye {
-    animation-delay: 20ms;
-  }
-  &:hover {
-    .eye {
-      transform-origin: center 60%;
-      animation-name: ${blink};
-      animation-duration: 350ms;
-      animation-iteration-count: 1;
     }
   }
 `;

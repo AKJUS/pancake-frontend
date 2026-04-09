@@ -13,11 +13,12 @@ import {
   DropdownMenuItemType,
   Flex,
   LogoIcon,
+  LogoWithHover,
   LogoWithTextIcon,
   OpenNewIcon,
   Text,
 } from '@pancakeswap/uikit'
-import { NextLinkFromReactRouter } from '@pancakeswap/widgets-internal'
+import { useMenuContext } from '@pancakeswap/uikit/widgets/Menu/context'
 
 const MORE_LINK_ORDER = ['/info/v3', '/voting', '/burn-dashboard']
 
@@ -35,7 +36,7 @@ const LogoPill = styled(Flex)`
   align-items: center;
   gap: 6px;
   height: 40px;
-  padding: 0 12px 0 10px;
+  padding: 0 8px;
   border-radius: 20px;
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
@@ -92,6 +93,7 @@ const LogoWithMoreMenu: React.FC<Props> = ({
   showCakePrice = true,
 }) => {
   const { t } = useTranslation()
+  const { linkComponent: LinkComponent } = useMenuContext()
   const [open, setOpen] = useState(false)
   const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -150,11 +152,16 @@ const LogoWithMoreMenu: React.FC<Props> = ({
     }
     if (item.href) {
       return (
-        <NextLinkFromReactRouter key={item.href} to={item.href} prefetch={false} style={{ display: 'block' }}>
-          <Text color="text" fontSize="16px">
-            {item.label}
-          </Text>
-        </NextLinkFromReactRouter>
+        <Text
+          key={item.href}
+          as={LinkComponent}
+          href={item.href}
+          color="text"
+          fontSize="16px"
+          style={{ display: 'block' }}
+        >
+          {item.label}
+        </Text>
       )
     }
     return null
@@ -163,11 +170,9 @@ const LogoWithMoreMenu: React.FC<Props> = ({
   return (
     <>
       <AtomBox display={{ xs: 'flex', lg: 'none' }} alignItems="center">
-        <NextLinkFromReactRouter to={homeHref} prefetch={false} aria-label={t('Pancake home page')}>
-          <Flex alignItems="center">
-            <LogoIcon width="32px" height="32px" />
-          </Flex>
-        </NextLinkFromReactRouter>
+        <LogoWithHover as={LinkComponent} href={homeHref} aria-label={t('Pancake home page')}>
+          <LogoIcon width="32px" height="32px" />
+        </LogoWithHover>
       </AtomBox>
 
       <AtomBox
@@ -177,13 +182,12 @@ const LogoWithMoreMenu: React.FC<Props> = ({
         onMouseEnter={handleEnter}
         onMouseLeave={handleLeave}
       >
-        <NextLinkFromReactRouter to={homeHref} prefetch={false} style={{ textDecoration: 'none', color: 'inherit' }}>
-          <LogoPill>
-            {/* Single mark: LogoWithTextIcon already includes the bunny + wordmark */}
-            <LogoWithTextIcon width="120px" height="22px" />
-            <ChevronDownIcon color="textSubtle" width="18px" />
-          </LogoPill>
-        </NextLinkFromReactRouter>
+        <LogoPill as={LinkComponent} href={homeHref} style={{ textDecoration: 'none', color: 'inherit' }}>
+          <LogoWithHover>
+            <LogoWithTextIcon width="160px" />
+          </LogoWithHover>
+          <ChevronDownIcon color="textSubtle" width="18px" />
+        </LogoPill>
 
         {open && (
           <MenuPanel onMouseEnter={handleEnter} onMouseLeave={handleLeave}>

@@ -43,6 +43,8 @@ interface TabsComponentProps {
 
 export const StyledButtonMenuItem = styled(ButtonMenuItem)<{ isActive?: boolean }>`
   color: ${({ theme, isActive }) => (isActive ? theme.colors.secondary : theme.colors.textSubtle)};
+  padding-left: 16px;
+  padding-right: 0px;
 `
 
 export const TabsComponent: React.FC<React.PropsWithChildren<TabsComponentProps>> = ({

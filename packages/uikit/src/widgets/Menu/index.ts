@@ -13,4 +13,5 @@ export type {
   variants as userMenuVariants,
   Variant as UserMenuVariant,
 } from "./components/UserMenu/types";
-export { default as Logo } from "./components/Logo";
+export { default as Logo, LogoWithHover } from "./components/Logo";
+export { useMenuContext } from "./context";

@@ -18,18 +18,27 @@ import {
   UserMenuItem,
   useTooltip,
 } from '@pancakeswap/uikit'
+import { ASSET_CDN } from 'config/constants/endpoints'
 import { useActiveChainId } from 'hooks/useActiveChainId'
 import { useHover } from 'hooks/useHover'
 import { useSwitchNetwork } from 'hooks/useSwitchNetwork'
 import useTheme from 'hooks/useTheme'
 import { atom, useAtom } from 'jotai'
 import { useRouter } from 'next/router'
+import styled from 'styled-components'
 import { useCallback, useMemo } from 'react'
 import { useUserShowTestnet } from 'state/user/hooks/useUserShowTestnet'
 import { useAccount } from 'wagmi'
 import { getQueryChainId } from 'wallet/util/getQueryChainId'
 import { type SwitchChainOption } from 'wallet/hook/useSwitchNetworkV2'
-import { ChainLogo } from './Logo/ChainLogo'
+
+const SquareChainIcon = styled.img`
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  object-fit: contain;
+  flex-shrink: 0;
+`
 
 type ChainSpecificBehavior = {
   onClick: () => void
@@ -104,7 +113,7 @@ const NetworkSelect = ({ switchNetwork, chainId, isWrongNetwork, onDismiss }: Ne
                 onDismiss()
               }}
             >
-              <ChainLogo chainId={net.id} />
+              <SquareChainIcon src={`${ASSET_CDN}/web/chains/square/${net.id}.svg`} alt={`chain-${net.id}`} />
               <Text
                 color={net.id === chainId && !isWrongNetwork ? 'secondary' : 'text'}
                 bold={net.id === chainId && !isWrongNetwork}
@@ -120,7 +129,7 @@ const NetworkSelect = ({ switchNetwork, chainId, isWrongNetwork, onDismiss }: Ne
               onClick={chainSpecificBehavior[net.id]?.onClick}
               style={{ justifyContent: 'flex-start', cursor: 'pointer', padding: '0px 24px' }}
             >
-              <ChainLogo chainId={net.id} />
+              <SquareChainIcon src={`${ASSET_CDN}/web/chains/square/${net.id}.svg`} alt={`chain-${net.id}`} />
               <Text color="text" pl="12px">
                 {net.fullName}
               </Text>
@@ -172,7 +181,7 @@ const WrongNetworkSelect = ({ switchNetwork, chainId, onDismiss }: WrongNetworkS
       <UserMenuDivider />
       {chain && (
         <UserMenuItem ref={ref1} style={{ justifyContent: 'flex-start' }}>
-          <ChainLogo chainId={chain.id} />
+          <SquareChainIcon src={`${ASSET_CDN}/web/chains/square/${chain.id}.svg`} alt={`chain-${chain.id}`} />
           <Text color="secondary" bold pl="12px">
             {chain.name}
           </Text>
@@ -188,7 +197,7 @@ const WrongNetworkSelect = ({ switchNetwork, chainId, onDismiss }: WrongNetworkS
         }}
         style={{ justifyContent: 'flex-start' }}
       >
-        <ChainLogo chainId={localChainId} />
+        <SquareChainIcon src={`${ASSET_CDN}/web/chains/square/${localChainId}.svg`} alt={`chain-${localChainId}`} />
         <Text pl="12px">{localChainName}</Text>
       </UserMenuItem>
       <Button
@@ -237,7 +246,7 @@ export const NetworkSelectPanel = ({ onDismiss }: { onDismiss: () => void }) => 
               onDismiss()
             }}
           >
-            <ChainLogo chainId={net.id} />
+            <SquareChainIcon src={`${ASSET_CDN}/web/chains/square/${net.id}.svg`} alt={`chain-${net.id}`} />
             <Text
               color={net.id === chainId && !isWrongNetwork ? 'secondary' : 'text'}
               bold={net.id === chainId && !isWrongNetwork}
@@ -252,7 +261,7 @@ export const NetworkSelectPanel = ({ onDismiss }: { onDismiss: () => void }) => 
             onClick={chainSpecificBehavior[net.id]?.onClick}
             style={{ justifyContent: 'flex-start', cursor: 'pointer', padding: '0px 24px' }}
           >
-            <ChainLogo chainId={net.id} />
+            <SquareChainIcon src={`${ASSET_CDN}/web/chains/square/${net.id}.svg`} alt={`chain-${net.id}`} />
             <Text color="text" pl="12px">
               {net.fullName}
             </Text>
