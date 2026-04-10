@@ -44,9 +44,9 @@ interface SwapCallEstimate {
 // returns a function that will execute a swap, if the parameters are all valid
 // and the user has approved the slippage adjusted input amount for the trade
 export function useSwapCallback(
-  trade: V2TradeAndStableSwap | null, // trade to execute, required
-  allowedSlippage: number = INITIAL_ALLOWED_SLIPPAGE, // in bips
-  recipientAddress: string | null, // the address of the recipient of the trade, or null if swap should be returned to sender
+  trade: V2TradeAndStableSwap | null,
+  allowedSlippage: number = INITIAL_ALLOWED_SLIPPAGE,
+  recipientAddress: string | null,
   swapCalls: SwapCall[],
 ): { state: SwapCallbackState; callback: null | (() => Promise<string>); error: string | null } {
   const { account, chainId } = useAccountActiveChain()
@@ -54,7 +54,6 @@ export function useSwapCallback(
   const { env, wallet } = useWalletRuntime()
 
   const { t } = useTranslation()
-
   const addTransaction = useTransactionAdder()
 
   const recipient = recipientAddress === null ? account : recipientAddress
@@ -105,7 +104,6 @@ export function useSwapCallback(
           }),
         )
 
-        // a successful estimation is a bignumber gas estimate and the next call is also a bignumber gas estimate
         const successfulEstimation = estimatedCalls.find(
           (el, ix, list): el is SuccessfulCall =>
             'gasEstimate' in el && (ix === list.length - 1 || 'gasEstimate' in list[ix + 1]),
@@ -125,31 +123,31 @@ export function useSwapCallback(
           gasEstimate,
         } = successfulEstimation
 
+        const inputSymbol = trade.inputAmount.currency.symbol
+        const outputSymbol = trade.outputAmount.currency.symbol
+        const pct = basisPointsToPercent(allowedSlippage)
+        const inputAmount =
+          trade.tradeType === TradeType.EXACT_INPUT
+            ? trade.inputAmount.toSignificant(3)
+            : trade.maximumAmountIn(pct).toSignificant(3)
+
+        const outputAmount =
+          trade.tradeType === TradeType.EXACT_OUTPUT
+            ? trade.outputAmount.toSignificant(3)
+            : trade.minimumAmountOut(pct).toSignificant(3)
+        const quotedInputAmountRaw = trade.inputAmount.toExact()
+        const maximumAmountInRaw =
+          trade.tradeType === TradeType.EXACT_INPUT ? quotedInputAmountRaw : trade.maximumAmountIn(pct).toExact()
+        const quotedOutputAmountRaw = trade.outputAmount.toExact()
+        const minimumAmountOutRaw =
+          trade.tradeType === TradeType.EXACT_OUTPUT ? quotedOutputAmountRaw : trade.minimumAmountOut(pct).toExact()
+
         return contract.write[methodName](args, {
           gas: calculateGasMargin(gasEstimate),
           gasPrice,
           ...(value && !isZero(value) ? { value, account } : { account }),
         })
           .then((response: Hash) => {
-            const inputSymbol = trade.inputAmount.currency.symbol
-            const outputSymbol = trade.outputAmount.currency.symbol
-            const pct = basisPointsToPercent(allowedSlippage)
-            const inputAmount =
-              trade.tradeType === TradeType.EXACT_INPUT
-                ? trade.inputAmount.toSignificant(3)
-                : trade.maximumAmountIn(pct).toSignificant(3)
-
-            const outputAmount =
-              trade.tradeType === TradeType.EXACT_OUTPUT
-                ? trade.outputAmount.toSignificant(3)
-                : trade.minimumAmountOut(pct).toSignificant(3)
-            const quotedInputAmountRaw = trade.inputAmount.toExact()
-            const maximumAmountInRaw =
-              trade.tradeType === TradeType.EXACT_INPUT ? quotedInputAmountRaw : trade.maximumAmountIn(pct).toExact()
-            const quotedOutputAmountRaw = trade.outputAmount.toExact()
-            const minimumAmountOutRaw =
-              trade.tradeType === TradeType.EXACT_OUTPUT ? quotedOutputAmountRaw : trade.minimumAmountOut(pct).toExact()
-
             const base = `Swap ${
               trade.tradeType === TradeType.EXACT_OUTPUT ? 'max.' : ''
             } ${inputAmount} ${inputSymbol} for ${
@@ -209,14 +207,12 @@ export function useSwapCallback(
             return response
           })
           .catch((error: any) => {
-            // if the user rejected the tx, pass this along
             if (isUserRejected(error)) {
               throw new Error('Transaction rejected.')
-            } else {
-              // otherwise, the error was unexpected and we need to convey that
-              console.error(`Swap failed`, error, methodName, args, value)
-              throw new Error(t('Swap failed: %message%', { message: transactionErrorToUserReadableMessage(error, t) }))
             }
+
+            console.error(`Swap failed`, error, methodName, args, value)
+            throw new Error(t('Swap failed: %message%', { message: transactionErrorToUserReadableMessage(error, t) }))
           })
       },
       error: null,

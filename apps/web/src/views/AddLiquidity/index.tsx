@@ -27,7 +27,9 @@ import { useGasPrice, usePairAdder } from 'state/user/hooks'
 import { calculateGasMargin } from 'utils'
 import { calculateSlippageAmount, useRouterContract } from 'utils/exchange'
 import { maxAmountSpend } from 'utils/maxAmountSpend'
+import { buildPostHogBaseProperties, capturePostHogEvent, getPostHogErrorProperties } from 'utils/posthog'
 import currencyId from 'utils/currencyId'
+import { useWalletRuntime } from 'wallet/hook/useWalletEnv'
 import { useTransactionDeadline } from '../../hooks/useTransactionDeadline'
 import ConfirmAddLiquidityModal from './components/ConfirmAddLiquidityModal'
 import { useCurrencySelectRoute } from './useCurrencySelectRoute'
@@ -89,6 +91,7 @@ export default function AddLiquidity({
 }) {
   const { data: walletClient } = useWalletClient()
   const { account, chainId } = useAccountActiveChain()
+  const runtime = useWalletRuntime()
 
   const addPair = usePairAdder()
 
@@ -228,6 +231,15 @@ export default function AddLiquidity({
       [Field.CURRENCY_A]: calculateSlippageAmount(parsedAmountA, noLiquidity ? 0 : allowedSlippage)[0],
       [Field.CURRENCY_B]: calculateSlippageAmount(parsedAmountB, noLiquidity ? 0 : allowedSlippage)[0],
     }
+    const symbolA = currencies[Field.CURRENCY_A]?.symbol
+    const amountA = parsedAmounts[Field.CURRENCY_A]?.toSignificant(3)
+    const symbolB = currencies[Field.CURRENCY_B]?.symbol
+    const amountB = parsedAmounts[Field.CURRENCY_B]?.toSignificant(3)
+    const postHogBaseProperties = buildPostHogBaseProperties({
+      account,
+      chainId,
+      runtime,
+    })
 
     // eslint-disable-next-line
     let estimate: any
@@ -266,6 +278,15 @@ export default function AddLiquidity({
     }
 
     setLiquidityState({ attemptingTxn: true, liquidityErrorMessage: undefined, txHash: undefined })
+    capturePostHogEvent('liquidity_add_started', {
+      ...postHogBaseProperties,
+      pool_type: 'v2',
+      token_a_symbol: symbolA ?? null,
+      token_a_amount: amountA ?? null,
+      token_b_symbol: symbolB ?? null,
+      token_b_amount: amountB ?? null,
+      no_liquidity: noLiquidity,
+    })
     await estimate(
       args,
       value
@@ -280,10 +301,6 @@ export default function AddLiquidity({
         }).then((response: Hash) => {
           setLiquidityState({ attemptingTxn: false, liquidityErrorMessage: undefined, txHash: response })
           logGTMAddLiquidityTxSentEvent()
-          const symbolA = currencies[Field.CURRENCY_A]?.symbol
-          const amountA = parsedAmounts[Field.CURRENCY_A]?.toSignificant(3)
-          const symbolB = currencies[Field.CURRENCY_B]?.symbol
-          const amountB = parsedAmounts[Field.CURRENCY_B]?.toSignificant(3)
           addTransaction(
             { hash: response },
             {
@@ -299,6 +316,17 @@ export default function AddLiquidity({
           if (pair) {
             addPair(pair)
           }
+
+          capturePostHogEvent('liquidity_add_succeeded', {
+            ...postHogBaseProperties,
+            pool_type: 'v2',
+            token_a_symbol: symbolA ?? null,
+            token_a_amount: amountA ?? null,
+            token_b_symbol: symbolB ?? null,
+            token_b_amount: amountB ?? null,
+            tx_hash: response,
+            no_liquidity: noLiquidity,
+          })
         }),
       )
       ?.catch((err: any) => {
@@ -306,6 +334,17 @@ export default function AddLiquidity({
           logError(err)
           console.error(`Add Liquidity failed`, err, args, value)
         }
+        capturePostHogEvent('liquidity_add_failed', {
+          ...postHogBaseProperties,
+          pool_type: 'v2',
+          token_a_symbol: symbolA ?? null,
+          token_a_amount: amountA ?? null,
+          token_b_symbol: symbolB ?? null,
+          token_b_amount: amountB ?? null,
+          rejected_by_user: Boolean(err && isUserRejected(err)),
+          no_liquidity: noLiquidity,
+          ...getPostHogErrorProperties(err, err && isUserRejected(err) ? 'Transaction rejected.' : undefined),
+        })
         setLiquidityState({
           attemptingTxn: false,
           liquidityErrorMessage:

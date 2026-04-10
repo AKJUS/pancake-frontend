@@ -36,6 +36,7 @@ import { useWalletConnectRouterSync } from 'hooks/useWalletConnectRouterSync'
 import { useWeb3WalletView } from 'hooks/useWeb3WalletView'
 import { useInitGlobalWorker } from 'hooks/useWorker'
 import { useSecurityBlocking } from 'hooks/useSecurityBlocking'
+import { usePostHog } from 'hooks/usePostHog'
 import { persistor, useStore } from 'state'
 import { usePollBlockNumber } from 'state/block/hooks'
 import WalletModalManager from 'components/WalletModalManager'
@@ -68,6 +69,7 @@ BigNumber.config({
 function GlobalHooks() {
   useInitGlobalWorker()
   useDataDogRUM()
+  usePostHog()
   useWeb3WalletView()
   useLoadExperimentalFeatures()
   usePollBlockNumber()

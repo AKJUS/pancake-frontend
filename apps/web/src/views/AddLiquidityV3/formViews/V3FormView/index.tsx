@@ -62,11 +62,13 @@ import {
 import { basisPointsToPercent } from 'utils/exchange'
 import { formatCurrencyAmount, formatRawAmount } from 'utils/formatCurrencyAmount'
 import { maxAmountSpend } from 'utils/maxAmountSpend'
+import { buildPostHogBaseProperties, capturePostHogEvent, getPostHogErrorProperties } from 'utils/posthog'
 import { isUserRejected } from 'utils/sentry'
 import { transactionErrorToUserReadableMessage } from 'utils/transactionErrorToUserReadableMessage'
 import { CurrencyField as Field } from 'utils/types'
 import { getViemClients } from 'utils/viem'
 import { hexToBigInt } from 'viem'
+import { useWalletRuntime } from 'wallet/hook/useWalletEnv'
 import { useTokenRateData } from 'views/AddLiquidityInfinity/components/useTokenToTokenRateData'
 import { getAxisTicks } from 'views/AddLiquidityInfinity/utils'
 import { V3SubmitButton } from 'views/AddLiquidityV3/components/V3SubmitButton'
@@ -178,6 +180,7 @@ export default function V3FormView({
 
   const positionManager = useV3NFTPositionManagerContract()
   const { account, chainId, isWrongNetwork } = useAccountActiveChain()
+  const runtime = useWalletRuntime()
   const addTransaction = useTransactionAdder()
 
   const [pricePeriod, setPricePeriod] = useState<Liquidity.PresetRangeItem>(Liquidity.PRESET_RANGE_ITEMS[0])
@@ -382,8 +385,33 @@ export default function V3FormView({
       useNative,
       createPool: noLiquidity,
     })
+    const baseAmount = formatRawAmount(
+      parsedAmounts[Field.CURRENCY_A]?.quotient?.toString() ?? '0',
+      baseCurrency.decimals,
+      4,
+    )
+    const quoteAmount = formatRawAmount(
+      parsedAmounts[Field.CURRENCY_B]?.quotient?.toString() ?? '0',
+      quoteCurrency.decimals,
+      4,
+    )
+    const postHogBaseProperties = buildPostHogBaseProperties({
+      account,
+      chainId,
+      runtime,
+    })
 
     setAttemptingTxn(true)
+    capturePostHogEvent('liquidity_add_started', {
+      ...postHogBaseProperties,
+      pool_type: 'v3',
+      token_a_symbol: baseCurrency.symbol ?? null,
+      token_a_amount: baseAmount,
+      token_b_symbol: quoteCurrency.symbol ?? null,
+      token_b_amount: quoteAmount,
+      no_liquidity: noLiquidity,
+      fee_tier: feeAmount ?? null,
+    })
     const txn = {
       data: calldata,
       to: nftPositionManagerAddress,
@@ -399,17 +427,6 @@ export default function V3FormView({
         })
           .then((hash) => {
             logGTMAddLiquidityTxSentEvent()
-            const baseAmount = formatRawAmount(
-              parsedAmounts[Field.CURRENCY_A]?.quotient?.toString() ?? '0',
-              baseCurrency.decimals,
-              4,
-            )
-            const quoteAmount = formatRawAmount(
-              parsedAmounts[Field.CURRENCY_B]?.quotient?.toString() ?? '0',
-              quoteCurrency.decimals,
-              4,
-            )
-
             setAttemptingTxn(false)
             addTransaction(
               { hash },
@@ -420,9 +437,32 @@ export default function V3FormView({
             )
             setTxHash(hash)
             onAddLiquidityCallback(hash)
+            capturePostHogEvent('liquidity_add_succeeded', {
+              ...postHogBaseProperties,
+              pool_type: 'v3',
+              token_a_symbol: baseCurrency.symbol ?? null,
+              token_a_amount: baseAmount,
+              token_b_symbol: quoteCurrency.symbol ?? null,
+              token_b_amount: quoteAmount,
+              tx_hash: hash,
+              no_liquidity: noLiquidity,
+              fee_tier: feeAmount ?? null,
+            })
           })
           .catch((error) => {
             console.error('Failed to send transaction', error)
+            capturePostHogEvent('liquidity_add_failed', {
+              ...postHogBaseProperties,
+              pool_type: 'v3',
+              token_a_symbol: baseCurrency.symbol ?? null,
+              token_a_amount: baseAmount,
+              token_b_symbol: quoteCurrency.symbol ?? null,
+              token_b_amount: quoteAmount,
+              rejected_by_user: isUserRejected(error),
+              no_liquidity: noLiquidity,
+              fee_tier: feeAmount ?? null,
+              ...getPostHogErrorProperties(error, isUserRejected(error) ? 'Transaction rejected.' : undefined),
+            })
             // we only care if the error is something _other_ than the user rejected the tx
             if (!isUserRejected(error)) {
               setTxnErrorMessage(transactionErrorToUserReadableMessage(error, t))

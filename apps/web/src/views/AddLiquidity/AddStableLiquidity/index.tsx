@@ -26,7 +26,9 @@ import { useGasPrice } from 'state/user/hooks'
 import { calculateGasMargin, isAddressEqual } from 'utils'
 import { calculateSlippageAmount } from 'utils/exchange'
 import { maxAmountSpend } from 'utils/maxAmountSpend'
+import { buildPostHogBaseProperties, capturePostHogEvent, getPostHogErrorProperties } from 'utils/posthog'
 import { Address } from 'viem'
+import { useWalletRuntime } from 'wallet/hook/useWalletEnv'
 
 import ConfirmAddLiquidityModal from '../components/ConfirmAddLiquidityModal'
 
@@ -74,6 +76,7 @@ export default function AddStableLiquidity({
   children: (props: AddStableChildrenProps) => ReactElement
 }) {
   const { account, chainId } = useAccountActiveChain()
+  const runtime = useWalletRuntime()
 
   const expertMode = useIsExpertMode()
 
@@ -208,6 +211,15 @@ export default function AddStableLiquidity({
 
     const lpMintedSlippage =
       liquidityMinted && calculateSlippageAmount(liquidityMinted, noLiquidity ? 0 : allowedSlippage)[0]
+    const symbolA = currencies[Field.CURRENCY_A]?.symbol
+    const amountA = parsedAmounts[Field.CURRENCY_A]?.toSignificant(3) || '0'
+    const symbolB = currencies[Field.CURRENCY_B]?.symbol
+    const amountB = parsedAmounts[Field.CURRENCY_B]?.toSignificant(3) || '0'
+    const postHogBaseProperties = buildPostHogBaseProperties({
+      account,
+      chainId,
+      runtime,
+    })
 
     const quotientA = parsedAmountA?.quotient || 0n
     const quotientB = parsedAmountB?.quotient || 0n
@@ -275,14 +287,19 @@ export default function AddStableLiquidity({
     }
 
     setLiquidityState({ attemptingTxn: true, liquidityErrorMessage: undefined, txHash: undefined })
+    capturePostHogEvent('liquidity_add_started', {
+      ...postHogBaseProperties,
+      pool_type: 'stable',
+      token_a_symbol: symbolA ?? null,
+      token_a_amount: amountA,
+      token_b_symbol: symbolB ?? null,
+      token_b_amount: amountB,
+      no_liquidity: noLiquidity,
+    })
     await call
       .then((response) => {
         setLiquidityState({ attemptingTxn: false, liquidityErrorMessage: undefined, txHash: response })
         logGTMAddLiquidityTxSentEvent()
-        const symbolA = currencies[Field.CURRENCY_A]?.symbol
-        const amountA = parsedAmounts[Field.CURRENCY_A]?.toSignificant(3) || '0'
-        const symbolB = currencies[Field.CURRENCY_B]?.symbol
-        const amountB = parsedAmounts[Field.CURRENCY_B]?.toSignificant(3) || '0'
         addTransaction(
           { hash: response },
           {
@@ -294,12 +311,33 @@ export default function AddStableLiquidity({
             type: 'add-liquidity',
           },
         )
+        capturePostHogEvent('liquidity_add_succeeded', {
+          ...postHogBaseProperties,
+          pool_type: 'stable',
+          token_a_symbol: symbolA ?? null,
+          token_a_amount: amountA,
+          token_b_symbol: symbolB ?? null,
+          token_b_amount: amountB,
+          tx_hash: response,
+          no_liquidity: noLiquidity,
+        })
       })
       .catch((err) => {
         if (err && !isUserRejected(err)) {
           logError(err)
           console.error(`Add Liquidity failed`, err, args_, value_)
         }
+        capturePostHogEvent('liquidity_add_failed', {
+          ...postHogBaseProperties,
+          pool_type: 'stable',
+          token_a_symbol: symbolA ?? null,
+          token_a_amount: amountA,
+          token_b_symbol: symbolB ?? null,
+          token_b_amount: amountB,
+          rejected_by_user: Boolean(err && isUserRejected(err)),
+          no_liquidity: noLiquidity,
+          ...getPostHogErrorProperties(err, err && isUserRejected(err) ? 'Transaction rejected.' : undefined),
+        })
         setLiquidityState({
           attemptingTxn: false,
           liquidityErrorMessage:

@@ -2,6 +2,7 @@ import { TradeType, UnifiedCurrency } from '@pancakeswap/swap-sdk-core'
 import { WalletIds } from '@pancakeswap/ui-wallets'
 
 import { logger } from './datadog'
+import { buildPostHogBaseProperties, capturePostHogEvent } from './posthog'
 
 export const logTx = ({ account, hash, chainId }: { account: string; hash: string; chainId: number }) => {
   fetch(`/api/_log/${account}/${chainId}/${hash}`)
@@ -70,6 +71,27 @@ export const logSwap = ({
       isMultisig,
       env,
       wallet,
+    })
+
+    capturePostHogEvent('swap_succeeded', {
+      ...buildPostHogBaseProperties({
+        account,
+        chainId,
+      }),
+      type,
+      tradeType: tradeType !== undefined ? TradeType[tradeType] : null,
+      inputAddress: input.isToken ? input.address.toLowerCase() : input.symbol ?? null,
+      outputAddress: output.isToken ? output.address.toLowerCase() : output.symbol ?? null,
+      inputAmount,
+      outputAmount,
+      quotedInputAmountRaw,
+      maximumAmountInRaw,
+      quotedOutputAmountRaw,
+      minimumAmountOutRaw,
+      hash,
+      isMultisig,
+      env: env ?? null,
+      wallet: wallet ?? WalletIds.Unknown,
     })
   } catch (error) {
     //
