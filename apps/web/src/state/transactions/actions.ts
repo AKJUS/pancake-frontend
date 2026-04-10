@@ -88,6 +88,10 @@ export const addTransaction = createAction<{
   order?: Order
   crossChainFarm?: CrossChainFarmTransactionType
   receipt?: SerializableTransactionReceipt
+  swapTokens?: {
+    input: { isNative: boolean; address?: string; chainId: number; symbol: string; decimals: number; name?: string }
+    output: { isNative: boolean; address?: string; chainId: number; symbol: string; decimals: number; name?: string }
+  }
 }>('transactions/addTransaction')
 export const clearAllTransactions = createAction('transactions/clearAllTransactions')
 export const clearAllChainTransactions = createAction<{ chainId: ChainId }>('transactions/clearAllChainTransactions')

@@ -27,7 +27,7 @@ import {
   TransactionType,
   addTransaction,
 } from './actions'
-import { TransactionDetails } from './reducer'
+import { SwapTokenRecord, TransactionDetails } from './reducer'
 
 // helper that can take a ethers library transaction response and add it to the list of transactions
 export function useTransactionAdder(overrideChainId?: number): (
@@ -53,6 +53,7 @@ export function useTransactionAdder(overrideChainId?: number): (
     expectedCurrencyOwed0?: string
     expectedCurrencyOwed1?: string
     receipt?: SerializableTransactionReceipt
+    swapTokens?: { input: SwapTokenRecord; output: SwapTokenRecord }
   },
 ) => void {
   const { solanaAccount, account: evmAccount, chainId: activeChainId } = useAccountActiveChain()
@@ -74,6 +75,7 @@ export function useTransactionAdder(overrideChainId?: number): (
         order,
         crossChainFarm,
         receipt,
+        swapTokens,
       }: {
         summary?: string
         translatableSummary?: { text: string; data?: Record<string, string | number | undefined> }
@@ -83,6 +85,7 @@ export function useTransactionAdder(overrideChainId?: number): (
         order?: Order
         crossChainFarm?: CrossChainFarmTransactionType
         receipt?: SerializableTransactionReceipt
+        swapTokens?: { input: SwapTokenRecord; output: SwapTokenRecord }
       } = {},
     ) => {
       if (!from) return
@@ -120,6 +123,7 @@ export function useTransactionAdder(overrideChainId?: number): (
           order,
           crossChainFarm,
           receipt,
+          swapTokens,
         }),
       )
     },
@@ -402,4 +406,49 @@ export function useReadableTransactionType(type?: TransactionType) {
   return useMemo(() => {
     return getReadableTransactionType(t, type)
   }, [type, t])
+}
+
+export function useRecentlySwappedTokens(): SwapTokenRecord[] {
+  // Read Redux state directly with both EVM and Solana accounts to avoid the
+  // unifiedAccount filter in useAllTransactions(), which drops EVM transactions
+  // when the active chain is Solana (unifiedAccount flips to the Solana address).
+  const { account: evmAccount } = useAccountActiveChain()
+  const state = useSelector<AppState, AppState['transactions']>((s) => s.transactions)
+  const solTxs = useSolanaTransactions()
+
+  return useMemo(() => {
+    const seen = new Set<string>()
+    const result: SwapTokenRecord[] = []
+
+    // Collect EVM transactions across all chains, filtered by EVM account
+    const evmTxs: TransactionDetails[] = []
+    if (evmAccount) {
+      const chainEntries = Object.values(state) as { [txHash: string]: TransactionDetails }[]
+      for (const chainTxs of chainEntries) {
+        for (const tx of Object.values(chainTxs)) {
+          if (tx.from.toLowerCase() === evmAccount.toLowerCase() && isTransactionRecent(tx)) {
+            evmTxs.push(tx)
+          }
+        }
+      }
+    }
+
+    const solSwaps = Object.values(solTxs)
+    const allSwaps = [...evmTxs, ...solSwaps]
+      .filter((tx) => (tx.type === 'swap' || tx.type === 'bridge') && tx.swapTokens)
+      .sort((a, b) => b.addedTime - a.addedTime)
+
+    for (const tx of allSwaps) {
+      if (result.length >= 5) break
+      for (const record of [tx.swapTokens!.input, tx.swapTokens!.output]) {
+        if (result.length >= 5) break
+        const key = record.isNative ? `${record.chainId}-native` : `${record.chainId}-${record.address!.toLowerCase()}`
+        if (!seen.has(key)) {
+          seen.add(key)
+          result.push(record)
+        }
+      }
+    }
+    return result
+  }, [evmAccount, state, solTxs])
 }

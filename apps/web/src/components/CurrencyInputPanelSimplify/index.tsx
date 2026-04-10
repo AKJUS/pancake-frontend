@@ -362,6 +362,8 @@ interface CurrencyInputPanelProps {
   showSearchHeader?: boolean
   wrapperProps?: AtomBoxProps
   supportCrossChain?: boolean
+  showMultichainBalances?: boolean
+  enableMultichainSearch?: boolean
   showNative?: boolean
   maxDecimals?: number
   valueDisplayMode?: 'token' | 'usd'
@@ -385,6 +387,8 @@ const CurrencyInputPanelSimplify = memo(function CurrencyInputPanel({
   hideBalance = false,
   overrideBalance,
   supportCrossChain = true,
+  showMultichainBalances = false,
+  enableMultichainSearch = false,
   beforeButton,
   pair = null, // used for double token logo
   otherCurrency,
@@ -457,6 +461,8 @@ const CurrencyInputPanelSimplify = memo(function CurrencyInputPanel({
       modalTitle={modalTitle}
       showSearchHeader={showSearchHeader}
       showNative={showNative}
+      showMultichainBalances={showMultichainBalances}
+      enableMultichainSearch={enableMultichainSearch}
     />,
   )
 

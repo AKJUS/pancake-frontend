@@ -63,6 +63,8 @@ export interface CurrencySearchModalV2Props extends InjectedModalProps {
   tokensToShow?: Token[]
   chainId?: number
   showNative?: boolean
+  showMultichainBalances?: boolean
+  enableMultichainSearch?: boolean
 }
 
 /**
@@ -79,6 +81,8 @@ export default function CurrencySearchModalV2({
   tokensToShow,
   chainId,
   showNative = true,
+  showMultichainBalances = false,
+  enableMultichainSearch = false,
 }: CurrencySearchModalV2Props) {
   const [modalView, setModalView] = useState<CurrencyModalView>(CurrencyModalView.search)
 
@@ -185,6 +189,8 @@ export default function CurrencySearchModalV2({
             height={height}
             tokensToShow={tokensToShow}
             showNative={showNative}
+            showMultichainBalances={showMultichainBalances}
+            enableMultichainSearch={enableMultichainSearch}
           />
         ) : modalView === CurrencyModalView.importToken && importToken ? (
           <ImportToken tokens={[importToken as Token]} handleCurrencySelect={handleCurrencySelect} chainId={chainId} />

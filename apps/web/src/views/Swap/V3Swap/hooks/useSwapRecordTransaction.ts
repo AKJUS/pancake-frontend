@@ -112,6 +112,24 @@ export default function useSwapRecordTransaction(chainId?: number, account?: str
             },
             type: 'swap',
             receipt,
+            swapTokens: {
+              input: {
+                isNative: trade.inputAmount.currency.isNative,
+                address: trade.inputAmount.currency.isToken ? trade.inputAmount.currency.address : undefined,
+                chainId: trade.inputAmount.currency.chainId,
+                symbol: trade.inputAmount.currency.symbol ?? '',
+                decimals: trade.inputAmount.currency.decimals,
+                name: trade.inputAmount.currency.name,
+              },
+              output: {
+                isNative: trade.outputAmount.currency.isNative,
+                address: trade.outputAmount.currency.isToken ? trade.outputAmount.currency.address : undefined,
+                chainId: trade.outputAmount.currency.chainId,
+                symbol: trade.outputAmount.currency.symbol ?? '',
+                decimals: trade.outputAmount.currency.decimals,
+                name: trade.outputAmount.currency.name,
+              },
+            },
           },
         )
       }

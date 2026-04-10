@@ -228,6 +228,28 @@ export const useBatchSwapTransaction = ({
                     order.trade.inputAmount.currency.symbol
                   } to ${order.trade.outputAmount.currency.symbol}`,
                   type: 'bridge',
+                  swapTokens: {
+                    input: {
+                      isNative: order.trade.inputAmount.currency.isNative,
+                      address: order.trade.inputAmount.currency.isToken
+                        ? order.trade.inputAmount.currency.address
+                        : undefined,
+                      chainId: order.trade.inputAmount.currency.chainId,
+                      symbol: order.trade.inputAmount.currency.symbol ?? '',
+                      decimals: order.trade.inputAmount.currency.decimals,
+                      name: order.trade.inputAmount.currency.name,
+                    },
+                    output: {
+                      isNative: order.trade.outputAmount.currency.isNative,
+                      address: order.trade.outputAmount.currency.isToken
+                        ? order.trade.outputAmount.currency.address
+                        : undefined,
+                      chainId: order.trade.outputAmount.currency.chainId,
+                      symbol: order.trade.outputAmount.currency.symbol ?? '',
+                      decimals: order.trade.outputAmount.currency.decimals,
+                      name: order.trade.outputAmount.currency.name,
+                    },
+                  },
                 },
               )
             } else {

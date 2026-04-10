@@ -6,7 +6,7 @@ import { LightGreyCard } from 'components/Card'
 import { ViewOnExplorerButton } from 'components/ViewOnExplorerButton'
 import { useUnifiedNativeCurrency } from 'hooks/useNativeCurrency'
 import { useUnifiedCurrencyBalance } from 'hooks/useUnifiedCurrencyBalance'
-import { FixedSizeList } from 'react-window'
+import { VariableSizeList } from 'react-window'
 import { styled } from 'styled-components'
 import { getTokenSymbolAlias } from 'utils/getTokenAlias'
 import { wrappedCurrency } from 'utils/wrappedCurrency'
@@ -31,6 +31,8 @@ import useAccountActiveChain from 'hooks/useAccountActiveChain'
 import { isSolana, NonEVMChainId, UnifiedChainId } from '@pancakeswap/chains'
 
 import truncateHash from '@pancakeswap/utils/truncateHash'
+import { CHAINS } from 'config/chains'
+import { chainNameConverter } from 'utils/chainNameConverter'
 import { useIsUserAddedToken } from '../../hooks/Tokens'
 import { useCombinedActiveList } from '../../state/lists/hooks'
 import { isTokenOnList } from '../../utils'
@@ -84,7 +86,7 @@ const MenuItemInner = styled.div<{ disabled?: boolean; selected: boolean }>`
   }
   opacity: ${({ disabled, selected }) => (disabled || selected ? 0.5 : 1)};
 
-  transition: background-color 0.1s;
+  transition: background-color 0.15s;
 `
 
 function ComplementSection({
@@ -193,6 +195,12 @@ function CurrencyRow({
     [evmAccount, solanaAccount, currency.chainId],
   )
 
+  const chainName = useMemo(() => {
+    if (isSolana(currency.chainId)) return 'Solana'
+    const chain = CHAINS.find((c) => c.id === currency.chainId)
+    return chain ? chainNameConverter(chain.name) : ''
+  }, [currency.chainId])
+
   const setIsHoveredCallback = useCallback(() => {
     setIsHovered(true)
   }, [])
@@ -216,10 +224,13 @@ function CurrencyRow({
         <Column>
           <FlexGap alignItems="center">
             <Text bold>{getTokenSymbolAlias(currency?.wrapped?.address, currency?.chainId, currency?.symbol)}</Text>
+            <Text color="textSubtle" small ml="4px" ellipsis>
+              {currency?.name}
+            </Text>
             <ComplementSection isSelected={isSelected} selectedCurrency={currency} showActions={isHovered} />
           </FlexGap>
-          <Text color="textSubtle" small ellipsis maxWidth="200px">
-            {!isOnSelectedList && customAdded && `${t('Added by user')} •`} {currency?.name}
+          <Text color="textSubtle" fontSize="12px" ellipsis bold maxWidth="200px">
+            {!isOnSelectedList && customAdded && `${t('Added by user')} •`} {chainName}
           </Text>
         </Column>
         <RowFixed style={{ justifySelf: 'flex-end' }}>
@@ -245,6 +256,10 @@ function CurrencyRow({
   )
 }
 
+export const POPULAR_HEADER = 'popular-header' as const
+const ALL_TOKENS_HEADER = 'all-tokens-header' as const
+type ListItem = UnifiedCurrency | undefined | typeof POPULAR_HEADER | typeof ALL_TOKENS_HEADER
+
 export default function CurrencyList({
   height,
   currencies,
@@ -259,6 +274,7 @@ export default function CurrencyList({
   breakIndex,
   showChainLogo,
   chainId,
+  popularTokens,
 }: {
   height: number | string
   currencies: UnifiedCurrency[]
@@ -266,25 +282,35 @@ export default function CurrencyList({
   selectedCurrency?: UnifiedCurrency | null
   onCurrencySelect: (currency: UnifiedCurrency) => void
   otherCurrency?: UnifiedCurrency | null
-  fixedListRef?: MutableRefObject<FixedSizeList | undefined>
+  fixedListRef?: MutableRefObject<VariableSizeList | undefined>
   showNative: boolean
   showImportView: () => void
   setImportToken: (token: UnifiedToken) => void
   breakIndex: number | undefined
   showChainLogo?: boolean
   chainId?: UnifiedChainId
+  popularTokens?: UnifiedCurrency[]
 }) {
   const native = useUnifiedNativeCurrency(chainId)
 
-  const itemData: (UnifiedCurrency | undefined)[] = useMemo(() => {
-    let formatted: (UnifiedCurrency | undefined)[] = showNative
-      ? [native, ...currencies, ...inactiveCurrencies]
-      : [...currencies, ...inactiveCurrencies]
+  // Track popular section length so the Row callback can correctly offset showImport.
+  // +1 for POPULAR_HEADER, +1 for ALL_TOKENS_HEADER.
+  const popularSectionLength = popularTokens?.length ? popularTokens.length + 2 : 0
+
+  const itemData: ListItem[] = useMemo(() => {
+    const popularSection: ListItem[] =
+      popularSectionLength > 0 ? [POPULAR_HEADER, ...popularTokens!, ALL_TOKENS_HEADER] : []
+
+    let formatted: ListItem[] = showNative
+      ? [...popularSection, native, ...currencies, ...inactiveCurrencies]
+      : [...popularSection, ...currencies, ...inactiveCurrencies]
+
     if (breakIndex !== undefined) {
-      formatted = [...formatted.slice(0, breakIndex), undefined, ...formatted.slice(breakIndex, formatted.length)]
+      const adjustedBreak = breakIndex + popularSection.length
+      formatted = [...formatted.slice(0, adjustedBreak), undefined, ...formatted.slice(adjustedBreak)]
     }
     return formatted
-  }, [breakIndex, currencies, inactiveCurrencies, showNative, native])
+  }, [breakIndex, currencies, inactiveCurrencies, showNative, native, popularTokens, popularSectionLength])
 
   const { t } = useTranslation()
 
@@ -302,11 +328,28 @@ export default function CurrencyList({
           !otherSelected,
       )
 
-      const handleSelect = () => onCurrencySelect(currency)
-      const token = wrappedCurrency(currency, currency?.chainId)
-      const showImport = index > currencies.length
+      if (currency === POPULAR_HEADER) {
+        return (
+          <div style={{ ...style, display: 'flex', alignItems: 'center', paddingLeft: '20px' }}>
+            <Text color="textSubtle" small>
+              {t('Popular Tokens')}
+            </Text>
+          </div>
+        )
+      }
 
-      if (index === breakIndex || !data) {
+      if (currency === ALL_TOKENS_HEADER) {
+        return (
+          <div style={{ ...style, display: 'flex', alignItems: 'end', paddingLeft: '20px', paddingBottom: '8px' }}>
+            <Text color="textSubtle" small>
+              {t('All Tokens')}
+            </Text>
+          </div>
+        )
+      }
+
+      // undefined slot = the inactive-list separator row
+      if (currency === undefined) {
         return (
           <FixedContentRow style={style}>
             <LightGreyCard padding="8px 12px" borderRadius="8px">
@@ -323,6 +366,11 @@ export default function CurrencyList({
           </FixedContentRow>
         )
       }
+
+      const handleSelect = () => onCurrencySelect(currency)
+      const token = wrappedCurrency(currency, currency?.chainId)
+      // Inactive currencies start after the separator, which is at popularSectionLength + currencies.length
+      const showImport = index > popularSectionLength + currencies.length
 
       if (showImport && token) {
         return (
@@ -352,7 +400,7 @@ export default function CurrencyList({
       selectedCurrency,
       otherCurrency,
       currencies.length,
-      breakIndex,
+      popularSectionLength,
       onCurrencySelect,
       t,
       showImportView,
@@ -363,17 +411,29 @@ export default function CurrencyList({
 
   const itemKey = useCallback((index: number, data: any) => `${currencyKey(data[index])}-${index}`, [])
 
+  const getItemSize = useCallback(
+    (index: number) => {
+      const item = itemData[index]
+      if (item === POPULAR_HEADER) return 36
+
+      // CurrencyRows and ALL_TOKENS_HEADER
+      return 56
+    },
+    [itemData],
+  )
+
   return (
-    <FixedSizeList
+    <VariableSizeList
+      key={popularSectionLength}
       height={height}
       ref={fixedListRef as any}
       width="100%"
       itemData={itemData}
       itemCount={itemData.length}
-      itemSize={56}
+      itemSize={getItemSize}
       itemKey={itemKey}
     >
       {Row}
-    </FixedSizeList>
+    </VariableSizeList>
   )
 }

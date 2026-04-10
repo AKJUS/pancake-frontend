@@ -46,6 +46,7 @@ import { useBridgeCheckApproval } from 'views/Swap/Bridge/hooks'
 import { ChainId as EvmChainId, isSolana } from '@pancakeswap/chains'
 import { useUserSlippage } from '@pancakeswap/utils/user'
 import { useSwapState } from 'state/swap/hooks'
+import { useTransactionAdder } from 'state/transactions/hooks'
 import { activeBridgeOrderMetadataAtom } from 'views/Swap/Bridge/CrossChainConfirmSwapModal/state/orderDataState'
 import { Permit2Schema, RELAY_STEP_ID } from 'views/Swap/Bridge/types'
 import { getBridgeOrderPriceImpact } from 'views/Swap/Bridge/utils'
@@ -63,11 +64,34 @@ import { calculateGasMargin } from 'utils'
 import { viemClients } from 'utils/viem'
 import MultisigToastDescription from 'components/Toast/MultisigToastDescription'
 import { isMultisigWallet } from 'utils/solana/isMultisigWallet'
+import { SwapTokenRecord } from 'state/transactions/reducer'
 import { ConfirmStepContext, ConfirmAction } from './steps/step.type'
 import { useBatchSwapTransaction } from './steps/useBatchSwapTransaction'
 import { useSolSwapStep } from './steps/useSolSwapStep'
 import { useSwapCallback } from './useSwapCallback'
 import { eip5792UserRejectUpgradeError, userRejectedError } from './useSendSwapTransaction'
+
+function buildSwapTokens(order: PriceOrder): { input: SwapTokenRecord; output: SwapTokenRecord } {
+  const { inputAmount, outputAmount } = order.trade
+  return {
+    input: {
+      isNative: inputAmount.currency.isNative,
+      address: inputAmount.currency.isToken ? inputAmount.currency.address : undefined,
+      chainId: inputAmount.currency.chainId,
+      symbol: inputAmount.currency.symbol ?? '',
+      decimals: inputAmount.currency.decimals,
+      name: inputAmount.currency.name,
+    },
+    output: {
+      isNative: outputAmount.currency.isNative,
+      address: outputAmount.currency.isToken ? outputAmount.currency.address : undefined,
+      chainId: outputAmount.currency.chainId,
+      symbol: outputAmount.currency.symbol ?? '',
+      decimals: outputAmount.currency.decimals,
+      name: outputAmount.currency.name,
+    },
+  }
+}
 
 const getTokenAllowance = ({
   chainId,
@@ -192,6 +216,7 @@ const useConfirmActions = (
   const setActiveBridgeOrderMetadata = useSetAtom(activeBridgeOrderMetadataAtom)
 
   const { toastSuccess, toastError, toastInfo } = useToast()
+  const addTransaction = useTransactionAdder()
 
   const { recipient: recipientAddress } = useSwapState()
 
@@ -601,6 +626,16 @@ const useConfirmActions = (
 
           if (signature) {
             setTxHash(signature)
+            addTransaction(
+              { hash: signature },
+              {
+                summary: `Bridge ${order.trade.inputAmount.toSignificant(3)} ${
+                  order.trade.inputAmount.currency.symbol
+                } to ${order.trade.outputAmount.currency.symbol}`,
+                type: 'bridge',
+                swapTokens: buildSwapTokens(order),
+              },
+            )
             // Set bridge order metadata for tracking
             setActiveBridgeOrderMetadata({
               order,
@@ -653,6 +688,7 @@ const useConfirmActions = (
     showError,
     t,
     toastSuccess,
+    addTransaction,
     setActiveBridgeOrderMetadata,
   ])
 
@@ -724,6 +760,16 @@ const useConfirmActions = (
             if (result) {
               const hash = await safeTxHashTransformer(result)
               setTxHash(hash)
+              addTransaction(
+                { hash },
+                {
+                  summary: `Bridge ${order.trade.inputAmount.toSignificant(3)} ${
+                    order.trade.inputAmount.currency.symbol
+                  } to ${order.trade.outputAmount.currency.symbol}`,
+                  type: 'bridge',
+                  swapTokens: buildSwapTokens(order),
+                },
+              )
 
               setConfirmState(ConfirmModalState.ORDER_SUBMITTED)
 
@@ -779,6 +825,7 @@ const useConfirmActions = (
     showError,
     t,
     toastSuccess,
+    addTransaction,
     recipient,
     chainId,
     setActiveBridgeOrderMetadata,
@@ -863,6 +910,16 @@ const useConfirmActions = (
           })
           if (xOrder?.hash) {
             setOrderHash(xOrder.hash)
+            addTransaction(
+              { hash: xOrder.hash },
+              {
+                summary: `Swap ${order.trade.inputAmount.toSignificant(3)} ${
+                  order.trade.inputAmount.currency.symbol
+                } for ${order.trade.outputAmount.toSignificant(3)} ${order.trade.outputAmount.currency.symbol}`,
+                type: 'swap',
+                swapTokens: buildSwapTokens(order),
+              },
+            )
             const inputAmount = order.trade.maximumAmountIn.toExact()
             const outputAmount = order.trade.minimumAmountOut.toExact()
             const quotedInputAmountRaw = order.trade.inputAmount.toExact()
@@ -935,7 +992,20 @@ const useConfirmActions = (
       },
       showIndicator: false,
     }
-  }, [account, t, order, resetState, sendXOrder, showError, nativeCurrency, toastSuccess, toastError, env, wallet])
+  }, [
+    account,
+    t,
+    order,
+    resetState,
+    sendXOrder,
+    showError,
+    nativeCurrency,
+    toastSuccess,
+    toastError,
+    addTransaction,
+    env,
+    wallet,
+  ])
 
   const orderSubmittedStep = useMemo(() => {
     return {

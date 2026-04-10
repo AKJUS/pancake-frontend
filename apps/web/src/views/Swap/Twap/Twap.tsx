@@ -221,7 +221,7 @@ const TokenPanelInput = ({
         onMax={handleMaxInput}
         onCurrencySelect={onCurrencySelect}
         otherCurrency={outputCurrency}
-        commonBasesType={CommonBasesType.SWAP_LIMITORDER}
+        commonBasesType={CommonBasesType.TWAP}
         title={
           <Text color="textSubtle" fontSize={12} bold>
             {isSrcToken ? t('From') : t('To')}

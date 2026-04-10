@@ -327,6 +327,8 @@ export function FormMain({ inputAmount, outputAmount, tradeLoading, isUserInsuff
           showMaxButton
           showCommonBases={inputRwaConfig.showCommonBases}
           supportCrossChain={inputRwaConfig.supportCrossChain}
+          showMultichainBalances
+          enableMultichainSearch
           tokensToShow={inputRwaConfig.tokensToShow}
           inputLoading={!isWrapping && inputLoading}
           currencyLoading={!loadedUrlParams}
@@ -340,7 +342,7 @@ export function FormMain({ inputAmount, outputAmount, tradeLoading, isUserInsuff
           onMax={handleMaxInput}
           onCurrencySelect={handleInputSelect}
           otherCurrency={outputCurrency}
-          commonBasesType={CommonBasesType.SWAP_LIMITORDER}
+          commonBasesType={CommonBasesType.SWAP}
           title={
             <FlexGap gap="8px" alignItems="center">
               <Text color="textSubtle" fontSize={12} bold>
@@ -376,6 +378,8 @@ export function FormMain({ inputAmount, outputAmount, tradeLoading, isUserInsuff
           usdPrice={outputUsdPrice}
           showCommonBases={outputRwaConfig.showCommonBases}
           supportCrossChain={outputRwaConfig.supportCrossChain}
+          showMultichainBalances
+          enableMultichainSearch
           tokensToShow={outputRwaConfig.tokensToShow}
           showMaxButton={false}
           inputLoading={!isWrapping && outputLoading}
@@ -386,7 +390,7 @@ export function FormMain({ inputAmount, outputAmount, tradeLoading, isUserInsuff
           onUserInput={handleTypeOutput}
           onCurrencySelect={handleOutputSelect}
           otherCurrency={inputCurrency}
-          commonBasesType={CommonBasesType.SWAP_LIMITORDER}
+          commonBasesType={CommonBasesType.SWAP}
           title={
             <FlexGap gap="8px" alignItems="center">
               <Text color="textSubtle" fontSize={12} bold>

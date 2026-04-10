@@ -117,6 +117,8 @@ export function FormMainForHomePage({ inputAmount, outputAmount, tradeLoading }:
           id="swap-currency-input"
           showUSDPrice
           showMaxButton
+          showMultichainBalances
+          enableMultichainSearch
           showCommonBases
           topOptions={{
             show: !isMobile,
@@ -128,7 +130,7 @@ export function FormMainForHomePage({ inputAmount, outputAmount, tradeLoading }:
           onUserInput={handleTypeInput}
           onCurrencySelect={handleInputSelect}
           otherCurrency={outputCurrency}
-          commonBasesType={CommonBasesType.SWAP_LIMITORDER}
+          commonBasesType={CommonBasesType.SWAP}
           title={
             <Text color="textSubtle" fontSize={12} bold>
               {t('From')}
@@ -141,6 +143,8 @@ export function FormMainForHomePage({ inputAmount, outputAmount, tradeLoading }:
         <CurrencyInputPanelSimplify
           id="swap-currency-output"
           showUSDPrice
+          showMultichainBalances
+          enableMultichainSearch
           showCommonBases
           showMaxButton={false}
           inputLoading={!isWrapping && outputLoading}
@@ -149,7 +153,7 @@ export function FormMainForHomePage({ inputAmount, outputAmount, tradeLoading }:
           onUserInput={handleTypeOutput}
           onCurrencySelect={handleOutputSelect}
           otherCurrency={inputCurrency}
-          commonBasesType={CommonBasesType.SWAP_LIMITORDER}
+          commonBasesType={CommonBasesType.SWAP}
           topOptions={{
             show: !isMobile,
             walletDisplay: false,

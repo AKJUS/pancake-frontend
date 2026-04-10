@@ -383,7 +383,7 @@ const LimitOrders = () => {
                       otherCurrency={currencies.output}
                       id="limit-order-currency-input"
                       showCommonBases
-                      commonBasesType={CommonBasesType.SWAP_LIMITORDER}
+                      commonBasesType={CommonBasesType.LIMIT_ORDER}
                       showUSDPrice
                     />
 
@@ -407,7 +407,7 @@ const LimitOrders = () => {
                       otherCurrency={currencies.output}
                       id="limit-order-currency-output"
                       showCommonBases
-                      commonBasesType={CommonBasesType.SWAP_LIMITORDER}
+                      commonBasesType={CommonBasesType.LIMIT_ORDER}
                       showUSDPrice
                     />
                     <Box>

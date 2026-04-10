@@ -66,7 +66,7 @@ export default function CommonBases({
 }) {
   const native = useUnifiedNativeCurrency(chainId)
   const { t } = useTranslation()
-  const pinTokenDescText = commonBasesType === CommonBasesType.SWAP_LIMITORDER ? t('Popular tokens') : t('Common bases')
+  const pinTokenDescText = commonBasesType === CommonBasesType.LIQUIDITY ? t('Common bases') : t('Popular tokens')
 
   const isNativeDisabled = useMemo(
     () =>

@@ -18,6 +18,15 @@ import {
 
 const now = () => Date.now()
 
+export interface SwapTokenRecord {
+  isNative: boolean
+  address?: string // undefined for native; contract address for EVM tokens; SPL mint for Solana
+  chainId: number
+  symbol: string
+  decimals: number
+  name?: string
+}
+
 export interface TransactionDetails {
   hash: Hash
   approval?: { tokenAddress: string; spender: string; amount?: string }
@@ -32,6 +41,10 @@ export interface TransactionDetails {
   confirmedTime?: number
   from: string
   crossChainFarm?: CrossChainFarmTransactionType
+  swapTokens?: {
+    input: SwapTokenRecord
+    output: SwapTokenRecord
+  }
 }
 
 export interface TransactionState {
@@ -61,6 +74,7 @@ export default createReducer(initialState, (builder) =>
             order,
             crossChainFarm,
             receipt,
+            swapTokens,
           },
         },
       ) => {
@@ -80,6 +94,7 @@ export default createReducer(initialState, (builder) =>
           order,
           crossChainFarm,
           receipt,
+          swapTokens,
         }
         transactions[chainId] = txs
         if (order) saveOrder(chainId, from, order, true)

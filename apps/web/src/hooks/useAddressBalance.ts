@@ -1,14 +1,19 @@
-import { ChainId, NonEVMChainId } from '@pancakeswap/chains'
+import { ChainId, Chains, NonEVMChainId, UnifiedChainId } from '@pancakeswap/chains'
 import { ZERO_ADDRESS } from '@pancakeswap/swap-sdk-core'
-import { useQuery } from '@tanstack/react-query'
+import { Native, SOL, UnifiedNativeCurrency } from '@pancakeswap/sdk'
+import { useQuery, useQueries } from '@tanstack/react-query'
 import BigNumber from 'bignumber.js'
 import { useCallback, useMemo } from 'react'
+import { PublicKey } from '@solana/web3.js'
+import { type Address } from 'viem'
 
 import { useCombinedActiveList } from 'state/lists/hooks'
-import { safeGetAddress } from 'utils/safeGetAddress'
+import { safeGetAddress, safeGetSolanaAddress } from 'utils/safeGetAddress'
+import { publicClient } from 'utils/wagmi'
 
 import { WALLET_API } from 'config/constants/endpoints'
 import { useAccountActiveChain } from './useAccountActiveChain'
+import { useSolanaConnectionWithRpcAtom } from './solana/useSolanaConnectionWithRpcAtom'
 
 export interface TokenData {
   address: string
@@ -65,22 +70,21 @@ export const useIsListedToken = () => {
 /**
  * Hook to fetch and manage token balances for a specific address using React Query
  */
-export const useAddressBalance = (
-  address?: string | null,
-  chainId?: number,
-  options: UseAddressBalanceOptions = {},
-) => {
-  // const { chainId } = useActiveChainId()
+export const useAddressBalance = (address?: string | null, options: UseAddressBalanceOptions = {}) => {
   const { includeSpam = false, onlyWithPrice = false, filterByChainId, enabled = true } = options
   const list = useCombinedActiveList()
 
   const isListedToken = useIsListedToken()
 
+  // Detect Solana vs EVM from the address format — no chainId needed.
+  // The Wallet API returns all EVM chain balances in one call regardless of chain.
+  const isSolanaAddress = Boolean(address && safeGetSolanaAddress(address))
+
   // Fetch balances from the API
   const fetchBalances = useCallback(async (): Promise<BalanceData[]> => {
     if (!address) return []
 
-    const response = await fetch(`${API_BASE_URL}${chainId === NonEVMChainId.SOLANA ? '/sol' : ''}/balances/${address}`)
+    const response = await fetch(`${API_BASE_URL}${isSolanaAddress ? '/sol' : ''}/balances/${address}`)
 
     if (!response.ok) {
       throw new Error(`Error fetching balances: ${response.statusText}`)
@@ -89,7 +93,7 @@ export const useAddressBalance = (
     const data = (await response.json()) || []
 
     return data
-  }, [address])
+  }, [address, isSolanaAddress])
 
   const {
     data: balances,
@@ -234,7 +238,7 @@ export const useMultichainAddressBalance = () => {
     balances: evmBalances,
     isLoading: isEvmLoading,
     totalBalanceUsd: evmTotalBalanceUsd,
-  } = useAddressBalance(evmAccount, ChainId.BSC, {
+  } = useAddressBalance(evmAccount, {
     includeSpam: false,
     onlyWithPrice: false,
     enabled: Boolean(evmAccount),
@@ -244,7 +248,7 @@ export const useMultichainAddressBalance = () => {
     balances: solanaBalances,
     isLoading: isSolanaLoading,
     totalBalanceUsd: solanaTotalBalanceUsd,
-  } = useAddressBalance(solanaAccount ?? undefined, NonEVMChainId.SOLANA, {
+  } = useAddressBalance(solanaAccount ?? undefined, {
     includeSpam: false,
     onlyWithPrice: false,
     enabled: Boolean(solanaAccount),
@@ -266,3 +270,98 @@ export const useMultichainAddressBalance = () => {
 }
 
 export default useAddressBalance
+
+// ─── Multichain native balance fetching ───────────────────────────────────────
+
+export interface NativeBalanceResult {
+  chainId: UnifiedChainId
+  currency: UnifiedNativeCurrency
+  value: bigint
+  decimals: number
+}
+
+// Derived once at module level — all mainnet EVM chains the app supports.
+// Automatically includes new chains when added to the Chains list.
+const EVM_MAINNET_CHAIN_IDS: ChainId[] = Chains.filter((c) => c.isEVM && !c.testnet).map((c) => c.id as ChainId)
+
+/**
+ * Fetches native token balances (ETH, BNB, SOL, etc.) across all mainnet chains
+ * in parallel. The Wallet API does not return native balances, so each EVM chain
+ * requires its own eth_getBalance RPC call. Results are cached for 5 minutes.
+ *
+ * Returns only chains where balance > 0.
+ */
+export function useMultichainNativeBalances(
+  evmAddress?: string | null,
+  solanaAddress?: string | null,
+  options: { enabled?: boolean } = {},
+): NativeBalanceResult[] {
+  const { enabled = true } = options
+  const connection = useSolanaConnectionWithRpcAtom()
+
+  // One eth_getBalance per EVM chain, all run in parallel via React Query.
+  // Failed individual chains produce no row (r.data stays undefined) — graceful degradation.
+  const evmResults = useQueries({
+    queries: EVM_MAINNET_CHAIN_IDS.map((chainId) => ({
+      queryKey: ['nativeBalance', evmAddress, chainId] as const,
+      queryFn: async (): Promise<{ chainId: ChainId; value: bigint }> => {
+        const balance = await publicClient({ chainId }).getBalance({ address: evmAddress as Address })
+        return { chainId, value: balance }
+      },
+      enabled: Boolean(evmAddress && enabled),
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    })),
+  })
+
+  // Solana native SOL balance via connection.getBalance (returns lamports as number).
+  const { data: solData } = useQuery({
+    queryKey: ['nativeBalance', solanaAddress, NonEVMChainId.SOLANA] as const,
+    queryFn: async (): Promise<bigint> => {
+      const lamports = await connection.getBalance(new PublicKey(solanaAddress!))
+      return BigInt(lamports)
+    },
+    enabled: Boolean(solanaAddress && enabled),
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  })
+
+  // useQueries returns a new `results` array every render (TanStack Query #6369). A string key gives
+  // referential stability for the derived array memo below — do not list `evmResults` in deps.
+  const evmResultsStableKey = evmResults
+    .map((r) =>
+      r.data !== undefined && r.data !== null
+        ? `${r.data.chainId}:${r.data.value.toString()}`
+        : `${r.status}:${r.fetchStatus}`,
+    )
+    .join('|')
+
+  return useMemo(() => {
+    const evmNatives: NativeBalanceResult[] = evmResults
+      .filter((r) => r.data !== null && r.data !== undefined && r.data.value > 0n)
+      .map((r) => {
+        const native = Native.onChain(r.data!.chainId)
+        return {
+          chainId: r.data!.chainId,
+          currency: native as UnifiedNativeCurrency,
+          value: r.data!.value,
+          decimals: native.decimals,
+        }
+      })
+
+    const solanaNative: NativeBalanceResult[] =
+      solData && solData > 0n
+        ? [
+            {
+              chainId: NonEVMChainId.SOLANA as UnifiedChainId,
+              currency: SOL as UnifiedNativeCurrency,
+              value: solData,
+              decimals: 9,
+            },
+          ]
+        : []
+
+    return [...evmNatives, ...solanaNative]
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- evmResultsStableKey tracks query data; evmResults ref is unstable each render
+  }, [evmResultsStableKey, solData])
+}

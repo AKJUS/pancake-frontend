@@ -57,12 +57,24 @@ export const chainName: { [key: number]: string } = {
 export const getTokenListBaseURL = (chainId: number) =>
   `https://tokens.pancakeswap.finance/images/${chainName[chainId]}`;
 
-export const getTokenListTokenUrl = (token: Pick<Token, "chainId"> & { address: string }) =>
-  Object.keys(chainName).includes(String(token.chainId))
-    ? `https://tokens.pancakeswap.finance/images/${
-        token.chainId === ChainId.BSC ? "" : `${chainName[token.chainId]}/`
-      }${token.address}.png`
-    : null;
+export const getTokenListTokenUrl = (token: Pick<Token, "chainId"> & { address: string }) => {
+  if (!Object.keys(chainName).includes(String(token.chainId))) return null;
+  // Solana uses raw base58 addresses; EVM uses checksummed hex addresses
+  const isSolanaChain = token.chainId === NonEVMChainId.SOLANA;
+  let normalizedAddress: string;
+  if (isSolanaChain) {
+    normalizedAddress = token.address;
+  } else {
+    try {
+      normalizedAddress = getAddress(token.address);
+    } catch {
+      return null;
+    }
+  }
+  return `https://tokens.pancakeswap.finance/images/${
+    token.chainId === ChainId.BSC ? "" : `${chainName[token.chainId]}/`
+  }${normalizedAddress}.png`;
+};
 
 const commonCurrencySymbols = [
   ethereumTokens.usdt,

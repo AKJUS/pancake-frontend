@@ -168,7 +168,6 @@ export function useAllTokenBalances(overrideChainId?: number): {
   // Fetch balances using the hook we created
   const { balances: apiBalances, isLoading: isLoadingBalance } = useAddressBalance(
     isSolana(usedChainId) ? solanaAccount : account,
-    usedChainId,
     {
       includeSpam: false,
       onlyWithPrice: false,

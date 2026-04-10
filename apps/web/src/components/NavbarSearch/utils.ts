@@ -58,6 +58,7 @@ export type TopTokenApi = {
   id: string
   symbol: string
   name: string
+  decimals: number
   volumeUSD24h?: string | null
 }
 

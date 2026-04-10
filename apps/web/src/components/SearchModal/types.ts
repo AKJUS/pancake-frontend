@@ -7,7 +7,9 @@ export enum CurrencyModalView {
 
 export enum CommonBasesType {
   LIQUIDITY = 'LIQUIDITY',
-  SWAP_LIMITORDER = 'SWAP_LIMITORDER',
+  LIMIT_ORDER = 'LIMIT_ORDER',
+  SWAP = 'SWAP',
+  TWAP = 'TWAP',
 }
 
 export default CurrencyModalView

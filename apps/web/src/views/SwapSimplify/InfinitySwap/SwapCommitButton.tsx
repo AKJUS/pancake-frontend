@@ -289,7 +289,7 @@ const SwapCommitButtonInner = memo(function SwapCommitButtonInner({
   )
 
   // Get the refresh function from useAddressBalance to update balances after swap
-  const { refresh: refreshBalances } = useAddressBalance(isSolana(chainId) ? solanaAccount : account, chainId, {
+  const { refresh: refreshBalances } = useAddressBalance(isSolana(chainId) ? solanaAccount : account, {
     enabled: false,
   })
 
