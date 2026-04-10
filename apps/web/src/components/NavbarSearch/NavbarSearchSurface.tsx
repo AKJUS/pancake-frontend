@@ -8,6 +8,7 @@ import { useActiveChainId } from 'hooks/useActiveChainId'
 import { useAtom, useAtomValue } from 'jotai'
 import { useRouter } from 'next/router'
 import { useMultiChainTokenSearch } from 'hooks/useTokenSearch'
+import { useSolanaTokenList } from 'hooks/solana/useSolanaTokenList'
 import { UpdaterByChainId } from 'state/lists/updater'
 import { combinedTokenMapFromActiveUrlsAtom } from 'state/lists/hooks'
 import { useAllChainsOpts } from 'views/universalFarms/hooks/useMultiChains'
@@ -108,12 +109,13 @@ import {
 import { PoolCautionTag } from './PoolCautionTag'
 import { SearchTokenLogo } from './SearchTokenLogo'
 
-export const NavbarSearchSurface: React.FC<{ mobile?: boolean }> = ({ mobile = false }) => {
+export const NavbarSearchSurface: React.FC = () => {
   const { t } = useTranslation()
   const router = useRouter()
   const { chainId: activeChainId } = useActiveChainId()
   const { account: evmAccount, solanaAccount, isWrongNetwork } = useAccountActiveChain()
   const { isMobile } = useMatchBreakpoints()
+  const isCompactTrigger = isMobile // compact icon trigger for xs/sm only
   const { openWalletPanel } = useWalletPanel()
   const allChainsOpts = useAllChainsOpts()
   const allNetworkIds = useMemo(() => allChainsOpts.map((chain) => chain.value as UnifiedChainId), [allChainsOpts])
@@ -156,7 +158,7 @@ export const NavbarSearchSurface: React.FC<{ mobile?: boolean }> = ({ mobile = f
   }, [])
 
   useEffect(() => {
-    if (mobile) return undefined
+    if (isCompactTrigger) return undefined
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== '/') return
@@ -169,7 +171,7 @@ export const NavbarSearchSurface: React.FC<{ mobile?: boolean }> = ({ mobile = f
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [mobile])
+  }, [isCompactTrigger])
 
   useEffect(() => {
     if (!open) return undefined
@@ -211,6 +213,7 @@ export const NavbarSearchSurface: React.FC<{ mobile?: boolean }> = ({ mobile = f
     [selectedNetworks],
   )
 
+  const includeSolana = useMemo(() => selectedNetworks.includes(SOL_CHAIN_ID), [selectedNetworks])
   const hasSearchQuery = debouncedQuery.length > 0
   const showTokensSection = activeTab === 'all' || activeTab === 'tokens'
   const showPoolsSection = activeTab === 'all' || activeTab === 'pools'
@@ -218,15 +221,33 @@ export const NavbarSearchSurface: React.FC<{ mobile?: boolean }> = ({ mobile = f
 
   const topTokensQuery = useNavbarTopTokens(queriedEVMChainIds, shouldFetchTopTokens)
   const tokenSearchMatches = useMultiChainTokenSearch(hasSearchQuery ? debouncedQuery : undefined, queriedChainIds)
+  const { tokenList: solanaTokens, loading: solanaTokensLoading } = useSolanaTokenList(
+    open && includeSolana && showTokensSection,
+  )
   const farmSearch = useNavbarFarmSearch(debouncedQuery, queriedChainIds, open && showPoolsSection)
+
+  const solanaTokenResults = useMemo((): TokenSearchResult[] => {
+    if (!includeSolana || solanaTokens.length === 0) return []
+    return solanaTokens.map((token) => ({
+      id: `${SOL_CHAIN_ID}:${token.address}`,
+      kind: 'token',
+      symbol: token.symbol,
+      name: token.name ?? '',
+      chainId: SOL_CHAIN_ID,
+      address: token.address,
+      volumeUSD: 0,
+      logoURI: token.logoURI,
+    }))
+  }, [includeSolana, solanaTokens])
 
   const tokenResults = useMemo(() => {
     if (!hasSearchQuery) {
-      return (topTokensQuery.data ?? []).filter((token) => {
+      const evmTopTokens = (topTokensQuery.data ?? []).filter((token) => {
         const chainMap = (activeTokenMap[token.chainId as ChainId] ?? {}) as Record<string, unknown>
         const address = safeGetAddress(token.address) ?? token.address
         return Boolean(chainMap[address])
       })
+      return [...evmTopTokens, ...solanaTokenResults]
     }
 
     const normalizedQuery = debouncedQuery.trim().toLowerCase()
@@ -297,13 +318,52 @@ export const NavbarSearchSurface: React.FC<{ mobile?: boolean }> = ({ mobile = f
         volumeUSD: 0,
       }))
 
-    return [...nativeFirst, ...sortSearchResults(mapped, debouncedQuery)]
+    // Inject native SOL + WSOL when query matches, mirroring EVM native handling above
+    if (includeSolana && 'sol'.includes(normalizedQuery)) {
+      const wsolAddress = 'So11111111111111111111111111111111111111112'
+      const solLogoURI = `https://img-v1.raydium.io/icon/${wsolAddress}.png`
+      nativeFirst.push({
+        id: `${SOL_CHAIN_ID}:native`,
+        kind: 'token',
+        symbol: 'SOL',
+        name: 'Solana',
+        chainId: SOL_CHAIN_ID,
+        address: wsolAddress,
+        volumeUSD: 0,
+        isNative: true,
+        logoURI: solLogoURI,
+      })
+      excludeNativeKeys.add(`${SOL_CHAIN_ID}:sol:solana`)
+      nativeFirst.push({
+        id: `${SOL_CHAIN_ID}:${wsolAddress}`,
+        kind: 'token',
+        symbol: 'WSOL',
+        name: 'Wrapped SOL',
+        chainId: SOL_CHAIN_ID,
+        address: wsolAddress,
+        volumeUSD: 0,
+        logoURI: solLogoURI,
+      })
+      excludeAddresses.add(`${SOL_CHAIN_ID}:${wsolAddress.toLowerCase()}`)
+    }
+
+    // Filter Solana tokens by query and merge with EVM results
+    const solanaMatches = solanaTokenResults.filter((t) => {
+      const s = normalizedQuery
+      if (excludeAddresses.has(`${t.chainId}:${t.address.toLowerCase()}`)) return false
+      if (excludeNativeKeys.has(`${t.chainId}:${t.symbol.toLowerCase()}:${t.name.toLowerCase()}`)) return false
+      return t.symbol.toLowerCase().includes(s) || t.name.toLowerCase().includes(s) || t.address.toLowerCase() === s
+    })
+
+    return [...nativeFirst, ...sortSearchResults([...mapped, ...solanaMatches], debouncedQuery)]
   }, [
     activeChainId,
     activeTokenMap,
     debouncedQuery,
     hasSearchQuery,
+    includeSolana,
     queriedChainIds,
+    solanaTokenResults,
     tokenSearchMatches,
     topTokensQuery.data,
   ])
@@ -364,6 +424,7 @@ export const NavbarSearchSurface: React.FC<{ mobile?: boolean }> = ({ mobile = f
 
   const openResult = useCallback(
     async (item: SearchResult) => {
+      if (item.kind === 'token' && item.chainId === SOL_CHAIN_ID) return
       recordRecentItem(item)
       closeOverlay()
       const path = await getDetailPath(item)
@@ -393,7 +454,7 @@ export const NavbarSearchSurface: React.FC<{ mobile?: boolean }> = ({ mobile = f
   )
 
   const hasRecentItems = visibleRecentItems.length > 0
-  const isLoading = farmSearch.isFetching || topTokensQuery.isLoading
+  const isLoading = farmSearch.isFetching || topTokensQuery.isLoading || (includeSolana && solanaTokensLoading)
   const canOpenWalletActions = Boolean(evmAccount || solanaAccount || isWrongNetwork)
 
   const handleNetworkChange = useCallback<INetworkProps['onChange']>(
@@ -555,13 +616,21 @@ export const NavbarSearchSurface: React.FC<{ mobile?: boolean }> = ({ mobile = f
         )
       }
 
+      const isSolanaToken = item.chainId === SOL_CHAIN_ID
+
       return (
-        <ResultRow key={`${sectionKey}:${item.id}`} onClick={() => openResult(item)} $active={isActionOpen}>
+        <ResultRow
+          key={`${sectionKey}:${item.id}`}
+          onClick={() => openResult(item)}
+          $active={isActionOpen}
+          style={isSolanaToken ? { cursor: 'default' } : undefined}
+        >
           <SearchTokenLogo
             address={item.address}
             chainId={item.chainId}
             symbol={item.symbol}
             isNative={item.isNative}
+            logoURI={item.logoURI}
           />
           <ResultMeta>
             <ResultTitleRow>
@@ -658,15 +727,15 @@ export const NavbarSearchSurface: React.FC<{ mobile?: boolean }> = ({ mobile = f
       {open && queriedChainIds.map((chainId) => <UpdaterByChainId key={chainId} chainId={chainId} />)}
       <TriggerButton
         type="button"
-        $mobile={mobile}
+        $mobile={isCompactTrigger}
         aria-expanded={open}
-        aria-label={mobile ? t('Open navbar search') : t('Search tokens and pools')}
+        aria-label={isCompactTrigger ? t('Open navbar search') : t('Search tokens and pools')}
         onClick={() => {
           setOpen(true)
         }}
       >
-        <SearchIcon color="textSubtle" width={mobile ? '20px' : '18px'} />
-        {!mobile && (
+        <SearchIcon color="textSubtle" width={isCompactTrigger ? '20px' : '18px'} />
+        {!isCompactTrigger && (
           <>
             <Text color="textSubtle" fontSize="14px" style={{ flex: 1, textAlign: 'left' }}>
               {t('Search')}

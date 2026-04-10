@@ -36,6 +36,7 @@ export type TokenSearchResult = {
   volumeUSD: number
   protocol?: 'infinity' | 'v3' | 'v2'
   isNative?: boolean
+  logoURI?: string
 }
 
 export type PoolSearchResult = {
@@ -99,6 +100,7 @@ export const NETWORK_SHORT_LABELS: Partial<Record<UnifiedChainId, string>> = {
   59144: 'LINEA',
   8453: 'BASE',
   204: 'OP',
+  [SOL_CHAIN_ID]: 'SOL',
 }
 
 // ─── Pure Functions ───────────────────────────────────────────────────────────

@@ -15,11 +15,13 @@ export function SearchTokenLogo({
   address,
   symbol,
   isNative,
+  logoURI,
 }: {
   chainId: UnifiedChainId
   address: string
   symbol?: string
   isNative?: boolean
+  logoURI?: string
 }) {
   const activeMap = useAtomValue(combinedTokenMapFromActiveUrlsAtom)
   const inactiveMap = useAtomValue(combinedTokenMapFromInActiveUrlsAtom)
@@ -36,8 +38,17 @@ export function SearchTokenLogo({
     const lookup = (map: typeof activeMap) => (map[chainId as ChainId] ?? {})[checksumAddress]?.token
     // Check active lists first, then inactive — mirrors how swap modal resolves logos via active + inactive lists
     const token = lookup(activeMap) ?? lookup(inactiveMap)
-    return token ?? { address: checksumAddress, symbol, chainId, isToken: true as const, isNative: false as const }
-  }, [isNative, address, symbol, chainId, activeMap, inactiveMap])
+    return (
+      token ?? {
+        address: checksumAddress,
+        symbol,
+        chainId,
+        isToken: true as const,
+        isNative: false as const,
+        ...(logoURI ? { logoURI } : {}),
+      }
+    )
+  }, [isNative, address, symbol, chainId, activeMap, inactiveMap, logoURI])
 
   return (
     <SearchLogoWrap>

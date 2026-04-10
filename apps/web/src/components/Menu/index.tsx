@@ -7,7 +7,6 @@ import {
   Menu as UikitMenu,
   MoreIcon,
   footerLinks,
-  useMatchBreakpoints,
   useModal,
 } from '@pancakeswap/uikit'
 import { BIG_ZERO } from '@pancakeswap/utils/bigNumber'
@@ -24,7 +23,7 @@ import { styled } from 'styled-components'
 import { useCakepadBaseExperience } from 'views/Cakepad/hooks/useCakepadBaseExperience'
 import GlobalSettings from './GlobalSettings'
 import LogoWithMoreMenu from './LogoWithMoreMenu'
-import { NavbarSearchDesktop, NavbarSearchMobile } from '../NavbarSearch'
+import { NavbarSearch } from '../NavbarSearch'
 import UserMenu from './UserMenu'
 import { WalletPanelProvider } from './WalletPanelContext'
 import { UseMenuItemsParams, useMenuItems } from './hooks/useMenuItems'
@@ -47,7 +46,6 @@ const EMPTY_ARRAY = []
 
 const Menu = (props) => {
   const { chainId } = useActiveChainId()
-  const { isMobile } = useMatchBreakpoints()
   const { isDark, setTheme } = useTheme()
   const cakePrice = useCakePrice()
   const { currentLanguage, t } = useTranslation()
@@ -117,7 +115,7 @@ const Menu = (props) => {
     <UserMenu />
   ) : (
     <FlexGap alignItems="center" flexShrink={0} gap="6px" style={{ minWidth: 0 }}>
-      {isMobile && <NavbarSearchMobile />}
+      <NavbarSearch />
       <GlobalSettings />
       <UserMenu />
     </FlexGap>
@@ -136,8 +134,6 @@ const Menu = (props) => {
     />
   )
 
-  const headerSearchSlot = isCakepadBaseRoute || isMobile ? undefined : <NavbarSearchDesktop />
-
   return (
     <WalletPanelProvider>
       <UikitMenu
@@ -151,7 +147,6 @@ const Menu = (props) => {
         cakePriceUsd={cakePrice.eq(BIG_ZERO) ? undefined : cakePriceNumber}
         links={filteredLinks}
         desktopNavLinks={linksForNav}
-        headerSearchSlot={headerSearchSlot}
         subLinks={
           activeSubMenuItem?.overrideSubNavItems ??
           activeMenuItem?.overrideSubNavItems ??
