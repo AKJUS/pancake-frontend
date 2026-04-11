@@ -1,5 +1,5 @@
-import { isOutdatedVersion } from 'src/hooks/useMetamaskVersionWarning'
 import { describe, it, expect } from 'vitest'
+import { isOutdatedVersion } from '../useMetamaskVersionWarning'
 
 describe('isOutdatedVersion', () => {
   it('returns true when current version is lower than minimum', () => {

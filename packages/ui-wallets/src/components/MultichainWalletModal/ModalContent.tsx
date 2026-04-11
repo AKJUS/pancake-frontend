@@ -18,7 +18,13 @@ import { getAvailableWalletNetworks } from '../../config/supportedEvmChains'
 
 export type ModalContentProps = Pick<
   MultichainWalletModalProps,
-  'wallets' | 'topWallets' | 'docLink' | 'solanaAddress' | 'evmAddress' | 'onWalletConnectStartCallBack'
+  | 'wallets'
+  | 'topWallets'
+  | 'docLink'
+  | 'solanaAddress'
+  | 'evmAddress'
+  | 'onWalletConnectStartCallBack'
+  | 'shouldShowMetamaskVersionWarning'
 > & {
   chainId?: ChainId
   onDismiss: () => void
@@ -56,6 +62,7 @@ export const ModalContent: React.FC<ModalContentProps> = ({
   onXLogin,
   onTelegramLogin,
   onDiscordLogin,
+  shouldShowMetamaskVersionWarning,
 }) => {
   const { isMobile } = useMatchBreakpoints()
   const { type: walletFilter, value: walletFilterChecked } = useWalletFilter()
@@ -301,6 +308,7 @@ export const ModalContent: React.FC<ModalContentProps> = ({
           wallet={selected}
           network={selectedNetwork}
           reConnect={() => connectWallet(selected, selectedNetwork)}
+          shouldShowMetamaskVersionWarning={shouldShowMetamaskVersionWarning}
         />
       )}
       {previewStatus === PreviewStatus.SocialLogin && (
@@ -320,6 +328,7 @@ export const ModalContent: React.FC<ModalContentProps> = ({
           wallet={selectedMultiChainWallet}
           onConnectEVM={() => onWalletSelected(selectedMultiChainWallet, WalletAdaptedNetwork.EVM, false)}
           onConnectSolana={() => onWalletSelected(selectedMultiChainWallet, WalletAdaptedNetwork.Solana, false)}
+          shouldShowMetamaskVersionWarning={shouldShowMetamaskVersionWarning}
         />
       )}
     </>

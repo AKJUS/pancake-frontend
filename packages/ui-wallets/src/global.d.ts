@@ -1,4 +1,6 @@
-import type { WindowProvider } from 'wagmi/window'
+interface WindowProvider {
+  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
+}
 
 export interface ExtendEthereum extends WindowProvider {
   request?: (args: { method: string; params?: unknown[] }) => Promise<unknown>

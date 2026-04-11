@@ -4,19 +4,23 @@ import { useAtomValue } from 'jotai'
 import { errorEvmAtom, errorSolanaAtom } from '../../state/atom'
 import { WalletAdaptedNetwork, WalletConfigV3 } from '../../types'
 import { ErrorContent } from '../ErrorContent'
-import { useMetamaskVersionWarning } from '../../hooks/useMetamaskVersionWarning'
 
 export type ConfirmingProps = {
   wallet: WalletConfigV3
   network: WalletAdaptedNetwork
   reConnect: (wallet: WalletConfigV3, network: WalletAdaptedNetwork) => void
+  shouldShowMetamaskVersionWarning?: boolean
 }
 
-export const Confirming: React.FC<ConfirmingProps> = ({ wallet, network, reConnect }) => {
+export const Confirming: React.FC<ConfirmingProps> = ({
+  wallet,
+  network,
+  reConnect,
+  shouldShowMetamaskVersionWarning,
+}) => {
   const { t } = useTranslation()
   const evmError = useAtomValue(errorEvmAtom)
   const solanaError = useAtomValue(errorSolanaAtom)
-  const shouldShowMetamaskVersionWarning = useMetamaskVersionWarning()
   const error = network === WalletAdaptedNetwork.EVM ? evmError : solanaError
 
   return (

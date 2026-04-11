@@ -27,7 +27,6 @@ import { ChainId } from '@pancakeswap/chains'
 import { useTheme } from '@pancakeswap/hooks'
 import { WalletConfigV3, WalletAdaptedNetwork } from '../../types'
 import { ASSET_CDN } from '../../config/url'
-import { useMetamaskVersionWarning } from '../../hooks/useMetamaskVersionWarning'
 
 export type WalletChainSelectProps = {
   wallet: WalletConfigV3<any> | null
@@ -35,6 +34,7 @@ export type WalletChainSelectProps = {
   evmAddress?: string
   onConnectEVM?: () => void
   onConnectSolana?: () => void
+  shouldShowMetamaskVersionWarning?: boolean
 }
 
 export const WalletChainSelect: React.FC<WalletChainSelectProps> = ({
@@ -43,6 +43,7 @@ export const WalletChainSelect: React.FC<WalletChainSelectProps> = ({
   evmAddress,
   onConnectEVM,
   onConnectSolana,
+  shouldShowMetamaskVersionWarning,
 }) => {
   const { t } = useTranslation()
   const { theme } = useTheme()
@@ -82,8 +83,6 @@ export const WalletChainSelect: React.FC<WalletChainSelectProps> = ({
       trigger: 'hover',
     },
   )
-
-  const shouldShowMetamaskVersionWarning = useMetamaskVersionWarning()
 
   if (!wallet || wallet.networks.length <= 1) return null
 

@@ -68,6 +68,7 @@ export const MultichainWalletModal: React.FC<MultichainWalletModalProps> = (prop
     onDiscordLogin,
     onDismiss,
     docLink,
+    shouldShowMetamaskVersionWarning,
     ...rest
   } = props
 
@@ -306,6 +307,7 @@ export const MultichainWalletModal: React.FC<MultichainWalletModalProps> = (prop
               previewStatus={previewStatus}
               setPreviewStatus={setPreviewStatus}
               docLink={docLink}
+              shouldShowMetamaskVersionWarning={shouldShowMetamaskVersionWarning}
               onWalletConnectStartCallBack={onWalletConnectStartCallBack}
               onGoogleLogin={handleSocialLoginWithCleanup(onGoogleLogin)}
               onXLogin={handleSocialLoginWithCleanup(onXLogin)}

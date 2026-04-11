@@ -15,6 +15,7 @@ import {
 import { useConnect } from 'wagmi'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
 import { useWalletFilterEffect } from '@pancakeswap/ui-wallets/src/state/hooks'
+import { useMetamaskVersionWarning } from 'hooks/useMetamaskVersionWarning'
 
 const WalletModalManager: React.FC<{ isOpen: boolean; onDismiss?: () => void }> = ({ isOpen, onDismiss }) => {
   const { login } = useAuth()
@@ -25,6 +26,7 @@ const WalletModalManager: React.FC<{ isOpen: boolean; onDismiss?: () => void }> 
   } = useTranslation()
   const { connectAsync } = useConnect()
   const { chainId } = useActiveChainId()
+  const shouldShowMetamaskVersionWarning = useMetamaskVersionWarning()
 
   const docLink = useMemo(() => getDocLink(code), [code])
 
@@ -90,6 +92,7 @@ const WalletModalManager: React.FC<{ isOpen: boolean; onDismiss?: () => void }> 
       onXLogin={handleXLogin}
       onTelegramLogin={handleTelegramLogin}
       onDiscordLogin={handleDiscordLogin}
+      shouldShowMetamaskVersionWarning={shouldShowMetamaskVersionWarning}
     />
   )
 }

@@ -27,7 +27,6 @@
     "@solana/wallet-adapter-glow": "catalog:",
     "@solflare-wallet/wallet-adapter": "catalog:",
     "@solana/web3.js": "catalog:",
-    "wagmi": "catalog:",
     "qrcode.react": "^3.1.0",
     "lodash": "^4.17.21"
   },
