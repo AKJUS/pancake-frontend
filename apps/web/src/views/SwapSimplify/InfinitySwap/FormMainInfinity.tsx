@@ -259,7 +259,7 @@ export function FormMain({ inputAmount, outputAmount, tradeLoading, isUserInsuff
 
   const isRwaTokenFn = useAtomValue(isRwaTokenFnAtom)
 
-  useWarningImport()
+  const swapWarningModal = useWarningImport()
 
   const handleCurrencySelect = useCallback(
     async (newCurrency: UnifiedCurrency, field: Field) => {
@@ -316,107 +316,110 @@ export function FormMain({ inputAmount, outputAmount, tradeLoading, isUserInsuff
   const isBridge = inputCurrency?.chainId !== outputCurrency?.chainId
 
   return (
-    <FormContainer>
-      <Suspense fallback={<Skeleton animation="pulse" variant="round" width="100%" height="80px" />}>
-        <CurrencyInputPanelSimplify
-          id="swap-currency-input"
-          showUSDPrice
-          valueDisplayMode={inputValueMode}
-          onToggleValueDisplayMode={canUseUsdMode ? () => setUsdMode((prev) => !prev) : undefined}
-          usdPrice={inputUsdPrice}
-          showMaxButton
-          showCommonBases={inputRwaConfig.showCommonBases}
-          supportCrossChain={inputRwaConfig.supportCrossChain}
-          showMultichainBalances
-          enableMultichainSearch
-          tokensToShow={inputRwaConfig.tokensToShow}
-          inputLoading={!isWrapping && inputLoading}
-          currencyLoading={!loadedUrlParams}
-          label={!isTypingInput && !isWrapping ? t('From (estimated)') : t('From')}
-          defaultValue={isWrapping ? typedValue : inputValue}
-          maxAmount={maxAmountInput}
-          showQuickInputButton
-          currency={inputCurrency}
-          onUserInput={handleTypeInput}
-          onPercentInput={handlePercentInput}
-          onMax={handleMaxInput}
-          onCurrencySelect={handleInputSelect}
-          otherCurrency={outputCurrency}
-          commonBasesType={CommonBasesType.SWAP}
-          title={
-            <FlexGap gap="8px" alignItems="center">
-              <Text color="textSubtle" fontSize={12} bold>
-                {t('From')}:
-              </Text>
-              {fromAccount && (
-                <FlexGap gap="4px" alignItems="center">
-                  {walletIconFrom && (
-                    <Box width={24} height={24}>
-                      <WalletIcon src={walletIconFrom} width={24} height={24} alt="Wallet Icon" />
-                    </Box>
-                  )}
-                  <Text fontSize="12px" color="textSubtle" fontWeight="600">
-                    {truncateHash(fromAccount, 6, 4)}
-                  </Text>
-                </FlexGap>
-              )}
-            </FlexGap>
-          }
-          isUserInsufficientBalance={isUserInsufficientBalance}
-          modalTitle={t('From')}
-          showSearchHeader
-        />
-      </Suspense>
-      <FlipButton />
-      <Suspense fallback={<Skeleton animation="pulse" variant="round" width="100%" height="80px" />}>
-        <CurrencyInputPanelSimplify
-          disabled={isBridge}
-          id="swap-currency-output"
-          showUSDPrice
-          valueDisplayMode={outputValueMode}
-          onToggleValueDisplayMode={!isBridge && canUseUsdMode ? () => setUsdMode((prev) => !prev) : undefined}
-          usdPrice={outputUsdPrice}
-          showCommonBases={outputRwaConfig.showCommonBases}
-          supportCrossChain={outputRwaConfig.supportCrossChain}
-          showMultichainBalances
-          enableMultichainSearch
-          tokensToShow={outputRwaConfig.tokensToShow}
-          showMaxButton={false}
-          inputLoading={!isWrapping && outputLoading}
-          currencyLoading={!loadedUrlParams}
-          label={isTypingInput && !isWrapping ? t('To (estimated)') : t('To')}
-          defaultValue={isWrapping ? typedValue : outputValue}
-          currency={outputCurrency}
-          onUserInput={handleTypeOutput}
-          onCurrencySelect={handleOutputSelect}
-          otherCurrency={inputCurrency}
-          commonBasesType={CommonBasesType.SWAP}
-          title={
-            <FlexGap gap="8px" alignItems="center">
-              <Text color="textSubtle" fontSize={12} bold>
-                {t('To')}:
-              </Text>
-              {(toAccount || recipient) && (
-                <FlexGap gap="4px" alignItems="center">
-                  {walletIconTo && !recipient && (
-                    <Box width={24} height={24}>
-                      <WalletIcon src={walletIconTo} width={24} height={24} alt="Wallet Icon" />
-                    </Box>
-                  )}
-                  <Text fontSize="12px" color="textSubtle" fontWeight="600">
-                    {recipient ? truncateHash(recipient, 6, 4) : truncateHash(toAccount ?? '', 6, 4)}
-                  </Text>
-                </FlexGap>
-              )}
-            </FlexGap>
-          }
-          modalTitle={t('To')}
-          showSearchHeader
-        />
-      </Suspense>
-      <AssignRecipientButton />
-      <Recipient />
-    </FormContainer>
+    <>
+      <FormContainer>
+        <Suspense fallback={<Skeleton animation="pulse" variant="round" width="100%" height="80px" />}>
+          <CurrencyInputPanelSimplify
+            id="swap-currency-input"
+            showUSDPrice
+            valueDisplayMode={inputValueMode}
+            onToggleValueDisplayMode={canUseUsdMode ? () => setUsdMode((prev) => !prev) : undefined}
+            usdPrice={inputUsdPrice}
+            showMaxButton
+            showCommonBases={inputRwaConfig.showCommonBases}
+            supportCrossChain={inputRwaConfig.supportCrossChain}
+            showMultichainBalances
+            enableMultichainSearch
+            tokensToShow={inputRwaConfig.tokensToShow}
+            inputLoading={!isWrapping && inputLoading}
+            currencyLoading={!loadedUrlParams}
+            label={!isTypingInput && !isWrapping ? t('From (estimated)') : t('From')}
+            defaultValue={isWrapping ? typedValue : inputValue}
+            maxAmount={maxAmountInput}
+            showQuickInputButton
+            currency={inputCurrency}
+            onUserInput={handleTypeInput}
+            onPercentInput={handlePercentInput}
+            onMax={handleMaxInput}
+            onCurrencySelect={handleInputSelect}
+            otherCurrency={outputCurrency}
+            commonBasesType={CommonBasesType.SWAP}
+            title={
+              <FlexGap gap="8px" alignItems="center">
+                <Text color="textSubtle" fontSize={12} bold>
+                  {t('From')}:
+                </Text>
+                {fromAccount && (
+                  <FlexGap gap="4px" alignItems="center">
+                    {walletIconFrom && (
+                      <Box width={24} height={24}>
+                        <WalletIcon src={walletIconFrom} width={24} height={24} alt="Wallet Icon" />
+                      </Box>
+                    )}
+                    <Text fontSize="12px" color="textSubtle" fontWeight="600">
+                      {truncateHash(fromAccount, 6, 4)}
+                    </Text>
+                  </FlexGap>
+                )}
+              </FlexGap>
+            }
+            isUserInsufficientBalance={isUserInsufficientBalance}
+            modalTitle={t('From')}
+            showSearchHeader
+          />
+        </Suspense>
+        <FlipButton />
+        <Suspense fallback={<Skeleton animation="pulse" variant="round" width="100%" height="80px" />}>
+          <CurrencyInputPanelSimplify
+            disabled={isBridge}
+            id="swap-currency-output"
+            showUSDPrice
+            valueDisplayMode={outputValueMode}
+            onToggleValueDisplayMode={!isBridge && canUseUsdMode ? () => setUsdMode((prev) => !prev) : undefined}
+            usdPrice={outputUsdPrice}
+            showCommonBases={outputRwaConfig.showCommonBases}
+            supportCrossChain={outputRwaConfig.supportCrossChain}
+            showMultichainBalances
+            enableMultichainSearch
+            tokensToShow={outputRwaConfig.tokensToShow}
+            showMaxButton={false}
+            inputLoading={!isWrapping && outputLoading}
+            currencyLoading={!loadedUrlParams}
+            label={isTypingInput && !isWrapping ? t('To (estimated)') : t('To')}
+            defaultValue={isWrapping ? typedValue : outputValue}
+            currency={outputCurrency}
+            onUserInput={handleTypeOutput}
+            onCurrencySelect={handleOutputSelect}
+            otherCurrency={inputCurrency}
+            commonBasesType={CommonBasesType.SWAP}
+            title={
+              <FlexGap gap="8px" alignItems="center">
+                <Text color="textSubtle" fontSize={12} bold>
+                  {t('To')}:
+                </Text>
+                {(toAccount || recipient) && (
+                  <FlexGap gap="4px" alignItems="center">
+                    {walletIconTo && !recipient && (
+                      <Box width={24} height={24}>
+                        <WalletIcon src={walletIconTo} width={24} height={24} alt="Wallet Icon" />
+                      </Box>
+                    )}
+                    <Text fontSize="12px" color="textSubtle" fontWeight="600">
+                      {recipient ? truncateHash(recipient, 6, 4) : truncateHash(toAccount ?? '', 6, 4)}
+                    </Text>
+                  </FlexGap>
+                )}
+              </FlexGap>
+            }
+            modalTitle={t('To')}
+            showSearchHeader
+          />
+        </Suspense>
+        <AssignRecipientButton />
+        <Recipient />
+      </FormContainer>
+      {swapWarningModal}
+    </>
   )
 }
 

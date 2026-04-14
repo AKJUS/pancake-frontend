@@ -309,39 +309,42 @@ export function TWAPPanel({ limit }: { limit?: boolean }) {
   const inputCurrency = useCurrency(inputCurrencyId, inputChainId)
   const outputCurrency = useCurrency(outputCurrencyId, outputChainId)
 
-  useWarningImport()
+  const swapWarningModal = useWarningImport()
 
   const { t } = useTranslation()
 
   return (
     <QuoteProvider>
-      <PancakeTWAP
-        ConnectButton={ConnectWalletButton}
-        connectedChainId={chainId}
-        account={address}
-        limit={limit}
-        usePriceUSD={useUsd}
-        useTrade={useBestTrade}
-        dappTokens={tokens}
-        isDarkTheme={isDark}
-        srcToken={inputCurrency}
-        dstToken={outputCurrency}
-        onSrcTokenSelected={onSrcTokenSelected}
-        onDstTokenSelected={onDstTokenSelected}
-        isMobile={!isDesktop}
-        t={t}
-        nativeToken={native}
-        connector={connector}
-        useTooltip={useTooltip}
-        Button={Button}
-        TransactionErrorContent={TransactionErrorContent}
-        toast={toast}
-        FlipButton={FlipButton}
-        Input={Input}
-        CurrencyLogo={TokenLogo}
-        ReactMarkdown={Markdown}
-        InputTokenPanel={TokenPanelInput}
-      />
+      <>
+        <PancakeTWAP
+          ConnectButton={ConnectWalletButton}
+          connectedChainId={chainId}
+          account={address}
+          limit={limit}
+          usePriceUSD={useUsd}
+          useTrade={useBestTrade}
+          dappTokens={tokens}
+          isDarkTheme={isDark}
+          srcToken={inputCurrency}
+          dstToken={outputCurrency}
+          onSrcTokenSelected={onSrcTokenSelected}
+          onDstTokenSelected={onDstTokenSelected}
+          isMobile={!isDesktop}
+          t={t}
+          nativeToken={native}
+          connector={connector}
+          useTooltip={useTooltip}
+          Button={Button}
+          TransactionErrorContent={TransactionErrorContent}
+          toast={toast}
+          FlipButton={FlipButton}
+          Input={Input}
+          CurrencyLogo={TokenLogo}
+          ReactMarkdown={Markdown}
+          InputTokenPanel={TokenPanelInput}
+        />
+        {swapWarningModal}
+      </>
     </QuoteProvider>
   )
 }

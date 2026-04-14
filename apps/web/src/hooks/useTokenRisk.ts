@@ -14,6 +14,7 @@ export type RiskTokenEntry = {
   title?: string
   severity: RiskSeverity
   reason?: string
+  source?: 'cms' | 'thirdParty'
 }
 
 type RiskTokenMap = Record<string, RiskTokenEntry>
@@ -30,7 +31,8 @@ const isRiskEntry = (value: unknown): value is RiskTokenEntry => {
     typeof entry.symbol === 'string' &&
     (entry.title === undefined || typeof entry.title === 'string') &&
     (entry.severity === 'warn' || entry.severity === 'block') &&
-    (entry.reason === undefined || typeof entry.reason === 'string')
+    (entry.reason === undefined || typeof entry.reason === 'string') &&
+    (entry.source === undefined || entry.source === 'cms' || entry.source === 'thirdParty')
   )
 }
 
@@ -53,7 +55,7 @@ const fetchRiskTokenConfig = async (): Promise<RiskTokenMap> => {
       const key = toKey(item.chainId, item.address)
       const prev = map[key]
       if (!prev || (prev.severity === 'warn' && item.severity === 'block')) {
-        map[key] = item
+        map[key] = { ...item, source: 'cms' }
       }
     })
 
@@ -132,6 +134,7 @@ export function useTokenRisk(currencyA?: Currency | null, currencyB?: Currency |
       symbol: symbol ?? '',
       severity: 'warn',
       reason: thirdPartyRisk.riskLevelDescription || undefined,
+      source: 'thirdParty',
     }
   }
 

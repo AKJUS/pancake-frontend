@@ -1,6 +1,6 @@
-import { Currency, Token, UnifiedCurrency } from '@pancakeswap/sdk'
-import { useModal } from '@pancakeswap/uikit'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Token, UnifiedCurrency } from '@pancakeswap/sdk'
+import { ModalV2, useModal, useModalV2 } from '@pancakeswap/uikit'
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
@@ -12,8 +12,7 @@ import { useSwapState } from 'state/swap/hooks'
 import { safeGetAddress } from 'utils'
 
 import { useActiveChainId } from 'hooks/useActiveChainId'
-import { getCurrencyRiskEntry, useRiskTokenConfigMap, useTokenRisk } from 'hooks/useTokenRisk'
-import { usePreviousValue } from '@pancakeswap/hooks'
+import { useTokenRisk } from 'hooks/useTokenRisk'
 import SwapWarningModal from '../components/SwapWarningModal'
 
 export default function useWarningImport() {
@@ -25,9 +24,14 @@ export default function useWarningImport() {
   } = useSwapState()
 
   // swap warning state
-  const [swapWarningCurrency, setSwapWarningCurrency] = useState<any>(null)
-  const [swapWarningTitle, setSwapWarningTitle] = useState<string | undefined>(undefined)
-  const [swapWarningReason, setSwapWarningReason] = useState<string | undefined>(undefined)
+  const [swapWarningState, setSwapWarningState] = useState<{
+    currency: UnifiedCurrency
+    title?: string
+    reason?: string
+    source?: 'cms' | 'thirdParty'
+  } | null>(null)
+  const [acknowledgedWarningKeys, setAcknowledgedWarningKeys] = useState<Record<string, true>>({})
+  const { isOpen: isSwapWarningOpen, onOpen: openSwapWarningModal, onDismiss: dismissSwapWarningModal } = useModalV2()
 
   // token warning stuff
   const [loadedInputCurrency, loadedOutputCurrency] = [useCurrency(inputCurrencyId), useCurrency(outputCurrencyId)]
@@ -36,9 +40,6 @@ export default function useWarningImport() {
     () => [loadedInputCurrency, loadedOutputCurrency]?.filter((c): c is Token => Boolean(c?.isToken)) ?? [],
     [loadedInputCurrency, loadedOutputCurrency],
   )
-
-  const prevInputCurrency = usePreviousValue(loadedInputCurrency)
-  const prevOutputCurrency = usePreviousValue(loadedOutputCurrency)
 
   const defaultTokens = useAllTokens()
 
@@ -56,61 +57,95 @@ export default function useWarningImport() {
       : []
   }, [chainId, defaultTokens, isWrongNetwork, loadedTokenList, urlLoadedTokens])
 
-  const [onPresentSwapWarningModal] = useModal(
-    <SwapWarningModal swapCurrency={swapWarningCurrency} title={swapWarningTitle} reason={swapWarningReason} />,
-    false,
-  )
+  const getCurrencyKey = useCallback((currency?: UnifiedCurrency | null) => {
+    return currency && (currency as Token).isToken
+      ? `${currency.chainId}:${(currency as Token).address.toLowerCase()}`
+      : null
+  }, [])
+
+  const clearSwapWarning = useCallback(() => {
+    setSwapWarningState(null)
+    dismissSwapWarningModal()
+  }, [dismissSwapWarningModal])
+
+  const acknowledgeSwapWarning = useCallback(() => {
+    const key = getCurrencyKey(swapWarningState?.currency)
+    if (key) {
+      setAcknowledgedWarningKeys((prev) => ({ ...prev, [key]: true }))
+    }
+    clearSwapWarning()
+  }, [clearSwapWarning, getCurrencyKey, swapWarningState?.currency])
+
   const [onPresentImportTokenWarningModal] = useModal(
     <ImportTokenWarningModal tokens={importTokensNotInDefault} onCancel={() => router.push('/swap')} />,
   )
 
-  useEffect(() => {
-    if (swapWarningCurrency) {
-      onPresentSwapWarningModal()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [swapWarningCurrency])
-
-  const { data: riskTokenMap = {} } = useRiskTokenConfigMap()
-  const { tokenRiskA: inputRisk, tokenRiskB: outputRisk } = useTokenRisk(loadedInputCurrency, loadedOutputCurrency)
-
-  const swapWarningHandler = useCallback(
-    (currencyInput?: UnifiedCurrency) => {
-      const evmCurrency =
-        currencyInput && (currencyInput as Token).isToken ? (currencyInput as unknown as Currency) : undefined
-      const risk = getCurrencyRiskEntry(riskTokenMap, evmCurrency)
-      if (risk?.severity === 'warn') {
-        setSwapWarningCurrency(currencyInput)
-        setSwapWarningTitle(risk.title)
-        setSwapWarningReason(risk.reason)
-      } else {
-        setSwapWarningCurrency(null)
-        setSwapWarningTitle(undefined)
-        setSwapWarningReason(undefined)
-      }
+  const presentSwapWarning = useCallback(
+    (currency: UnifiedCurrency, title?: string, reason?: string, source?: 'cms' | 'thirdParty') => {
+      setSwapWarningState({ currency, title, reason, source })
+      openSwapWarningModal()
     },
-    [riskTokenMap],
+    [openSwapWarningModal],
   )
 
+  const { tokenRiskA: inputRisk, tokenRiskB: outputRisk } = useTokenRisk(loadedInputCurrency, loadedOutputCurrency)
+
   useEffect(() => {
-    if (loadedInputCurrency && loadedInputCurrency !== prevInputCurrency && inputRisk?.severity === 'warn') {
-      setSwapWarningCurrency(loadedInputCurrency)
-      setSwapWarningTitle(inputRisk.title)
-      setSwapWarningReason(inputRisk.reason)
+    const inputWarningKey = getCurrencyKey(loadedInputCurrency)
+    const outputWarningKey = getCurrencyKey(loadedOutputCurrency)
+    const activeWarningKey = getCurrencyKey(swapWarningState?.currency)
+
+    if (
+      loadedInputCurrency &&
+      inputRisk?.severity === 'warn' &&
+      inputWarningKey &&
+      !acknowledgedWarningKeys[inputWarningKey]
+    ) {
+      if (activeWarningKey === inputWarningKey && isSwapWarningOpen) {
+        return
+      }
+
+      presentSwapWarning(loadedInputCurrency, inputRisk.title, inputRisk.reason, inputRisk.source)
       return
     }
 
-    if (loadedOutputCurrency && loadedOutputCurrency !== prevOutputCurrency && outputRisk?.severity === 'warn') {
-      setSwapWarningCurrency(loadedOutputCurrency)
-      setSwapWarningTitle(outputRisk.title)
-      setSwapWarningReason(outputRisk.reason)
+    if (
+      loadedOutputCurrency &&
+      outputRisk?.severity === 'warn' &&
+      outputWarningKey &&
+      !acknowledgedWarningKeys[outputWarningKey]
+    ) {
+      if (activeWarningKey === outputWarningKey && isSwapWarningOpen) {
+        return
+      }
+
+      presentSwapWarning(loadedOutputCurrency, outputRisk.title, outputRisk.reason, outputRisk.source)
+    }
+  }, [
+    acknowledgedWarningKeys,
+    getCurrencyKey,
+    inputRisk,
+    isSwapWarningOpen,
+    loadedInputCurrency,
+    loadedOutputCurrency,
+    outputRisk,
+    presentSwapWarning,
+    swapWarningState?.currency,
+  ])
+
+  useEffect(() => {
+    if (!swapWarningState) {
       return
     }
 
-    setSwapWarningCurrency(null)
-    setSwapWarningTitle(undefined)
-    setSwapWarningReason(undefined)
-  }, [inputRisk, loadedInputCurrency, loadedOutputCurrency, outputRisk, prevInputCurrency, prevOutputCurrency])
+    const warningKey = getCurrencyKey(swapWarningState.currency)
+    const inputWarningKey = getCurrencyKey(loadedInputCurrency)
+    const outputWarningKey = getCurrencyKey(loadedOutputCurrency)
+
+    if (warningKey && warningKey !== inputWarningKey && warningKey !== outputWarningKey) {
+      clearSwapWarning()
+    }
+  }, [clearSwapWarning, getCurrencyKey, loadedInputCurrency, loadedOutputCurrency, swapWarningState])
 
   useEffect(() => {
     if (importTokensNotInDefault.length > 0) {
@@ -119,5 +154,17 @@ export default function useWarningImport() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [importTokensNotInDefault.length])
 
-  return swapWarningHandler
+  const warningModalNode: ReactNode = swapWarningState ? (
+    <ModalV2 isOpen={isSwapWarningOpen} onDismiss={clearSwapWarning} closeOnOverlayClick={false}>
+      <SwapWarningModal
+        swapCurrency={swapWarningState.currency as any}
+        title={swapWarningState.title}
+        reason={swapWarningState.reason}
+        source={swapWarningState.source}
+        onAcknowledge={acknowledgeSwapWarning}
+      />
+    </ModalV2>
+  ) : null
+
+  return warningModalNode
 }

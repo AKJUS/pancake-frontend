@@ -32,17 +32,21 @@ const MessageContainer = styled(Message)`
 `
 
 interface SwapWarningModalProps {
-  swapCurrency: WrappedTokenInfo
+  swapCurrency?: WrappedTokenInfo | null
   title?: string
   reason?: string
+  source?: 'cms' | 'thirdParty'
   onDismiss?: () => void
+  onAcknowledge?: () => void
 }
 
 const SwapWarningModal: React.FC<React.PropsWithChildren<SwapWarningModalProps>> = ({
   swapCurrency,
   title,
   reason,
+  source,
   onDismiss,
+  onAcknowledge,
 }) => {
   const { t } = useTranslation()
   const { theme } = useTheme()
@@ -56,9 +60,18 @@ const SwapWarningModal: React.FC<React.PropsWithChildren<SwapWarningModalProps>>
     [ChainId.ARBITRUM_ONE]: ARB_WARNING_LIST,
   }
 
+  if (!swapCurrency) {
+    return null
+  }
+
   const SWAP_WARNING = chainId ? TOKEN_WARNINGS?.[chainId]?.[swapCurrency.address] : undefined
   const warningSymbol = SWAP_WARNING?.symbol || swapCurrency?.symbol || t('this token')
   const warningTitle = title || t('Notice for trading %symbol%', { symbol: warningSymbol })
+  const handleContinue = () => {
+    onAcknowledge?.()
+    onDismiss?.()
+  }
+  const isThirdPartyWarning = source === 'thirdParty'
 
   return (
     <StyledModalContainer minWidth="280px">
@@ -70,7 +83,35 @@ const SwapWarningModal: React.FC<React.PropsWithChildren<SwapWarningModalProps>>
           <Box>
             {SWAP_WARNING?.component ?? (
               <>
-                {reason ? (
+                {isThirdPartyWarning ? (
+                  <Box mt="8px">
+                    <Text mb="8px">
+                      {t(
+                        'This token has been flagged as high risk. Please do your own research and proceed with caution.',
+                      )}
+                    </Text>
+                    <Text>
+                      {t('Result provided by')}{' '}
+                      <Link external color="primary60" style={{ display: 'inline' }} href="https://www.hashdit.io/">
+                        HashDit
+                      </Link>
+                      {chainId === ChainId.BSC ? (
+                        <>
+                          {' '}
+                          /{' '}
+                          <Link
+                            external
+                            color="primary60"
+                            style={{ display: 'inline' }}
+                            href={`https://dappbay.bnbchain.org/risk-scanner/${swapCurrency.address}`}
+                          >
+                            {t('Get more details from RedAlarm')}
+                          </Link>
+                        </>
+                      ) : null}
+                    </Text>
+                  </Box>
+                ) : reason ? (
                   <Box mt="8px">
                     <ReactMarkdown
                       components={{
@@ -103,7 +144,7 @@ const SwapWarningModal: React.FC<React.PropsWithChildren<SwapWarningModalProps>>
             )}
           </Box>
         </MessageContainer>
-        <Acknowledgement handleContinueClick={onDismiss} />
+        <Acknowledgement handleContinueClick={handleContinue} />
       </ModalBody>
     </StyledModalContainer>
   )

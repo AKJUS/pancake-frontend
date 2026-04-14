@@ -37,7 +37,7 @@ interface Props {
 
 export function FormMainForHomePage({ inputAmount, outputAmount, tradeLoading }: Props) {
   const { t } = useTranslation()
-  useWarningImport()
+  const swapWarningModal = useWarningImport()
   const { isMobile } = useMatchBreakpoints()
 
   const {
@@ -111,63 +111,66 @@ export function FormMainForHomePage({ inputAmount, outputAmount, tradeLoading }:
   const outputLoading = typedValue ? isTypingInput && tradeLoading : false
 
   return (
-    <SwapUIV2.InputPanelWrapper id="swap-page">
-      <Column gap={isMobile ? '0px' : 'sm'}>
-        <CurrencyInputPanelSimplify
-          id="swap-currency-input"
-          showUSDPrice
-          showMaxButton
-          showMultichainBalances
-          enableMultichainSearch
-          showCommonBases
-          topOptions={{
-            show: !isMobile,
-            walletDisplay: false,
-          }}
-          inputLoading={!isWrapping && inputLoading}
-          defaultValue={isWrapping ? typedValue : inputValue}
-          currency={inputCurrency}
-          onUserInput={handleTypeInput}
-          onCurrencySelect={handleInputSelect}
-          otherCurrency={outputCurrency}
-          commonBasesType={CommonBasesType.SWAP}
-          title={
-            <Text color="textSubtle" fontSize={12} bold>
-              {t('From')}
-            </Text>
-          }
-          showSearchHeader
-          modalTitle={t('From')}
-        />
-        <FlipButton compact={isMobile} replaceBrowser={false} />
-        <CurrencyInputPanelSimplify
-          id="swap-currency-output"
-          showUSDPrice
-          showMultichainBalances
-          enableMultichainSearch
-          showCommonBases
-          showMaxButton={false}
-          inputLoading={!isWrapping && outputLoading}
-          defaultValue={isWrapping ? typedValue : outputValue}
-          currency={outputCurrency}
-          onUserInput={handleTypeOutput}
-          onCurrencySelect={handleOutputSelect}
-          otherCurrency={inputCurrency}
-          commonBasesType={CommonBasesType.SWAP}
-          topOptions={{
-            show: !isMobile,
-            walletDisplay: false,
-          }}
-          title={
-            <Text color="textSubtle" fontSize={12} bold>
-              {t('To')}
-            </Text>
-          }
-          showSearchHeader
-          modalTitle={t('To')}
-        />
-      </Column>
-    </SwapUIV2.InputPanelWrapper>
+    <>
+      <SwapUIV2.InputPanelWrapper id="swap-page">
+        <Column gap={isMobile ? '0px' : 'sm'}>
+          <CurrencyInputPanelSimplify
+            id="swap-currency-input"
+            showUSDPrice
+            showMaxButton
+            showMultichainBalances
+            enableMultichainSearch
+            showCommonBases
+            topOptions={{
+              show: !isMobile,
+              walletDisplay: false,
+            }}
+            inputLoading={!isWrapping && inputLoading}
+            defaultValue={isWrapping ? typedValue : inputValue}
+            currency={inputCurrency}
+            onUserInput={handleTypeInput}
+            onCurrencySelect={handleInputSelect}
+            otherCurrency={outputCurrency}
+            commonBasesType={CommonBasesType.SWAP}
+            title={
+              <Text color="textSubtle" fontSize={12} bold>
+                {t('From')}
+              </Text>
+            }
+            showSearchHeader
+            modalTitle={t('From')}
+          />
+          <FlipButton compact={isMobile} replaceBrowser={false} />
+          <CurrencyInputPanelSimplify
+            id="swap-currency-output"
+            showUSDPrice
+            showMultichainBalances
+            enableMultichainSearch
+            showCommonBases
+            showMaxButton={false}
+            inputLoading={!isWrapping && outputLoading}
+            defaultValue={isWrapping ? typedValue : outputValue}
+            currency={outputCurrency}
+            onUserInput={handleTypeOutput}
+            onCurrencySelect={handleOutputSelect}
+            otherCurrency={inputCurrency}
+            commonBasesType={CommonBasesType.SWAP}
+            topOptions={{
+              show: !isMobile,
+              walletDisplay: false,
+            }}
+            title={
+              <Text color="textSubtle" fontSize={12} bold>
+                {t('To')}
+              </Text>
+            }
+            showSearchHeader
+            modalTitle={t('To')}
+          />
+        </Column>
+      </SwapUIV2.InputPanelWrapper>
+      {swapWarningModal}
+    </>
   )
 }
 
