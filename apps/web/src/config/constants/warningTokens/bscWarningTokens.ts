@@ -59,7 +59,5 @@ export const bscWarningTokens = {
     'PundiAI Token',
     'https://twitter.com/PundiAI',
   ),
-  nmt: new ERC20Token(ChainId.BSC, '0x03AA6298F1370642642415EDC0db8b957783e8D6', 18, 'NMT', 'NetMind Token'),
-  uniBTC: new ERC20Token(ChainId.BSC, '0x6B2a01A5f79dEb4c2f3c0eDa7b01DF456FbD726a', 8, 'uniBTC', 'uniBTC'),
   town: new ERC20Token(ChainId.BSC, '0x973253D0C12366e0fA5AFb9F9E2e9486ECA69c01', 18, 'TOWN', 'Alt.town'),
 }

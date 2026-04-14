@@ -1,7 +1,18 @@
 import { ChainId } from '@pancakeswap/chains'
 import { useTranslation } from '@pancakeswap/localization'
 import { WrappedTokenInfo } from '@pancakeswap/token-lists'
-import { Acknowledgement, Box, Heading, Message, ModalBody, ModalContainer, ModalHeader } from '@pancakeswap/uikit'
+import {
+  Acknowledgement,
+  Box,
+  Heading,
+  Link,
+  Message,
+  ModalBody,
+  ModalContainer,
+  ModalHeader,
+  ReactMarkdown,
+  Text,
+} from '@pancakeswap/uikit'
 import { useActiveChainId } from 'hooks/useActiveChainId'
 import useTheme from 'hooks/useTheme'
 import { styled } from 'styled-components'
@@ -22,10 +33,17 @@ const MessageContainer = styled(Message)`
 
 interface SwapWarningModalProps {
   swapCurrency: WrappedTokenInfo
+  title?: string
+  reason?: string
   onDismiss?: () => void
 }
 
-const SwapWarningModal: React.FC<React.PropsWithChildren<SwapWarningModalProps>> = ({ swapCurrency, onDismiss }) => {
+const SwapWarningModal: React.FC<React.PropsWithChildren<SwapWarningModalProps>> = ({
+  swapCurrency,
+  title,
+  reason,
+  onDismiss,
+}) => {
   const { t } = useTranslation()
   const { theme } = useTheme()
   const { chainId } = useActiveChainId()
@@ -39,15 +57,51 @@ const SwapWarningModal: React.FC<React.PropsWithChildren<SwapWarningModalProps>>
   }
 
   const SWAP_WARNING = chainId ? TOKEN_WARNINGS?.[chainId]?.[swapCurrency.address] : undefined
+  const warningSymbol = SWAP_WARNING?.symbol || swapCurrency?.symbol || t('this token')
+  const warningTitle = title || t('Notice for trading %symbol%', { symbol: warningSymbol })
 
   return (
     <StyledModalContainer minWidth="280px">
       <ModalHeader background={theme.colors.gradientCardHeader}>
-        <Heading p="12px 24px">{t('Notice for trading %symbol%', { symbol: SWAP_WARNING?.symbol })}</Heading>
+        <Heading p="12px 24px">{warningTitle}</Heading>
       </ModalHeader>
       <ModalBody p="24px">
         <MessageContainer variant="warning" mb="24px">
-          <Box>{SWAP_WARNING?.component}</Box>
+          <Box>
+            {SWAP_WARNING?.component ?? (
+              <>
+                {reason ? (
+                  <Box mt="8px">
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => <Text>{children}</Text>,
+                        a: ({ href, children }) => (
+                          <Link
+                            href={href}
+                            external
+                            color="primary60"
+                            style={{ display: 'inline' }}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {children}
+                          </Link>
+                        ),
+                      }}
+                    >
+                      {reason}
+                    </ReactMarkdown>
+                  </Box>
+                ) : (
+                  <Text>
+                    {t(
+                      'This token has been flagged as high risk. Please do your own research and proceed with caution.',
+                    )}
+                  </Text>
+                )}
+              </>
+            )}
+          </Box>
         </MessageContainer>
         <Acknowledgement handleContinueClick={onDismiss} />
       </ModalBody>

@@ -2,17 +2,22 @@ import { Currency } from '@pancakeswap/sdk'
 import { useModal } from '@pancakeswap/uikit'
 import { useCallback, useEffect, useState } from 'react'
 import { useCurrency } from 'hooks/Tokens'
-import { useActiveChainId } from 'hooks/useActiveChainId'
+import { getCurrencyRiskEntry, useRiskTokenConfigMap, useTokenRisk } from 'hooks/useTokenRisk'
 import SwapWarningModal from 'views/Swap/components/SwapWarningModal'
-import shouldShowSwapWarning from 'utils/shouldShowSwapWarning'
 
 export default function useWarningLiquidity(currencyIdA?: string, currencyIdB?: string) {
-  const { chainId } = useActiveChainId()
   const currencyA = useCurrency(currencyIdA)
   const currencyB = useCurrency(currencyIdB)
   const [warningCurrency, setWarningCurrency] = useState<Currency | null>(null)
+  const [warningTitle, setWarningTitle] = useState<string | undefined>(undefined)
+  const [warningReason, setWarningReason] = useState<string | undefined>(undefined)
+  const { data: riskTokenMap = {} } = useRiskTokenConfigMap()
+  const { tokenRiskA, tokenRiskB } = useTokenRisk(currencyA, currencyB)
 
-  const [onPresentWarningModal] = useModal(<SwapWarningModal swapCurrency={warningCurrency as any} />, false)
+  const [onPresentWarningModal] = useModal(
+    <SwapWarningModal swapCurrency={warningCurrency as any} title={warningTitle} reason={warningReason} />,
+    false,
+  )
 
   useEffect(() => {
     if (warningCurrency) {
@@ -21,20 +26,35 @@ export default function useWarningLiquidity(currencyIdA?: string, currencyIdB?: 
   }, [warningCurrency, onPresentWarningModal])
 
   useEffect(() => {
-    if (currencyA && shouldShowSwapWarning(chainId, currencyA)) {
+    if (currencyA && tokenRiskA?.severity === 'warn') {
       setWarningCurrency(currencyA)
-    } else if (currencyB && shouldShowSwapWarning(chainId, currencyB)) {
+      setWarningTitle(tokenRiskA.title)
+      setWarningReason(tokenRiskA.reason)
+    } else if (currencyB && tokenRiskB?.severity === 'warn') {
       setWarningCurrency(currencyB)
+      setWarningTitle(tokenRiskB.title)
+      setWarningReason(tokenRiskB.reason)
+    } else {
+      setWarningCurrency(null)
+      setWarningTitle(undefined)
+      setWarningReason(undefined)
     }
-  }, [chainId, currencyA, currencyB])
+  }, [currencyA, currencyB, tokenRiskA, tokenRiskB])
 
   const warningHandler = useCallback(
     (currency?: Currency) => {
-      if (shouldShowSwapWarning(chainId, currency)) {
+      const risk = getCurrencyRiskEntry(riskTokenMap, currency)
+      if (risk?.severity === 'warn') {
         setWarningCurrency(currency || null)
+        setWarningTitle(risk.title)
+        setWarningReason(risk.reason)
+      } else {
+        setWarningCurrency(null)
+        setWarningTitle(undefined)
+        setWarningReason(undefined)
       }
     },
-    [chainId],
+    [riskTokenMap],
   )
 
   return warningHandler
