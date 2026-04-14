@@ -1,8 +1,10 @@
 import { Protocol } from '@pancakeswap/farms'
-import { Box, FlexGap, Tag } from '@pancakeswap/uikit'
-import { isSolana } from '@pancakeswap/chains'
+import { Box, Flex, FlexGap, Spinner, Tag } from '@pancakeswap/uikit'
+import { isSolana, isEvm } from '@pancakeswap/chains'
 import { Hex } from 'viem'
+import { useIsFetching } from '@tanstack/react-query'
 import { useMemo } from 'react'
+import { safeGetAddress } from 'utils/safeGetAddress'
 import { RangeTag } from 'components/RangeTag'
 import { MerklTagV2 } from 'components/Merkl/MerklTag'
 import { IncentraTagV2 } from 'components/Incentra/IncentraTag'
@@ -32,7 +34,9 @@ interface V3PositionModalContentProps {
 export const V3PositionModalContent = ({ poolId, chainId, position, tab = 'Add' }: V3PositionModalContentProps) => {
   const { t } = useTranslation()
 
+  const poolAddress = poolId && isEvm(chainId) ? safeGetAddress(poolId) ?? poolId : poolId
   const poolInfo = usePoolInfo({ poolAddress: poolId, chainId })
+  const isFetchingPoolInfo = useIsFetching({ queryKey: ['poolInfo', chainId, poolAddress] })
 
   const resolvedChainId = chainId ?? (position && 'chainId' in position ? position.chainId : undefined)
   const evmV3Position =
@@ -50,7 +54,16 @@ export const V3PositionModalContent = ({ poolId, chainId, position, tab = 'Add' 
     return Boolean(evmV3Position?.isStaked)
   }, [resolvedChainId, poolInfo?.isFarming, evmV3Position?.isStaked])
 
-  if (!poolInfo) return 'Unable to fetch pool info, or pool does not exist'
+  if (!poolInfo) {
+    if (isFetchingPoolInfo) {
+      return (
+        <Flex justifyContent="center" py="48px">
+          <Spinner />
+        </Flex>
+      )
+    }
+    return 'Unable to fetch pool info, or pool does not exist'
+  }
 
   return (
     <Box>

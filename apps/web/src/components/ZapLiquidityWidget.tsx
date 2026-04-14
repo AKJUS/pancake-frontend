@@ -15,7 +15,7 @@ import {
 import { Pool } from '@pancakeswap/v3-sdk'
 import { ToastDescriptionWithTx } from 'components/Toast'
 import dynamic from 'next/dynamic'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import styled, { useTheme } from 'styled-components'
 import { getAddress } from 'viem'
@@ -26,6 +26,7 @@ import { isAddressEqual } from 'utils'
 import WalletModalManager from 'components/WalletModalManager'
 import { useMasterchefV3 } from 'hooks/useContract'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
+import { useCheckShouldSwitchNetwork } from 'views/universalFarms/hooks'
 
 // Mirrors @kyberswap/pancake-liquidity-widgets PoolType enum - keep in sync on package updates
 export const enum ZapPoolType {
@@ -64,6 +65,9 @@ const LiquidityWidget = dynamic(
       .then((mod) => mod.LiquidityWidget),
   { ssr: false },
 )
+
+// Module-level flag — survives component unmount/remount during chain switch
+let pendingZapOpen = false
 
 const NATIVE_CURRENCY_ADDRESS = getAddress('0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE')
 
@@ -118,6 +122,10 @@ export const ZapLiquidityWidget: React.FC<ZapLiquidityProps> = ({
 
   const masterChefV3 = useMasterchefV3()
 
+  const { switchNetworkIfNecessary } = useCheckShouldSwitchNetwork()
+
+  const poolChainId = pool?.chainId
+
   // For Infinity pools, don't use MasterChef V3 addresses
   const masterChefV3Addresses = useMemo(() => {
     if (poolType === ZapPoolType.DEX_PANCAKE_INFINITY_CL) {
@@ -126,7 +134,7 @@ export const ZapLiquidityWidget: React.FC<ZapLiquidityProps> = ({
     return masterChefV3 ? [masterChefV3.address] : undefined
   }, [masterChefV3, poolType])
 
-  const handleOnClick = useCallback(() => {
+  const openZapModal = useCallback(() => {
     setDepositTokens(
       [
         baseCurrencyAmount && baseCurrencyAmount !== '0' ? getCurrencyAddress(baseCurrency) : '',
@@ -145,6 +153,24 @@ export const ZapLiquidityWidget: React.FC<ZapLiquidityProps> = ({
     )
     setIsModalOpen(true)
   }, [baseCurrency, quoteCurrency, baseCurrencyAmount, quoteCurrencyAmount])
+
+  // Auto-open the Zap modal after a chain switch completes
+  useEffect(() => {
+    if (pendingZapOpen && poolChainId && chainId === poolChainId) {
+      pendingZapOpen = false
+      openZapModal()
+    }
+  }, [chainId, poolChainId, openZapModal])
+
+  const handleOnClick = useCallback(() => {
+    // Switch to the pool's chain if needed before opening the Zap modal
+    if (poolChainId && chainId !== poolChainId) {
+      pendingZapOpen = true
+      switchNetworkIfNecessary(poolChainId)
+      return
+    }
+    openZapModal()
+  }, [poolChainId, chainId, switchNetworkIfNecessary, openZapModal])
 
   const handleOnDismiss = useCallback(() => {
     setIsModalOpen(false)
