@@ -13,7 +13,7 @@ import { useAllTokenBalances } from 'state/wallet/hooks'
 import { safeGetAddress } from 'utils'
 import { safeGetSolanaAddress, safeGetUnifiedAddress } from 'utils/safeGetAddress'
 import { getTokenAddressFromSymbolAlias } from 'utils/getTokenAlias'
-import { formatUnits, isAddress } from 'viem'
+import { formatUnits } from 'viem'
 
 import { ChainId, NonEVMChainId, UnifiedChainId } from '@pancakeswap/chains'
 import { useDebounce, useSortedTokensByQuery } from '@pancakeswap/hooks'
@@ -176,7 +176,7 @@ function CurrencySearch({
           !(otherIsSol && isSolWSolToken(token)),
       )
     }
-    const filterToken = createFilterToken(debouncedQuery, (address) => isAddress(address))
+    const filterToken = createFilterToken(debouncedQuery, (address) => Boolean(safeGetAddress(address)))
     // Only EVM tokens here
     return Object.values(tokensToShow || allTokens).filter(filterToken) as Token[]
   }, [tokensToShow, allTokens, debouncedQuery, isSolana, solanaTokens, otherSelectedCurrency])
@@ -421,7 +421,7 @@ function CurrencySearch({
         .filter((b) => b.chainId !== NonEVMChainId.SOLANA || Boolean(safeGetSolanaAddress(b.token.address)))
         // Filter bridged/wrapped tokens whose symbol matches a native shown via otherChainNatives
         // (e.g. Wormhole-bridged SOL on BSC, native SOL on Solana). Natives are shown separately.
-        .filter((b) => !nativeSymbols.has(b.token.symbol.toUpperCase()))
+        .filter((b) => !nativeSymbols.has(b.token.symbol?.toUpperCase()))
         // Only show tokens present in an active token list — keeps the multichain set consistent with
         // the single-chain path (useAllTokens) and silently drops LP tokens, which the Wallet API
         // returns as regular ERC-20s but have no isLP flag we can rely on.
@@ -435,10 +435,10 @@ function CurrencySearch({
         .filter((b) => {
           if (!debouncedQuery) return true
           const s = debouncedQuery.toLowerCase()
-          return (
-            b.token.symbol.toLowerCase().includes(s) ||
-            b.token.name.toLowerCase().includes(s) ||
-            b.token.address.toLowerCase() === s
+          return Boolean(
+            b.token.symbol?.toLowerCase().includes(s) ||
+              b.token.name?.toLowerCase().includes(s) ||
+              b.token.address.toLowerCase() === s,
           )
         })
         .map((b) => {
@@ -542,8 +542,9 @@ function CurrencySearch({
     const hasSearchExtra = tokenListOnlyMultichain.length > 0
     if (!hasBalanceExtra && !hasSearchExtra) return filteredSortedTokens
 
-    return [...filteredSortedTokens, ...multichainTokens, ...otherChainNatives, ...tokenListOnlyMultichain].sort(
-      (a, b) => {
+    return [...filteredSortedTokens, ...multichainTokens, ...otherChainNatives, ...tokenListOnlyMultichain]
+      .filter((c) => !(c.isToken && (c as UnifiedToken).address === ZERO_ADDRESS))
+      .sort((a, b) => {
         let aUsd: number
         let bUsd: number
         if (a.isToken) {
@@ -561,8 +562,7 @@ function CurrencySearch({
           bUsd = nativeUsdMap.get(b.chainId) ?? 0
         }
         return bUsd - aUsd
-      },
-    )
+      })
   }, [
     filteredSortedTokens,
     multichainTokens,
