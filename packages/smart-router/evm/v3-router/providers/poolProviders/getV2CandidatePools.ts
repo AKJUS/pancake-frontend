@@ -1,4 +1,5 @@
 import { BigintIsh, Currency, CurrencyAmount, Price, ZERO } from '@pancakeswap/sdk'
+import { isTestnetChainId } from '@pancakeswap/chains'
 import { formatPrice } from '@pancakeswap/utils/formatFractions'
 
 import { WithFallbackOptions, createAsyncCallWithFallbacks } from '../../../utils/withFallback'
@@ -33,10 +34,21 @@ export function createV2PoolsProviderByCommonTokenPrices<T = any>(getCommonToken
     ...rest
   }: GetV2PoolsParams & T) {
     const pairs = providedPairs || (await getPairCombinations(currencyA, currencyB))
-    const [poolsFromOnChain, baseTokenUsdPrices] = await Promise.all([
-      getV2PoolsOnChain(pairs, onChainProvider, blockNumber),
-      getCommonTokenPrices({ currencyA, currencyB, ...(rest as T) }),
-    ])
+    const chainId = currencyA?.chainId ?? currencyB?.chainId
+    const testnetMode = Boolean(chainId && isTestnetChainId(chainId))
+
+    const poolsFromOnChain = await getV2PoolsOnChain(pairs, onChainProvider, blockNumber)
+    let baseTokenUsdPrices: Awaited<ReturnType<CommonTokenPriceProvider<T>>> = null
+
+    if (testnetMode) {
+      try {
+        baseTokenUsdPrices = await getCommonTokenPrices({ currencyA, currencyB, ...(rest as T) })
+      } catch (error) {
+        logger.log('[v2] failed to get base token prices on testnet, continue with on-chain pools only', error)
+      }
+    } else {
+      baseTokenUsdPrices = await getCommonTokenPrices({ currencyA, currencyB, ...(rest as T) })
+    }
 
     if (!poolsFromOnChain) {
       throw new Error('Failed to get v2 candidate pools')

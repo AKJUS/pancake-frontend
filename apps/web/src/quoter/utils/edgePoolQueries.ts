@@ -27,6 +27,13 @@ import { Address } from 'viem/accounts'
 import { isInfinityStableSupported } from '@pancakeswap/infinity-stable-sdk'
 import { APIChain, getProvider, Protocol } from './edgeQueries.util'
 
+type CandidatePoolQueryOptions = {
+  preferOnChain?: boolean
+}
+
+const shouldDefaultToOnChainCandidatePools = (chainId: ChainId, preferOnChain?: boolean) =>
+  Boolean(preferOnChain && chainId === ChainId.BSC_TESTNET)
+
 async function getHooksMap(type: 'light' | 'full', poolWithHooks: (RemotePoolCL | RemotePoolBIN)[], chainId: ChainId) {
   const hooks = await Promise.all(
     poolWithHooks.map(async (pool) => {
@@ -114,15 +121,25 @@ const fetchInfinityPoolsLight = async (
   addressB: Address,
   chainId: ChainId,
   type: 'full' | 'light',
+  preferOnChain?: boolean,
 ) => {
+  if (shouldDefaultToOnChainCandidatePools(chainId, preferOnChain)) {
+    return getInfinityPoolsOnChain(addressA, addressB, chainId)
+  }
   const call = createAsyncCallWithFallbacks(getInfinityPoolsFromApi, {
     fallbacks: [getInfinityPoolsOnChain],
     fallbackTimeout: 5_000,
   })
   return call(addressA, addressB, chainId, type)
 }
-const fetchInfinityPools = async (addressA: Address, addressB: Address, chainId: ChainId, type: 'full' | 'light') => {
-  const pools = await fetchInfinityPoolsLight(addressA, addressB, chainId, type)
+const fetchInfinityPools = async (
+  addressA: Address,
+  addressB: Address,
+  chainId: ChainId,
+  type: 'full' | 'light',
+  preferOnChain?: boolean,
+) => {
+  const pools = await fetchInfinityPoolsLight(addressA, addressB, chainId, type, preferOnChain)
 
   return fillTicksAndBins(pools as (InfinityClPool | InfinityBinPool)[])
 }
@@ -248,6 +265,7 @@ const querySingleType = async (
   addressA: Address,
   addressB: Address,
   type: 'full' | 'light',
+  options?: CandidatePoolQueryOptions,
 ) => {
   switch (protocol) {
     case 'v2': {
@@ -261,7 +279,7 @@ const querySingleType = async (
     }
     case 'infinityBin':
     case 'infinityCl': {
-      return fetchInfinityPools(addressA, addressB, chainId, type)
+      return fetchInfinityPools(addressA, addressB, chainId, type, options?.preferOnChain)
     }
     case 'infinityStable': {
       return fetchInfinityStablePools(addressA, addressB, chainId)
@@ -277,6 +295,7 @@ const querySingleTypeLite = async (
   addressA: Address,
   addressB: Address,
   type: 'full' | 'light',
+  options?: CandidatePoolQueryOptions,
 ) => {
   switch (protocol) {
     case 'v2': {
@@ -286,11 +305,14 @@ const querySingleTypeLite = async (
       return fetchSSPool(addressA, addressB, chainId)
     }
     case 'v3': {
+      if (shouldDefaultToOnChainCandidatePools(chainId, options?.preferOnChain)) {
+        return fetchV3Pools(addressA, addressB, chainId)
+      }
       return fetchV3PoolsWithoutTicks(addressA, addressB, chainId)
     }
     case 'infinityBin':
     case 'infinityCl': {
-      return fetchInfinityPoolsLight(addressA, addressB, chainId, type)
+      return fetchInfinityPoolsLight(addressA, addressB, chainId, type, options?.preferOnChain)
     }
     case 'infinityStable': {
       return fetchInfinityStablePools(addressA, addressB, chainId)
@@ -304,11 +326,12 @@ const fetchAllCandidatePools = async (
   addressB: Address,
   chainId: ChainId,
   protocols: Protocol[],
+  options?: CandidatePoolQueryOptions,
 ) => {
   const queries = await Promise.all(
     protocols
       .filter((x) => x !== 'infinityBin') // For infinity pools fetch together
-      .map((protocol) => querySingleType(chainId, protocol as Protocol, addressA, addressB, 'full')),
+      .map((protocol) => querySingleType(chainId, protocol as Protocol, addressA, addressB, 'full', options)),
   )
   const pools = queries.flat() as (InfinityPoolWithTvl | V2PoolWithTvl | V3PoolWithTvl | StablePoolWithTvl)[]
   return pools.map((pool) => {
@@ -321,11 +344,12 @@ const fetchAllCandidatePoolsLite = async (
   addressB: Address,
   chainId: ChainId,
   protocols: Protocol[],
+  options?: CandidatePoolQueryOptions,
 ) => {
   const queries = await Promise.all(
     protocols
       .filter((x) => x !== 'infinityBin')
-      .map((protocol) => querySingleTypeLite(chainId, protocol as Protocol, addressA, addressB, 'light')),
+      .map((protocol) => querySingleTypeLite(chainId, protocol as Protocol, addressA, addressB, 'light', options)),
   )
   const pools = queries.flat() as (InfinityPoolWithTvl | V2PoolWithTvl | V3Pool | V3PoolWithTvl | StablePoolWithTvl)[]
   return pools.map((pool) => {
@@ -498,6 +522,7 @@ async function fetchAllPools({
 }
 
 export const edgeQueries = {
+  shouldDefaultToOnChainCandidatePools,
   fetchAllCandidatePools,
   fetchAllCandidatePoolsLite,
   fetchAllPools,
