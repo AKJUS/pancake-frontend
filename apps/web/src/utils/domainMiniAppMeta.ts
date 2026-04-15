@@ -2,8 +2,8 @@ export const CAKEPAD_HOST = 'cakepad.pancakeswap.finance'
 export const PANCAKESWAP_HOST = 'pancakeswap.finance'
 
 export const BASE_APP_ID_BY_HOST: Record<string, string> = {
-  [CAKEPAD_HOST]: '698194b61672d70694e293ea',
-  [PANCAKESWAP_HOST]: '69bcf00a8d299162030cdffd',
+  [CAKEPAD_HOST]: '69ddfc00591fbd0918cc43af',
+  [PANCAKESWAP_HOST]: '69d8a6a0d5e6222067938086',
 }
 
 export const MINI_APP_EMBED_BY_HOST: Record<string, string> = {
