@@ -4,42 +4,50 @@ import { BIT_QUERY, STABLESWAP_SUBGRAPHS_URLS, V3_BSC_INFO_CLIENT, V3_SUBGRAPH_U
 import { GraphQLClient } from 'graphql-request'
 import { V2_SUBGRAPH_URLS } from '../config/constants/endpoints'
 
-export const infoClient = new GraphQLClient(V2_SUBGRAPH_URLS[ChainId.BSC])
+const createClient = (url: string | undefined | null): GraphQLClient | undefined =>
+  url ? new GraphQLClient(url) : undefined
+
+export const infoClient = createClient(V2_SUBGRAPH_URLS[ChainId.BSC])
 
 export const v3Clients = {
-  [ChainId.ETHEREUM]: new GraphQLClient(V3_SUBGRAPH_URLS[ChainId.ETHEREUM]),
-  [ChainId.GOERLI]: new GraphQLClient(V3_SUBGRAPH_URLS[ChainId.GOERLI]),
-  [ChainId.BSC]: new GraphQLClient(V3_SUBGRAPH_URLS[ChainId.BSC]),
-  [ChainId.BSC_TESTNET]: new GraphQLClient(V3_SUBGRAPH_URLS[ChainId.BSC_TESTNET]),
-  [ChainId.ARBITRUM_ONE]: new GraphQLClient(V3_SUBGRAPH_URLS[ChainId.ARBITRUM_ONE]),
-  [ChainId.ARBITRUM_GOERLI]: new GraphQLClient(V3_SUBGRAPH_URLS[ChainId.ARBITRUM_GOERLI]),
-  [ChainId.ZKSYNC]: new GraphQLClient(V3_SUBGRAPH_URLS[ChainId.ZKSYNC]),
-  [ChainId.ZKSYNC_TESTNET]: new GraphQLClient(V3_SUBGRAPH_URLS[ChainId.ZKSYNC_TESTNET]),
-  [ChainId.LINEA]: new GraphQLClient(V3_SUBGRAPH_URLS[ChainId.LINEA]),
-  [ChainId.LINEA_TESTNET]: new GraphQLClient(V3_SUBGRAPH_URLS[ChainId.LINEA_TESTNET]),
-  [ChainId.BASE]: new GraphQLClient(V3_SUBGRAPH_URLS[ChainId.BASE]),
-  [ChainId.BASE_TESTNET]: new GraphQLClient(V3_SUBGRAPH_URLS[ChainId.BASE_TESTNET]),
-  [ChainId.SCROLL_SEPOLIA]: new GraphQLClient(V3_SUBGRAPH_URLS[ChainId.SCROLL_SEPOLIA]),
-  [ChainId.OPBNB]: new GraphQLClient(V3_SUBGRAPH_URLS[ChainId.OPBNB]),
+  [ChainId.ETHEREUM]: createClient(V3_SUBGRAPH_URLS[ChainId.ETHEREUM]),
+  [ChainId.GOERLI]: createClient(V3_SUBGRAPH_URLS[ChainId.GOERLI]),
+  [ChainId.BSC]: createClient(V3_SUBGRAPH_URLS[ChainId.BSC]),
+  [ChainId.BSC_TESTNET]: createClient(V3_SUBGRAPH_URLS[ChainId.BSC_TESTNET]),
+  [ChainId.ARBITRUM_ONE]: createClient(V3_SUBGRAPH_URLS[ChainId.ARBITRUM_ONE]),
+  [ChainId.ARBITRUM_GOERLI]: createClient(V3_SUBGRAPH_URLS[ChainId.ARBITRUM_GOERLI]),
+  [ChainId.ZKSYNC]: createClient(V3_SUBGRAPH_URLS[ChainId.ZKSYNC]),
+  [ChainId.ZKSYNC_TESTNET]: createClient(V3_SUBGRAPH_URLS[ChainId.ZKSYNC_TESTNET]),
+  [ChainId.LINEA]: createClient(V3_SUBGRAPH_URLS[ChainId.LINEA]),
+  [ChainId.LINEA_TESTNET]: createClient(V3_SUBGRAPH_URLS[ChainId.LINEA_TESTNET]),
+  [ChainId.BASE]: createClient(V3_SUBGRAPH_URLS[ChainId.BASE]),
+  [ChainId.BASE_TESTNET]: createClient(V3_SUBGRAPH_URLS[ChainId.BASE_TESTNET]),
+  [ChainId.SCROLL_SEPOLIA]: createClient(V3_SUBGRAPH_URLS[ChainId.SCROLL_SEPOLIA]),
+  [ChainId.OPBNB]: createClient(V3_SUBGRAPH_URLS[ChainId.OPBNB]),
 }
 
-export const v3InfoClients = { ...v3Clients, [ChainId.BSC]: new GraphQLClient(V3_BSC_INFO_CLIENT) }
+export const v3InfoClients = {
+  ...v3Clients,
+  [ChainId.BSC]: createClient(V3_BSC_INFO_CLIENT),
+}
 
 export const v2Clients = {
-  [ChainId.ETHEREUM]: new GraphQLClient(V2_SUBGRAPH_URLS[ChainId.ETHEREUM]),
-  [ChainId.BSC]: new GraphQLClient(V2_SUBGRAPH_URLS[ChainId.BSC]),
-  [ChainId.ZKSYNC]: new GraphQLClient(V2_SUBGRAPH_URLS[ChainId.ZKSYNC]),
-  [ChainId.LINEA]: new GraphQLClient(V2_SUBGRAPH_URLS[ChainId.LINEA]),
-  [ChainId.BASE]: new GraphQLClient(V2_SUBGRAPH_URLS[ChainId.BASE]),
-  [ChainId.ARBITRUM_ONE]: new GraphQLClient(V2_SUBGRAPH_URLS[ChainId.ARBITRUM_ONE]),
-  [ChainId.OPBNB]: new GraphQLClient(V2_SUBGRAPH_URLS[ChainId.OPBNB]),
+  [ChainId.ETHEREUM]: createClient(V2_SUBGRAPH_URLS[ChainId.ETHEREUM]),
+  [ChainId.BSC]: createClient(V2_SUBGRAPH_URLS[ChainId.BSC]),
+  [ChainId.ZKSYNC]: createClient(V2_SUBGRAPH_URLS[ChainId.ZKSYNC]),
+  [ChainId.LINEA]: createClient(V2_SUBGRAPH_URLS[ChainId.LINEA]),
+  [ChainId.BASE]: createClient(V2_SUBGRAPH_URLS[ChainId.BASE]),
+  [ChainId.ARBITRUM_ONE]: createClient(V2_SUBGRAPH_URLS[ChainId.ARBITRUM_ONE]),
+  [ChainId.OPBNB]: createClient(V2_SUBGRAPH_URLS[ChainId.OPBNB]),
 }
 
-export const infoStableSwapClients: Record<(typeof STABLE_SUPPORTED_CHAIN_IDS)[number], GraphQLClient> = {
-  [ChainId.BSC]: new GraphQLClient(STABLESWAP_SUBGRAPHS_URLS[ChainId.BSC]),
-  [ChainId.ARBITRUM_ONE]: new GraphQLClient(STABLESWAP_SUBGRAPHS_URLS[ChainId.ARBITRUM_ONE]),
-  [ChainId.ETHEREUM]: new GraphQLClient(STABLESWAP_SUBGRAPHS_URLS[ChainId.ETHEREUM]),
-  [ChainId.BSC_TESTNET]: new GraphQLClient(STABLESWAP_SUBGRAPHS_URLS[ChainId.BSC_TESTNET]),
+export const infoStableSwapClients: Partial<
+  Record<(typeof STABLE_SUPPORTED_CHAIN_IDS)[number], GraphQLClient | undefined>
+> = {
+  [ChainId.BSC]: createClient(STABLESWAP_SUBGRAPHS_URLS[ChainId.BSC]),
+  [ChainId.ARBITRUM_ONE]: createClient(STABLESWAP_SUBGRAPHS_URLS[ChainId.ARBITRUM_ONE]),
+  [ChainId.ETHEREUM]: createClient(STABLESWAP_SUBGRAPHS_URLS[ChainId.ETHEREUM]),
+  [ChainId.BSC_TESTNET]: createClient(STABLESWAP_SUBGRAPHS_URLS[ChainId.BSC_TESTNET]),
 }
 
 export const bitQueryServerClient = new GraphQLClient(BIT_QUERY, {

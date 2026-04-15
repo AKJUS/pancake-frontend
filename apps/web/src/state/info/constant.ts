@@ -68,11 +68,13 @@ export const multiChainPaths = {
 
 export const multiChainQueryStableClient = STABLE_SUPPORTED_CHAIN_IDS.reduce((acc, chainId) => {
   if (isTestnetChainId(chainId)) return acc
+  const client = infoStableSwapClients[chainId]
+  if (!client) return acc
   return {
     ...acc,
-    [multiChainName[chainId]]: infoStableSwapClients[chainId],
+    [multiChainName[chainId]]: client,
   }
-}, {} as Record<MultiChainName, GraphQLClient>)
+}, {} as Partial<Record<MultiChainName, GraphQLClient>>)
 
 export const infoChainNameToExplorerChainName = {
   BSC: 'bsc',
@@ -135,9 +137,11 @@ export const multiChainTokenWhiteList: Record<MultiChainName, string[]> = mapVal
   (val) => val.map((address) => address.toLowerCase()),
 )
 
-export const getMultiChainQueryEndPointWithStableSwap = (chainName: MultiChainNameExtend): GraphQLClient => {
+export const getMultiChainQueryEndPointWithStableSwap = (
+  chainName: MultiChainNameExtend,
+): GraphQLClient | undefined => {
   const isStableSwap = checkIsStableSwap()
-  if (isStableSwap) return multiChainQueryStableClient[chainName]
+  if (isStableSwap) return multiChainQueryStableClient[chainName as MultiChainName]
   return v2Clients[multiChainId[chainName]]
 }
 

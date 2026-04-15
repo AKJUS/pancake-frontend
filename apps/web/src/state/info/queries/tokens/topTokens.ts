@@ -27,14 +27,16 @@ interface StableSwapTopTokensResponse {
  * Note: dailyTxns_gt: 300 is there to prevent fetching incorrectly priced tokens with high dailyVolumeUSD
  */
 const fetchTopTokens = async (chainName: MultiChainNameExtend, timestamp24hAgo: number): Promise<string[]> => {
-  const whereCondition =
-    chainName === 'ETH'
-      ? `where: { date_gt: ${timestamp24hAgo}, token_not_in: $blacklist, dailyVolumeUSD_gt:2000 }`
-      : checkIsStableSwap()
-      ? ''
-      : `where: { id_not_in: $blacklist, date_gt: ${timestamp24hAgo}}`
-  const firstCount = 50
   try {
+    const graphQLClient = getMultiChainQueryEndPointWithStableSwap(chainName)
+    if (!graphQLClient) return []
+    const whereCondition =
+      chainName === 'ETH'
+        ? `where: { date_gt: ${timestamp24hAgo}, token_not_in: $blacklist, dailyVolumeUSD_gt:2000 }`
+        : checkIsStableSwap()
+        ? ''
+        : `where: { id_not_in: $blacklist, date_gt: ${timestamp24hAgo}}`
+    const firstCount = 50
     const query = gql`
       query topTokens($blacklist: [ID!]) {
         tokenDayDatas(
@@ -62,15 +64,13 @@ const fetchTopTokens = async (chainName: MultiChainNameExtend, timestamp24hAgo: 
     `
 
     if (checkIsStableSwap()) {
-      const data = await getMultiChainQueryEndPointWithStableSwap(chainName).request<StableSwapTopTokensResponse>(
-        stableSwapQuery,
-      )
+      const data = await graphQLClient.request<StableSwapTopTokensResponse>(stableSwapQuery)
       return union(
         data.tokens.map((t) => t.id),
         multiChainTokenWhiteList[chainName],
       )
     }
-    const data = await getMultiChainQueryEndPointWithStableSwap(chainName).request<TopTokensResponse>(query, {
+    const data = await graphQLClient.request<TopTokensResponse>(query, {
       blacklist: multiChainTokenBlackList[chainName],
     })
     // tokenDayDatas id has compound id "0xTOKENADDRESS-NUMBERS", extracting token address with .split('-')

@@ -203,12 +203,13 @@ const PositionHistoryComponent = ({
   const { t } = useTranslation()
   const [isExpanded, setIsExpanded] = useState(false)
   const { chainId } = useActiveChainId()
-  const client = v3Clients[chainId as ChainId]
+  const client = v3Clients[chainId as keyof typeof v3Clients]
   const { data, isPending } = useQuery({
     queryKey: ['positionHistory', chainId, tokenId],
 
     queryFn: async () => {
       // @TODO: Implement the query with infinity
+      if (!client) return []
       const result: PositionHistoryResult = await client.request<PositionHistoryResult>(
         gql`
           query positionHistory($tokenId: String!) {
@@ -315,12 +316,12 @@ const PositionHistoryComponent = ({
                     }
                     return collectTx
                   })
-                  .filter(Boolean)
+                  .filter((tx): tx is PositionTX => Boolean(tx))
                   .map((positionTx) => (
                     <PositionHistoryRow
                       chainId={chainId}
-                      positionTx={positionTx!}
-                      key={positionTx!.id}
+                      positionTx={positionTx}
+                      key={positionTx.id}
                       type="collect"
                       currency0={currency0}
                       currency1={currency1}
