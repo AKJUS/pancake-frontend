@@ -3,9 +3,8 @@ import { Box, CardProps, Flex, FlexGap, InfoIcon, QuestionHelperV2, Text } from 
 import { LightGreyCard } from 'components/Card'
 import { ProgressBar } from 'components/Progress/ProgressBar'
 import { formatAmount } from 'utils/formatInfoNumbers'
-import { PEAK_SUPPLY } from 'views/BurnDashboard/constants'
 import { useBurnStats } from 'views/BurnDashboard/hooks/useBurnStats'
-import { getBurnInfoPrecision } from 'views/BurnDashboard/utils'
+import { getBurnInfoPrecision, getPeakSupply } from 'views/BurnDashboard/utils'
 import { StatsCard, StatsCardHeader } from '../StatsCard'
 
 export const TotalDeflationCard = (props: CardProps) => {
@@ -13,9 +12,10 @@ export const TotalDeflationCard = (props: CardProps) => {
 
   const { data } = useBurnStats()
 
-  const totalDeflation = PEAK_SUPPLY - (data?.total_supply || 0)
+  const peakSupply = getPeakSupply(data?.totalSupplyTimeSeries || [])
+  const totalDeflation = peakSupply - (data?.total_supply || 0)
 
-  const totalDeflationByPeakSupplyPercentage = (totalDeflation / PEAK_SUPPLY) * 100
+  const totalDeflationByPeakSupplyPercentage = peakSupply > 0 ? (totalDeflation / peakSupply) * 100 : 0
 
   return (
     <StatsCard {...props}>

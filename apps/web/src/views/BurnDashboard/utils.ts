@@ -6,3 +6,7 @@ export const getBurnInfoPrecision = (value: number) => {
 
   return undefined
 }
+
+export const getPeakSupply = (series: { total_supply: number }[]): number => {
+  return series.reduce((max, entry) => (entry.total_supply > max ? entry.total_supply : max), 0)
+}

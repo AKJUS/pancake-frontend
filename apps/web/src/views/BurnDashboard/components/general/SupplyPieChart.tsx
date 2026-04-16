@@ -4,9 +4,8 @@ import { LightGreyCard } from 'components/Card'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts'
 import styled from 'styled-components'
 import { formatAmount } from 'utils/formatInfoNumbers'
-import { PEAK_SUPPLY } from 'views/BurnDashboard/constants'
 import { useBurnStats } from 'views/BurnDashboard/hooks/useBurnStats'
-import { getBurnInfoPrecision } from 'views/BurnDashboard/utils'
+import { getBurnInfoPrecision, getPeakSupply } from 'views/BurnDashboard/utils'
 import { StatsCard, StatsCardHeader } from '../StatsCard'
 import { TooltipCard } from '../styles'
 
@@ -34,9 +33,10 @@ export const SupplyPieChart = (props: CardProps) => {
   const { data } = useBurnStats()
 
   const TOTAL_SUPPLY = data?.total_supply || 0
-  const NET_BURN = PEAK_SUPPLY - (data?.total_supply || 0)
+  const PEAK_SUPPLY = getPeakSupply(data?.totalSupplyTimeSeries || [])
+  const NET_BURN = PEAK_SUPPLY - TOTAL_SUPPLY
 
-  const peakSupplyFormatted = formatAmount(PEAK_SUPPLY, { precision: getBurnInfoPrecision(PEAK_SUPPLY) }) // Hardcoded as Peak Supply is 380M
+  const peakSupplyFormatted = formatAmount(PEAK_SUPPLY, { precision: getBurnInfoPrecision(PEAK_SUPPLY) })
   const totalSupplyFormatted = formatAmount(TOTAL_SUPPLY, { precision: getBurnInfoPrecision(TOTAL_SUPPLY) })
   const netBurnedFormatted = formatAmount(NET_BURN, { precision: getBurnInfoPrecision(NET_BURN) })
 
@@ -69,7 +69,7 @@ export const SupplyPieChart = (props: CardProps) => {
     <StatsCard {...props}>
       <FlexGap alignItems="center" gap="4px">
         <StatsCardHeader>{t('Total Supply')}</StatsCardHeader>
-        <QuestionHelperV2 text={t('Peak Supply: Highest CAKE supply of 397,036,557 on Sep 25, 2023')} placement="top">
+        <QuestionHelperV2 text={t('Peak Supply: Highest CAKE supply ever recorded')} placement="top">
           <InfoIcon color="textSubtle" />
         </QuestionHelperV2>
       </FlexGap>
