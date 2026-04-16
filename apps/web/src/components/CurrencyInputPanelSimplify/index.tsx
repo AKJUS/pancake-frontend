@@ -40,6 +40,7 @@ import { FONT_SIZE, LOGO_SIZE, useFontSize } from './state'
 export const CurrencySelectButton = styled(Button).attrs({ variant: 'text', scale: 'sm' })`
   padding: 24px 8px 22px;
   margin-top: 2px;
+  height: auto;
 
   &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.invertedContrast};
