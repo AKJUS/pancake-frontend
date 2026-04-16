@@ -286,7 +286,8 @@ function CurrencySearch({
     return ids as UnifiedChainId[]
   }, [selectedChainId, activeChainId, isCrossChainOutput, bridgeChainsLoading, supportedBridgeChains])
 
-  const shouldSearchMultichain = enableMultichainSearch && !tokensToShow && Boolean(debouncedQuery)
+  const shouldSearchMultichain =
+    enableMultichainSearch && !tokensToShow && Boolean(debouncedQuery) && !supportCrossChain
   const tokenListSearchResults = useMultiChainTokenSearch(
     shouldSearchMultichain ? debouncedQuery : undefined,
     tokenListChainIds,
@@ -411,7 +412,7 @@ function CurrencySearch({
   )
 
   const multichainTokens: UnifiedCurrency[] = useMemo(() => {
-    if (!showMultichainBalances || !allChainBalances.length || tokensToShow) return []
+    if (!showMultichainBalances || !allChainBalances.length || tokensToShow || supportCrossChain) return []
 
     return (
       allChainBalances
@@ -471,12 +472,13 @@ function CurrencySearch({
     nativeSymbols,
     tokenListMap,
     tokensToShow,
+    supportCrossChain,
   ])
 
   // Other-chain native currencies (ETH, BNB, SOL, etc.) filtered and ready for display.
   // SOL uses solUnitPrice, while EVM native prices (ETH, BNB, etc.) are batch-fetched above.
   const otherChainNatives: UnifiedCurrency[] = useMemo(() => {
-    if (!showMultichainBalances || !multichainNatives.length || tokensToShow) return []
+    if (!showMultichainBalances || !multichainNatives.length || tokensToShow || supportCrossChain) return []
 
     return multichainNatives
       .filter((n) => n.chainId !== (selectedChainId ?? activeChainId))
@@ -497,6 +499,7 @@ function CurrencySearch({
     bridgeChainsLoading,
     supportedBridgeChains,
     tokensToShow,
+    supportCrossChain,
   ])
 
   // Token-list-only multichain results: tokens found via token lists but NOT already in wallet balance results.
