@@ -13,7 +13,6 @@ import ApproveLiquidityTokens from 'views/AddLiquidityV3/components/ApproveLiqui
 
 export interface V3SubmitButtonProps {
   addIsUnsupported: boolean
-  addIsWarning: boolean
   account?: string
   isWrongNetwork: boolean
   approvalA: ApprovalState
@@ -46,7 +45,6 @@ export interface V3SubmitButtonProps {
 
 export function V3SubmitButton({
   addIsUnsupported,
-  addIsWarning,
   account,
   isWrongNetwork,
   approvalA,
@@ -84,7 +82,7 @@ export function V3SubmitButton({
   )
 
   let buttons: ReactNode = null
-  if (addIsUnsupported || addIsWarning) {
+  if (addIsUnsupported) {
     buttons = (
       <Button disabled mb="4px">
         {t('Unsupported Asset')}

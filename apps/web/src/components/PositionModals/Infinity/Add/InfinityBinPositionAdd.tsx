@@ -570,7 +570,6 @@ export const InfinityBinPositionAdd = ({ position, poolInfo }: InfinityBinPositi
           </Button>
         ) : (
           <V3SubmitButton
-            addIsWarning={false}
             addIsUnsupported={false}
             account={account ?? undefined}
             isWrongNetwork={false}

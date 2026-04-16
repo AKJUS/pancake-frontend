@@ -39,13 +39,13 @@ import { MevProtectToggle } from 'views/Mev/MevProtectToggle'
 import useStableConfig, { StableConfigContext } from 'views/Swap/hooks/useStableConfig'
 import AddStableLiquidity, { AddStableChildrenProps } from 'views/AddLiquidity/AddStableLiquidity'
 import StableFormView from 'views/AddLiquidityV3/formViews/StableFormView'
-import { useIsTransactionUnsupported, useIsTransactionWarning } from 'hooks/Trades'
 import { ApprovalState } from 'hooks/useApproveCallback'
 import { formatDollarAmount } from 'views/V3Info/utils/numbers'
 import { FormattedSlippage } from 'views/AddLiquidity/AddStableLiquidity/components'
 import { useCheckAndSwitchChain } from 'hooks/useCheckAndSwitchChain'
 import { useCheckShouldSwitchNetwork } from 'views/universalFarms/hooks'
 import useNativeCurrency from 'hooks/useNativeCurrency'
+import { useIsTransactionUnsupported, useIsTransactionWarning } from 'hooks/Trades'
 
 interface SSPositionAddProps {
   position: StableLPDetail

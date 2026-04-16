@@ -108,7 +108,6 @@ export const V2PositionAdd = ({ poolInfo }: V2PositionAddProps) => {
 const V2PositionAddInner = ({
   formattedAmounts,
   addIsUnsupported,
-  addIsWarning,
   shouldShowApprovalGroup,
   approveACallback,
   revokeACallback,
@@ -198,7 +197,7 @@ const V2PositionAddInner = ({
           {t('Switch Network')}
         </Button>
       )
-    if (addIsUnsupported || addIsWarning) return <Button disabled>{t('Unsupported Asset')}</Button>
+    if (addIsUnsupported) return <Button disabled>{t('Unsupported Asset')}</Button>
     return (
       <>
         <Box mb={shouldShowApprovalGroup ? '8px' : null}>
@@ -259,7 +258,6 @@ const V2PositionAddInner = ({
   }, [
     isWrongNetwork,
     addIsUnsupported,
-    addIsWarning,
     shouldShowApprovalGroup,
     approvalA,
     approvalB,

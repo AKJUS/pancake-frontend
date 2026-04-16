@@ -35,7 +35,7 @@ import { calculateGasMargin } from 'utils'
 import { isUserRejected } from 'utils/sentry'
 import { transactionErrorToUserReadableMessage } from 'utils/transactionErrorToUserReadableMessage'
 import { formatRawAmount } from 'utils/formatCurrencyAmount'
-import { useIsTransactionUnsupported, useIsTransactionWarning } from 'hooks/Trades'
+import { useTokenRisk } from 'hooks/useTokenRisk'
 import { ZAP_V3_POOL_ADDRESSES } from 'config/constants/zap'
 import { ZapLiquidityWidget } from 'components/ZapLiquidityWidget'
 import { useRouter } from 'next/router'
@@ -256,8 +256,7 @@ export const V3PositionAdd = ({ position: existingPositionDetail, poolInfo }: V3
 
   // Validation
   const isValid = !errorMessage && !invalidRange && !tokenIdsInMCv3Loading
-  const addIsWarning = useIsTransactionWarning(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
-  const addIsUnsupported = useIsTransactionUnsupported(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
+  const { shouldBlock: addIsUnsupported } = useTokenRisk(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
 
   // Slippage
   const [allowedSlippage] = useLiquidityUserSlippage() || [INITIAL_ALLOWED_SLIPPAGE]
@@ -515,7 +514,6 @@ export const V3PositionAdd = ({ position: existingPositionDetail, poolInfo }: V3
           </Button>
         ) : (
           <V3SubmitButton
-            addIsWarning={addIsWarning}
             addIsUnsupported={addIsUnsupported}
             account={account ?? undefined}
             approvalA={approvalA}

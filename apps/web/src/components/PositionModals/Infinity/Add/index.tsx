@@ -384,7 +384,6 @@ export const InfinityCLPositionAdd = ({ position, poolInfo }: InfinityPositionAd
           </Button>
         ) : (
           <V3SubmitButton
-            addIsWarning={false}
             addIsUnsupported={false}
             account={account ?? undefined}
             isWrongNetwork={false}

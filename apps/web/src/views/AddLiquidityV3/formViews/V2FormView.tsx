@@ -42,7 +42,6 @@ import { useNativeCurrencyInstead } from '../hooks/useNativeCurrencyInstead'
 export default function V2FormView({
   formattedAmounts,
   addIsUnsupported,
-  addIsWarning,
   shouldShowApprovalGroup,
   approveACallback,
   revokeACallback,
@@ -100,7 +99,7 @@ export default function V2FormView({
     [pair, chainId],
   )
 
-  if (addIsUnsupported || addIsWarning) {
+  if (addIsUnsupported) {
     buttons = (
       <Button disabled mb="4px">
         {t('Unsupported Asset')}

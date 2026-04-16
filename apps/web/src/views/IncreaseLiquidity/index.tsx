@@ -456,7 +456,6 @@ export const IncreaseLiquidity = () => {
           </RowBetween>
 
           <V3SubmitButton
-            addIsWarning={false}
             addIsUnsupported={false}
             account={account ?? undefined}
             isWrongNetwork={Boolean(isWrongNetwork)}

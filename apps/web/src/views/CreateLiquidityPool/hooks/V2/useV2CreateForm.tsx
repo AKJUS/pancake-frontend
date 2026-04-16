@@ -18,7 +18,6 @@ import { getViemErrorMessage } from 'utils/errors'
 import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import { calculateSlippageAmount, useRouterContract } from 'utils/exchange'
 import { formatCurrencyAmount } from 'utils/formatCurrencyAmount'
-import { useIsTransactionUnsupported, useIsTransactionWarning } from 'hooks/Trades'
 import {
   logGTMAddLiquidityTxSentEvent,
   logGTMClickAddLiquidityConfirmEvent,
@@ -48,6 +47,7 @@ import tryParseCurrencyAmount from 'utils/tryParseCurrencyAmount'
 import tryParseAmount from '@pancakeswap/utils/tryParseAmount'
 import { useStartingPriceQueryState } from 'state/infinity/create'
 import { PreviewModal } from 'views/CreateLiquidityPool/components/PreviewModal'
+import { useTokenRisk } from 'hooks/useTokenRisk'
 import { useCurrencies } from '../useCurrencies'
 
 export const useV2CreateForm = () => {
@@ -103,8 +103,7 @@ export const useV2CreateForm = () => {
   )
 
   // Validation
-  const addIsUnsupported = useIsTransactionUnsupported(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
-  const addIsWarning = useIsTransactionWarning(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
+  const { shouldBlock: addIsUnsupported } = useTokenRisk(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
 
   // Actions
   const { onFieldAInput, onFieldBInput } = useMintActionHandlers(noLiquidity)
@@ -409,7 +408,7 @@ export const useV2CreateForm = () => {
 
   // Buttons
   const buttons: ReactNode = useMemo(() => {
-    if (addIsUnsupported || addIsWarning) {
+    if (addIsUnsupported) {
       return (
         <Button disabled mb="4px">
           {t('Unsupported Asset')}
@@ -479,7 +478,6 @@ export const useV2CreateForm = () => {
   }, [
     account,
     addIsUnsupported,
-    addIsWarning,
     approvalA,
     approvalB,
     approveACallback,
@@ -555,7 +553,6 @@ export const useV2CreateForm = () => {
 
     // Validation
     addIsUnsupported,
-    addIsWarning,
     errorText,
     buttonDisabled,
 

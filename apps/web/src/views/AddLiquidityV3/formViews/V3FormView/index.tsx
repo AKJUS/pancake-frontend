@@ -40,7 +40,7 @@ import TransactionConfirmationModal from 'components/TransactionConfirmationModa
 import { ZapLiquidityWidget } from 'components/ZapLiquidityWidget'
 import { Bound } from 'config/constants/types'
 import { ZAP_V3_POOL_ADDRESSES } from 'config/constants/zap'
-import { useIsTransactionUnsupported, useIsTransactionWarning } from 'hooks/Trades'
+import { useTokenRisk } from 'hooks/useTokenRisk'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
 import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import { useV3NFTPositionManagerContract } from 'hooks/useContract'
@@ -497,7 +497,7 @@ export default function V3FormView({
     setTxHash('')
     setTxnErrorMessage(undefined)
   }, [onFieldAInput, txHash])
-  const addIsUnsupported = useIsTransactionUnsupported(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
+  const { shouldBlock: addIsUnsupported } = useTokenRisk(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
 
   // get value and prices at ticks
   const { [Bound.LOWER]: tickLower, [Bound.UPPER]: tickUpper } = ticks
@@ -579,8 +579,6 @@ export default function V3FormView({
     'TransactionConfirmationModal',
   )
 
-  const addIsWarning = useIsTransactionWarning(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
-
   const handleButtonSubmit = useCallback(() => {
     // eslint-disable-next-line no-unused-expressions
     expertMode ? onAdd() : onPresentAddLiquidityModal()
@@ -601,7 +599,6 @@ export default function V3FormView({
   const buttons = (
     <V3SubmitButton
       addIsUnsupported={addIsUnsupported}
-      addIsWarning={addIsWarning}
       account={account ?? undefined}
       isWrongNetwork={Boolean(isWrongNetwork)}
       approvalA={approvalA}

@@ -3,7 +3,7 @@ import { useTranslation } from '@pancakeswap/localization'
 import { AddIcon, AtomBoxProps, AutoColumn, Text, usePrompt } from '@pancakeswap/uikit'
 import BigNumber from 'bignumber.js'
 import PageLoader from 'components/Loader/PageLoader'
-import { useIsTransactionUnsupported, useIsTransactionWarning } from 'hooks/Trades'
+import { useTokenRisk } from 'hooks/useTokenRisk'
 import { useInfinityPoolIdRouteParams } from 'hooks/dynamicRoute/usePoolIdRoute'
 import { usePoolCurrentPrice } from 'hooks/infinity/usePoolCurrentPrice'
 import { useActiveChainId } from 'hooks/useActiveChainId'
@@ -53,8 +53,7 @@ export const SubmitButton = (props: AtomBoxProps) => {
     const slippage = new BigNumber(marketPriceSlippage.toFixed(0)).abs()
     return slippage.gt(5) // 5% slippage
   }, [marketPriceSlippage])
-  const addIsUnsupported = useIsTransactionUnsupported(currencyA, currencyB)
-  const addIsWarning = useIsTransactionWarning(currencyA, currencyB)
+  const { shouldBlock: addIsUnsupported } = useTokenRisk(currencyA, currencyB)
 
   const { onSubmit, attemptingTx } = useAddFormSubmitCallback()
   const prompt = usePrompt()
@@ -245,7 +244,6 @@ export const SubmitButton = (props: AtomBoxProps) => {
       )}
       <V3SubmitButton
         addIsUnsupported={addIsUnsupported}
-        addIsWarning={addIsWarning}
         account={account ?? undefined}
         isWrongNetwork={Boolean(isWrongNetwork)}
         showApprovalA={showApprovalA}

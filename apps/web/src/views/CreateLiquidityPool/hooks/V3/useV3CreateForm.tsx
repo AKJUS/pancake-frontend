@@ -25,7 +25,7 @@ import {
   logGTMClickAddLiquidityEvent,
 } from 'utils/customGTMEventTracking'
 import { useIsExpertMode, useUserSlippage } from '@pancakeswap/utils/user'
-import { useIsTransactionUnsupported, useIsTransactionWarning } from 'hooks/Trades'
+import { useTokenRisk } from 'hooks/useTokenRisk'
 import { useV3NFTPositionManagerContract } from 'hooks/useContract'
 import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import V3RangeSelector from 'views/AddLiquidityV3/formViews/V3FormView/components/V3RangeSelector'
@@ -134,8 +134,7 @@ export const useV3CreateForm = () => {
   )
 
   // Currency validation
-  const addIsWarning = useIsTransactionWarning(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
-  const addIsUnsupported = useIsTransactionUnsupported(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
+  const { shouldBlock: addIsUnsupported } = useTokenRisk(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
   const isValid = !errorMessage && !invalidRange
 
   // Derivative States
@@ -512,7 +511,6 @@ export const useV3CreateForm = () => {
   const buttons = (
     <V3SubmitButton
       addIsUnsupported={addIsUnsupported}
-      addIsWarning={addIsWarning}
       account={account ?? undefined}
       isWrongNetwork={Boolean(isWrongNetwork)}
       approvalA={approvalA}

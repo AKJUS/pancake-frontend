@@ -5,7 +5,7 @@ import { useUserSlippage } from '@pancakeswap/utils/user'
 import { ReactElement, useCallback, useEffect, useMemo, useState } from 'react'
 
 import { V2_ROUTER_ADDRESS } from 'config/constants/exchange'
-import { useIsTransactionUnsupported, useIsTransactionWarning } from 'hooks/Trades'
+import { useTokenRisk } from 'hooks/useTokenRisk'
 import { useLPApr } from 'state/swap/useLPApr'
 import { logGTMAddLiquidityTxSentEvent, logGTMClickAddLiquidityConfirmEvent } from 'utils/customGTMEventTracking'
 import { formatCurrencyAmount } from 'utils/formatCurrencyAmount'
@@ -75,7 +75,6 @@ export interface LP2ChildrenProps {
   onPresentAddLiquidityModal: () => void
   buttonDisabled: boolean
   errorText?: string
-  addIsWarning: boolean
   addIsUnsupported: boolean
   pendingText: string
 }
@@ -370,8 +369,7 @@ export default function AddLiquidity({
     }
   }, [onFieldAInput, txHash])
 
-  const addIsUnsupported = useIsTransactionUnsupported(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
-  const addIsWarning = useIsTransactionWarning(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
+  const { shouldBlock: addIsUnsupported } = useTokenRisk(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
 
   const [onPresentAddLiquidityModal_] = useModal(
     <ConfirmAddLiquidityModal
@@ -447,7 +445,6 @@ export default function AddLiquidity({
     onPresentAddLiquidityModal,
     buttonDisabled,
     errorText,
-    addIsWarning,
     addIsUnsupported,
     pendingText,
   })

@@ -16,7 +16,7 @@ import { CurrencyField as Field } from 'utils/types'
 
 import { useTranslation } from '@pancakeswap/localization'
 import { AppHeader } from 'components/App'
-import { useIsTransactionUnsupported, useIsTransactionWarning } from 'hooks/Trades'
+import { useTokenRisk } from 'hooks/useTokenRisk'
 import { useMasterchefV3, useV3NFTPositionManagerContract } from 'hooks/useContract'
 import { useRouter } from 'next/router'
 import { useTransactionAdder } from 'state/transactions/hooks'
@@ -327,9 +327,7 @@ export default function IncreaseLiquidityV3({ currencyA: baseCurrency, currencyB
     t,
   ])
 
-  const addIsUnsupported = useIsTransactionUnsupported(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
-
-  const addIsWarning = useIsTransactionWarning(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
+  const { shouldBlock: addIsUnsupported } = useTokenRisk(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
 
   const handleDismissConfirmation = useCallback(() => {
     setTxnErrorMessage(undefined)
@@ -407,7 +405,6 @@ export default function IncreaseLiquidityV3({ currencyA: baseCurrency, currencyB
   const buttons = (
     <V3SubmitButton
       addIsUnsupported={addIsUnsupported}
-      addIsWarning={addIsWarning}
       account={account ?? undefined}
       isWrongNetwork={Boolean(isWrongNetwork)}
       approvalA={approvalA}
