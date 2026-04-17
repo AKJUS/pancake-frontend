@@ -1,3 +1,4 @@
+import { isSolana } from '@pancakeswap/chains'
 import { Token, UnifiedCurrency } from '@pancakeswap/sdk'
 import { ModalV2, useModal, useModalV2 } from '@pancakeswap/uikit'
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
@@ -6,10 +7,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 
 import ImportTokenWarningModal from 'components/ImportTokenWarningModal'
-import { useAllTokens, useCurrency } from 'hooks/Tokens'
+import { useAllTokens, useCurrency, useUnifiedCurrency } from 'hooks/Tokens'
 import { Field } from 'state/swap/actions'
 import { useSwapState } from 'state/swap/hooks'
 import { safeGetAddress } from 'utils'
+import { safeGetUnifiedAddress } from 'utils/safeGetAddress'
 
 import { useActiveChainId } from 'hooks/useActiveChainId'
 import { useTokenRisk } from 'hooks/useTokenRisk'
@@ -19,8 +21,8 @@ export default function useWarningImport() {
   const router = useRouter()
   const { chainId, isWrongNetwork } = useActiveChainId()
   const {
-    [Field.INPUT]: { currencyId: inputCurrencyId },
-    [Field.OUTPUT]: { currencyId: outputCurrencyId },
+    [Field.INPUT]: { currencyId: inputCurrencyId, chainId: inputChainId },
+    [Field.OUTPUT]: { currencyId: outputCurrencyId, chainId: outputChainId },
   } = useSwapState()
 
   // swap warning state
@@ -34,11 +36,18 @@ export default function useWarningImport() {
   const { isOpen: isSwapWarningOpen, onOpen: openSwapWarningModal, onDismiss: dismissSwapWarningModal } = useModalV2()
 
   // token warning stuff
-  const [loadedInputCurrency, loadedOutputCurrency] = [useCurrency(inputCurrencyId), useCurrency(outputCurrencyId)]
+  const [loadedInputEvmCurrency, loadedOutputEvmCurrency] = [
+    useCurrency(inputCurrencyId, inputChainId),
+    useCurrency(outputCurrencyId, outputChainId),
+  ]
+  const [loadedInputCurrency, loadedOutputCurrency] = [
+    useUnifiedCurrency(inputCurrencyId, inputChainId),
+    useUnifiedCurrency(outputCurrencyId, outputChainId),
+  ]
 
   const urlLoadedTokens: Token[] = useMemo(
-    () => [loadedInputCurrency, loadedOutputCurrency]?.filter((c): c is Token => Boolean(c?.isToken)) ?? [],
-    [loadedInputCurrency, loadedOutputCurrency],
+    () => [loadedInputEvmCurrency, loadedOutputEvmCurrency]?.filter((c): c is Token => Boolean(c?.isToken)) ?? [],
+    [loadedInputEvmCurrency, loadedOutputEvmCurrency],
   )
 
   const defaultTokens = useAllTokens()
@@ -58,9 +67,12 @@ export default function useWarningImport() {
   }, [chainId, defaultTokens, isWrongNetwork, loadedTokenList, urlLoadedTokens])
 
   const getCurrencyKey = useCallback((currency?: UnifiedCurrency | null) => {
-    return currency && (currency as Token).isToken
-      ? `${currency.chainId}:${(currency as Token).address.toLowerCase()}`
-      : null
+    if (!currency?.isToken) return null
+
+    const normalizedAddress = safeGetUnifiedAddress(currency.chainId, currency.address)
+    if (!normalizedAddress) return null
+
+    return `${currency.chainId}:${isSolana(currency.chainId) ? normalizedAddress : normalizedAddress.toLowerCase()}`
   }, [])
 
   const clearSwapWarning = useCallback(() => {

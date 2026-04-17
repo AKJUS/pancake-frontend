@@ -1,17 +1,17 @@
-import { Currency } from '@pancakeswap/sdk'
+import { UnifiedCurrency } from '@pancakeswap/sdk'
 import { useModal } from '@pancakeswap/uikit'
 import { useCallback, useEffect, useState } from 'react'
-import { useCurrency } from 'hooks/Tokens'
-import { getCurrencyRiskEntry, useRiskTokenConfigMap, useTokenRisk } from 'hooks/useTokenRisk'
+import { useUnifiedCurrency } from 'hooks/Tokens'
+import { EMPTY_RISK_TOKEN_MAP, getCurrencyRiskEntry, useRiskTokenConfigMap, useTokenRisk } from 'hooks/useTokenRisk'
 import SwapWarningModal from 'views/Swap/components/SwapWarningModal'
 
 export default function useWarningLiquidity(currencyIdA?: string, currencyIdB?: string) {
-  const currencyA = useCurrency(currencyIdA)
-  const currencyB = useCurrency(currencyIdB)
-  const [warningCurrency, setWarningCurrency] = useState<Currency | null>(null)
+  const currencyA = useUnifiedCurrency(currencyIdA)
+  const currencyB = useUnifiedCurrency(currencyIdB)
+  const [warningCurrency, setWarningCurrency] = useState<UnifiedCurrency | null>(null)
   const [warningTitle, setWarningTitle] = useState<string | undefined>(undefined)
   const [warningReason, setWarningReason] = useState<string | undefined>(undefined)
-  const { data: riskTokenMap = {} } = useRiskTokenConfigMap()
+  const { data: riskTokenMap = EMPTY_RISK_TOKEN_MAP } = useRiskTokenConfigMap()
   const { tokenRiskA, tokenRiskB } = useTokenRisk(currencyA, currencyB)
 
   const [onPresentWarningModal] = useModal(
@@ -42,7 +42,7 @@ export default function useWarningLiquidity(currencyIdA?: string, currencyIdB?: 
   }, [currencyA, currencyB, tokenRiskA, tokenRiskB])
 
   const warningHandler = useCallback(
-    (currency?: Currency) => {
+    (currency?: UnifiedCurrency) => {
       const risk = getCurrencyRiskEntry(riskTokenMap, currency)
       if (risk?.severity === 'warn') {
         setWarningCurrency(currency || null)

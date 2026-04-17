@@ -1,9 +1,10 @@
-import { Currency } from '@pancakeswap/sdk'
+import { isSolana } from '@pancakeswap/chains'
+import { UnifiedCurrency } from '@pancakeswap/sdk'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { ACCESS_TOKEN_SUPPORT_CHAIN_IDS } from 'components/AccessRisk/config/supportedChains'
 import { fetchRiskToken, RiskTokenInfo } from 'components/AccessRisk/utils/fetchTokenRisk'
 import { RISK_TOKEN_CONFIG_URL } from 'config/constants/riskTokenConfig'
-import { wrappedCurrency } from 'utils/wrappedCurrency'
+import { safeGetUnifiedAddress } from 'utils/safeGetAddress'
 
 export type RiskSeverity = 'warn' | 'block'
 
@@ -19,8 +20,24 @@ export type RiskTokenEntry = {
 
 type RiskTokenMap = Record<string, RiskTokenEntry>
 const THIRD_PARTY_WARN_RISK_LEVEL = 3
+export const EMPTY_RISK_TOKEN_MAP: RiskTokenMap = Object.freeze({}) as RiskTokenMap
 
-const toKey = (chainId: number, address: string) => `${chainId}:${address.toLowerCase()}`
+const normalizeRiskAddress = (chainId: number, address: string): string | undefined => {
+  const normalized = safeGetUnifiedAddress(chainId, address)
+  if (!normalized) return undefined
+  return isSolana(chainId) ? normalized : normalized.toLowerCase()
+}
+
+const getWrappedUnifiedToken = (currency?: UnifiedCurrency | null) => {
+  if (!currency) return undefined
+  return currency.isNative ? currency.wrapped : currency.isToken ? currency : undefined
+}
+
+const toKey = (chainId: number, address: string): string | undefined => {
+  const normalizedAddress = normalizeRiskAddress(chainId, address)
+  if (!normalizedAddress) return undefined
+  return `${chainId}:${normalizedAddress}`
+}
 
 const isRiskEntry = (value: unknown): value is RiskTokenEntry => {
   if (!value || typeof value !== 'object') return false
@@ -40,12 +57,12 @@ const fetchRiskTokenConfig = async (): Promise<RiskTokenMap> => {
   try {
     const response = await fetch(RISK_TOKEN_CONFIG_URL)
     if (!response.ok) {
-      return {}
+      return EMPTY_RISK_TOKEN_MAP
     }
 
     const data = await response.json()
     if (!Array.isArray(data)) {
-      return {}
+      return EMPTY_RISK_TOKEN_MAP
     }
 
     const map: RiskTokenMap = {}
@@ -53,6 +70,7 @@ const fetchRiskTokenConfig = async (): Promise<RiskTokenMap> => {
       if (!isRiskEntry(item)) return
 
       const key = toKey(item.chainId, item.address)
+      if (!key) return
       const prev = map[key]
       if (!prev || (prev.severity === 'warn' && item.severity === 'block')) {
         map[key] = { ...item, source: 'cms' }
@@ -61,19 +79,22 @@ const fetchRiskTokenConfig = async (): Promise<RiskTokenMap> => {
 
     return map
   } catch {
-    return {}
+    return EMPTY_RISK_TOKEN_MAP
   }
 }
 
 export const getCurrencyRiskEntry = (
   riskTokenMap: RiskTokenMap,
-  currency?: Currency | null,
+  currency?: UnifiedCurrency | null,
 ): RiskTokenEntry | undefined => {
   if (!currency) return undefined
-  const wrapped = wrappedCurrency(currency, currency.chainId)
+  const wrapped = getWrappedUnifiedToken(currency)
   if (!wrapped) return undefined
 
-  return riskTokenMap[toKey(wrapped.chainId, wrapped.address)]
+  const key = toKey(wrapped.chainId, wrapped.address)
+  if (!key) return undefined
+
+  return riskTokenMap[key]
 }
 
 export function useRiskTokenConfigMap() {
@@ -86,11 +107,11 @@ export function useRiskTokenConfigMap() {
   })
 }
 
-export function useTokenRisk(currencyA?: Currency | null, currencyB?: Currency | null) {
-  const { data: riskTokenMap = {}, isLoading: isConfigLoading } = useRiskTokenConfigMap()
+export function useTokenRisk(currencyA?: UnifiedCurrency | null, currencyB?: UnifiedCurrency | null) {
+  const { data: riskTokenMap = EMPTY_RISK_TOKEN_MAP, isLoading: isConfigLoading } = useRiskTokenConfigMap()
 
-  const wrappedA = currencyA ? wrappedCurrency(currencyA, currencyA.chainId) : undefined
-  const wrappedB = currencyB ? wrappedCurrency(currencyB, currencyB.chainId) : undefined
+  const wrappedA = getWrappedUnifiedToken(currencyA)
+  const wrappedB = getWrappedUnifiedToken(currencyB)
 
   const [thirdPartyRiskAQuery, thirdPartyRiskBQuery] = useQueries({
     queries: [
