@@ -18,6 +18,10 @@ export type AprValue = {
 export type MerklApr = AprValue
 export type IncentraApr = AprValue
 export const merklAprAtom = atom<MerklApr>({})
+export const merklAprSetterAtom = atom(null, (get, set, newApr: MerklApr) => {
+  const current = get(merklAprAtom)
+  set(merklAprAtom, { ...current, ...newApr })
+})
 export const incentraAprAtom = atom<IncentraApr>({})
 
 export type LpApr = AprValue

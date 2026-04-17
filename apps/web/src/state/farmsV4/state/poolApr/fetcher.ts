@@ -136,7 +136,7 @@ const calcV3PoolApr = ({
   }
 }
 
-export const getMerklApr = async (result: any, chainId: number) => {
+export const getMerklApr = async (result: any, chainId: number, poolTvlMap?: Record<ChainIdAddressKey, number>) => {
   try {
     const opportunities = result?.filter((opportunity) => opportunity?.chainId === chainId)
     if (!opportunities || opportunities?.length === 0) return {}
@@ -144,9 +144,15 @@ export const getMerklApr = async (result: any, chainId: number) => {
       const poolId = normalizePoolIdentifier(opportunity.identifier)
       if (poolId) {
         const key: ChainIdAddressKey = `${chainId}:${poolId}`
+        const dailyRewards = opportunity.dailyRewards ?? 0
+        const poolTvlUsd = poolTvlMap?.[key]
+        const apr =
+          dailyRewards > 0 && poolTvlUsd && poolTvlUsd > 0
+            ? (dailyRewards * 365) / poolTvlUsd
+            : (opportunity.apr ?? 0) / 100
 
         // eslint-disable-next-line no-param-reassign
-        acc[key] = `${(opportunity.apr ?? 0) / 100}`
+        acc[key] = `${apr}`
       }
       return acc
     }, {})
@@ -156,7 +162,7 @@ export const getMerklApr = async (result: any, chainId: number) => {
   }
 }
 
-export const getAllNetworkMerklApr = async (signal?: AbortSignal) => {
+export const fetchMerklOpportunities = async (signal?: AbortSignal) => {
   const chainIds = supportedChainIdV4.filter((chainId) => merklSupportedChainId.includes(chainId))
   const resp = await fetch(
     `https://api.merkl.xyz/v4/opportunities/?chainId=${chainIds.join(
@@ -164,18 +170,25 @@ export const getAllNetworkMerklApr = async (signal?: AbortSignal) => {
     )}&test=false&mainProtocolId=pancake-swap&action=POOL,HOLD&status=LIVE&items=100`,
     { signal },
   )
-  if (resp.ok) {
-    const result = await resp.json()
-    const pancakeResult = result?.filter(
-      (opportunity) =>
-        opportunity?.tokens?.[0]?.symbol?.toLowerCase().startsWith('cake-lp') ||
-        opportunity?.protocol?.id?.toLowerCase().startsWith('pancake-swap') ||
-        opportunity?.protocol?.id?.toLowerCase().startsWith('pancakeswap'),
-    )
-    const aprs = await Promise.all(chainIds.map((chainId) => getMerklApr(pancakeResult, chainId)))
-    return aprs.reduce((acc, apr) => Object.assign(acc, apr), {})
-  }
-  throw resp
+  if (!resp.ok) throw resp
+  const result = await resp.json()
+  return result?.filter(
+    (opportunity) =>
+      opportunity?.tokens?.[0]?.symbol?.toLowerCase().startsWith('cake-lp') ||
+      opportunity?.protocol?.id?.toLowerCase().startsWith('pancake-swap') ||
+      opportunity?.protocol?.id?.toLowerCase().startsWith('pancakeswap'),
+  )
+}
+
+export const getAllNetworkMerklApr = async (
+  signal?: AbortSignal,
+  poolTvlMap?: Record<ChainIdAddressKey, number>,
+  opportunities?: any[],
+) => {
+  const chainIds = supportedChainIdV4.filter((chainId) => merklSupportedChainId.includes(chainId))
+  const pancakeResult = opportunities ?? (await fetchMerklOpportunities(signal))
+  const aprs = await Promise.all(chainIds.map((chainId) => getMerklApr(pancakeResult, chainId, poolTvlMap)))
+  return aprs.reduce((acc, apr) => Object.assign(acc, apr), {})
 }
 
 export const getAllNetworkIncentraApr = async (signal?: AbortSignal) => {

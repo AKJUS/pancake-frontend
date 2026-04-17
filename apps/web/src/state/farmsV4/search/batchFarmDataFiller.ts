@@ -11,6 +11,7 @@ import { getCakePriceFromOracle } from 'hooks/useCakePrice'
 import groupBy from 'lodash/groupBy'
 import { CakeAprValue } from 'state/farmsV4/atom'
 import {
+  fetchMerklOpportunities,
   getAllNetworkIncentraApr,
   getAllNetworkMerklApr,
   getCakeApr,
@@ -238,11 +239,31 @@ export async function batchGetLpAprData(pools: PoolInfo[]) {
   })
 }
 
-const cachedGetAllNetworkMerklApr = memoizeAsync(getAllNetworkMerklApr, {
-  resolver: () => '',
-})
+// Cache raw Merkl opportunities for the search/batch path. Each PoolSearcher
+// page query reuses the same opportunities list, recomputing APR with fresh TVL.
+// React Query callers use getAllNetworkMerklApr directly and own their own caching.
+const cachedFetchMerklOpportunities = memoizeAsync(fetchMerklOpportunities, { resolver: () => '' })
+
 export async function batchGetMerklAprData(pools: PoolInfo[]) {
-  const aprs = await cachedGetAllNetworkMerklApr()
+  // Build TVL map from available pool data so getMerklApr can recompute using
+  // PancakeSwap TVL instead of Merkl's (which may be lower and inflate the APR)
+  const poolTvlMap = pools.reduce((acc, pool) => {
+    const farm = pool.farm!
+    const poolId = normalizePoolIdentifier(farm.id)
+    const tvlUSD = Number(farm.tvlUSD)
+    if (poolId && tvlUSD > 0) {
+      // eslint-disable-next-line no-param-reassign
+      acc[`${farm.chainId}:${poolId}`] = tvlUSD
+    }
+    return acc
+  }, {} as Record<string, number>)
+
+  const opportunities = await cachedFetchMerklOpportunities()
+  const aprs = await getAllNetworkMerklApr(
+    undefined,
+    Object.keys(poolTvlMap).length > 0 ? poolTvlMap : undefined,
+    opportunities,
+  )
   return pools.map((pool) => {
     const farm = pool.farm!
     const poolId = normalizePoolIdentifier(farm.id)

@@ -6,7 +6,7 @@ import { useInfinityCakeAPR } from 'hooks/infinity/useInfinityCakeAPR'
 import { useCakePrice } from 'hooks/useCakePrice'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import memoize from 'lodash/memoize'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useExtendPoolsAtom } from 'state/farmsV4/state/extendPools/atom'
 import { isInfinityProtocol } from 'utils/protocols'
 import { ChainIdAddressKey, InfinityPoolInfo, PoolInfo } from '../type'
@@ -17,7 +17,9 @@ import {
   emptyCakeAprPoolsAtom,
   incentraAprAtom,
   merklAprAtom,
+  merklAprSetterAtom,
   poolAprAtom,
+  poolsAtom,
 } from './atom'
 import { getAllNetworkIncentraApr, getAllNetworkMerklApr, getCakeApr, getLpApr } from './fetcher'
 import { buildPoolAprKey, normalizePoolAprKey } from './normalizePoolIdentifier'
@@ -95,13 +97,39 @@ export const usePoolApr = (
   const normalizedKey = normalizePoolAprKey(key) ?? buildPoolAprKey(pool?.chainId, pool?.lpAddress)
   const poolApr = useAtomValue(poolAprAtom)[normalizedKey ?? '']
   const [merklAprs, updateMerklApr] = useAtom(merklAprAtom)
+  const updateMerklAprEntry = useSetAtom(merklAprSetterAtom)
   const [incentraAprs, updateIncentraApr] = useAtom(incentraAprAtom)
   const cakePrice = useCakePrice()
   const cakeAPR = useCakeAPR(normalizedKey ?? null, pool)
 
+  const singlePoolTvlMap = useMemo<Record<ChainIdAddressKey, number> | undefined>(() => {
+    if (!normalizedKey || !pool?.tvlUsd) return undefined
+    return { [normalizedKey]: parseFloat(pool.tvlUsd) }
+  }, [normalizedKey, pool?.tvlUsd])
+
+  // When merklAprAtom is already populated (e.g. navigating from pool list to detail),
+  // getMerklApr skips the fetch and returns the cached value which may have been computed
+  // without this pool's TVL. This query corrects the APR for this specific pool using its
+  // own TVL, without overwriting other pools' APRs in the atom.
+  useQuery({
+    queryKey: ['apr', 'merkl', 'singlePoolCorrection', normalizedKey, pool?.tvlUsd],
+    queryFn: async () => {
+      const aprs = await getAllNetworkMerklApr(undefined, singlePoolTvlMap)
+      const correctedApr = normalizedKey ? aprs[normalizedKey] : undefined
+      if (correctedApr && normalizedKey) {
+        updateMerklAprEntry({ [normalizedKey]: correctedApr })
+      }
+      return correctedApr ?? '0'
+    },
+    enabled: !!singlePoolTvlMap && !!normalizedKey && Object.keys(merklAprs).length > 0,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  })
+
   const getMerklApr = useCallback(async () => {
     if (Object.values(merklAprs).length === 0) {
-      return getAllNetworkMerklApr()
+      return getAllNetworkMerklApr(undefined, singlePoolTvlMap)
         .then((aprs) => {
           updateMerklApr(aprs)
           return normalizedKey ? aprs[normalizedKey] ?? '0' : '0'
@@ -112,7 +140,7 @@ export const usePoolApr = (
         })
     }
     return normalizedKey ? merklAprs[normalizedKey] ?? '0' : '0'
-  }, [normalizedKey, merklAprs, updateMerklApr])
+  }, [normalizedKey, merklAprs, updateMerklApr, singlePoolTvlMap])
 
   const getIncentraApr = useCallback(async () => {
     if (Object.values(incentraAprs).length === 0) {
@@ -191,14 +219,29 @@ export const usePoolApr = (
 
 export const usePoolAprUpdater = () => {
   const pools = useAtomValue(emptyCakeAprPoolsAtom)
+  const allPools = useAtomValue(poolsAtom)
   const updateCakeApr = useSetAtom(cakeAprSetterAtom)
   const updateMerklApr = useSetAtom(merklAprAtom)
   const updateIncentraApr = useSetAtom(incentraAprAtom)
   const cakePrice = useCakePrice()
 
+  const poolTvlMap = useMemo<Record<ChainIdAddressKey, number>>(
+    () =>
+      allPools.reduce((acc, pool) => {
+        const key = buildPoolAprKey(pool.chainId, pool.lpAddress)
+        if (key && pool.tvlUsd) {
+          // eslint-disable-next-line no-param-reassign
+          acc[key] = parseFloat(pool.tvlUsd)
+        }
+        return acc
+      }, {} as Record<ChainIdAddressKey, number>),
+    [allPools],
+  )
+
   useQuery({
-    queryKey: ['apr', 'merkl', 'fetchMerklApr'],
-    queryFn: ({ signal }) => getAllNetworkMerklApr(signal).then(updateMerklApr),
+    queryKey: ['apr', 'merkl', 'fetchMerklApr', Object.keys(poolTvlMap).length],
+    queryFn: ({ signal }) => getAllNetworkMerklApr(signal, poolTvlMap).then(updateMerklApr),
+    enabled: Object.keys(poolTvlMap).length > 0,
     refetchInterval: SLOW_INTERVAL,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
