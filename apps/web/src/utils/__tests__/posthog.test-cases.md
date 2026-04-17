@@ -8,32 +8,41 @@
   3. Connect a wallet and navigate across a few routes.
 - Expected Result: The app behaves normally and no PostHog-related crash occurs.
 
-#### Test Case: Wallet connect and disconnect emit the expected lifecycle events
+#### Test Case: Wallet connect does not identify the user by default
 
-- Scenario: A user connects and disconnects a wallet.
-- Preconditions: PostHog env vars are configured in a non-production project.
+- Scenario: A user connects a wallet while identity is disabled by default.
+- Preconditions: PostHog env vars are configured and `NEXT_PUBLIC_POSTHOG_IDENTIFY_ENABLED` is unset or `false`.
 - Steps:
   1. Open the app in a browser.
   2. Connect a wallet.
-  3. Disconnect the wallet.
-- Expected Result: `wallet_connected` and `wallet_disconnected` are both visible in PostHog with host, chain, and wallet properties.
+  3. Inspect PostHog requests and live events.
+- Expected Result: No `identify()` call is sent, events remain anonymous, and browsing continuity still uses PostHog's anonymous distinct id.
 
-#### Test Case: Swap flow emits submit, success, and failure events
+#### Test Case: Non-core pageviews follow the default 10% sampling policy
 
-- Scenario: A user interacts with the swap flow.
-- Preconditions: PostHog env vars are configured and the swap flow is usable.
+- Scenario: The app keeps anonymous pageview analytics with cost control enabled.
+- Preconditions: PostHog env vars are configured and `NEXT_PUBLIC_POSTHOG_SAMPLE_RATE` is unset or set to `0.1`.
 - Steps:
-  1. Submit a valid swap and wait for tx submission.
-  2. Trigger a failing or rejected swap path.
-  3. Inspect PostHog events.
-- Expected Result: `swap_submitted`, `swap_succeeded`, and failure-path `swap_failed` events include token, wallet, and chain context.
+  1. Open the app and navigate across a few routes.
+  2. Inspect PostHog live events or network traffic over multiple navigations.
+- Expected Result: Pageviews continue to appear, but at a sampled rate rather than one event per every navigation.
 
-#### Test Case: Add liquidity flow emits submit, success, and failure events
+#### Test Case: Core success events remain unsampled
 
-- Scenario: A user interacts with V2, stable, or V3 add-liquidity flows.
+- Scenario: Successful conversion events remain fully observable after the cost optimization.
 - Preconditions: PostHog env vars are configured and at least one liquidity route is usable.
 - Steps:
-  1. Submit an add-liquidity transaction.
-  2. Complete one successful path.
-  3. Trigger one failing or rejected path if possible.
-- Expected Result: `liquidity_add_started`, `liquidity_add_succeeded`, and failure-path `liquidity_add_failed` events are captured with pool and token context.
+  1. Complete one successful swap.
+  2. Complete one successful add-liquidity flow.
+  3. Inspect PostHog events.
+- Expected Result: `swap_succeeded` and `liquidity_add_succeeded` are both visible without sampling loss.
+
+#### Test Case: Noisy lifecycle events are disabled by default
+
+- Scenario: The optimization removes low-value, high-frequency events.
+- Preconditions: PostHog env vars are configured with default settings.
+- Steps:
+  1. Connect and disconnect a wallet.
+  2. Trigger an add-liquidity rejection or failure path.
+  3. Inspect PostHog live events.
+- Expected Result: `wallet_connected`, `wallet_disconnected`, `liquidity_add_started`, and `liquidity_add_failed` are not emitted by default.

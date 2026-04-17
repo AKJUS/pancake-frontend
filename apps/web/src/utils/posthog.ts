@@ -10,6 +10,14 @@ let posthogClientPromise: Promise<PostHogClient | null> | null = null
 let posthogInitialized = false
 
 const POSTHOG_DEFAULTS_VERSION = '2025-11-30'
+const DEFAULT_POSTHOG_SAMPLE_RATE = 0.1
+const CORE_SUCCESS_EVENTS = new Set(['swap_succeeded', 'liquidity_add_succeeded'])
+const DISABLED_POSTHOG_EVENTS = new Set([
+  'wallet_connected',
+  'wallet_disconnected',
+  'liquidity_add_started',
+  'liquidity_add_failed',
+])
 
 const isBrowser = () => typeof window !== 'undefined'
 
@@ -18,6 +26,48 @@ export const isPostHogConfigured = () =>
     (process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN || process.env.NEXT_PUBLIC_POSTHOG_KEY) &&
       process.env.NEXT_PUBLIC_POSTHOG_HOST,
   )
+
+export const isPostHogIdentityEnabled = () => process.env.NEXT_PUBLIC_POSTHOG_IDENTIFY_ENABLED === 'true'
+
+const normalizeSampleRate = (value?: string) => {
+  if (!value) {
+    return DEFAULT_POSTHOG_SAMPLE_RATE
+  }
+
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) {
+    return DEFAULT_POSTHOG_SAMPLE_RATE
+  }
+
+  return Math.min(1, Math.max(0, parsed))
+}
+
+export const getPostHogSampleRate = () => normalizeSampleRate(process.env.NEXT_PUBLIC_POSTHOG_SAMPLE_RATE)
+
+export const getPostHogEventSampleRate = (event: string) => {
+  if (CORE_SUCCESS_EVENTS.has(event)) {
+    return 1
+  }
+
+  if (DISABLED_POSTHOG_EVENTS.has(event)) {
+    return 0
+  }
+
+  return getPostHogSampleRate()
+}
+
+export const shouldCapturePostHogEvent = (event: string, randomValue = Math.random()) => {
+  const sampleRate = getPostHogEventSampleRate(event)
+  if (sampleRate <= 0) {
+    return false
+  }
+
+  if (sampleRate >= 1) {
+    return true
+  }
+
+  return randomValue < sampleRate
+}
 
 const getPostHogConfig = () => {
   const apiKey = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN || process.env.NEXT_PUBLIC_POSTHOG_KEY
@@ -72,6 +122,10 @@ export const initPostHog = async () => {
 }
 
 export const capturePostHogEvent = (event: string, properties?: PostHogProperties) => {
+  if (!shouldCapturePostHogEvent(event)) {
+    return
+  }
+
   getPostHogClient()
     .then((posthog) => {
       if (!posthog || !posthogInitialized) {
@@ -84,6 +138,10 @@ export const capturePostHogEvent = (event: string, properties?: PostHogPropertie
 }
 
 export const identifyPostHogUser = (distinctId: string, properties?: PostHogProperties) => {
+  if (!isPostHogIdentityEnabled()) {
+    return
+  }
+
   getPostHogClient()
     .then((posthog) => {
       if (!posthog || !posthogInitialized) {
@@ -96,6 +154,10 @@ export const identifyPostHogUser = (distinctId: string, properties?: PostHogProp
 }
 
 export const resetPostHogUser = () => {
+  if (!isPostHogIdentityEnabled()) {
+    return
+  }
+
   getPostHogClient()
     .then((posthog) => {
       if (!posthog || !posthogInitialized) {
@@ -127,9 +189,10 @@ export const buildPostHogBaseProperties = ({
   const currentHost = host ?? (isBrowser() ? window.location.host : null)
   const currentPathname = pathname ?? (isBrowser() ? window.location.pathname : null)
   const currentFullPath = fullPath ?? (isBrowser() ? `${window.location.pathname}${window.location.search}` : null)
+  const shouldIncludeAccount = isPostHogIdentityEnabled()
 
   return sanitizeProperties({
-    account: account ?? null,
+    account: shouldIncludeAccount ? account ?? null : undefined,
     wallet_connected: Boolean(account),
     chain_id: chainId ?? null,
     host: currentHost,
