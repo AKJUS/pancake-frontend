@@ -132,6 +132,38 @@ describe('deserializeAggregatorResponse', () => {
     expect(result!.trade.routes[1].pools).toHaveLength(2)
   })
 
+  it('prefers resolvedFee over protocolFee for displayFee from /v2/quote', () => {
+    const response = makeSingleRouteResponse({
+      routes: [
+        {
+          percent: 100,
+          inputAmount: '1000000000000000000',
+          outputAmount: '300000000000000000000',
+          path: [WBNB, USDT],
+          pools: [
+            {
+              address: '0x1111111111111111111111111111111111111111',
+              type: 'infinityCl',
+              fee: 3000,
+              resolvedFee: 131104,
+              protocolFee: 42,
+              poolManager: FIXTURE_POOL_MANAGER,
+              parameters: '0x00000000000000000000000000000000000000000000000000000000000003e80000',
+              hooks: '0x0000000000000000000000000000000000000000',
+              provider: 'pancakeswap',
+              ...sortedPair(WBNB, USDT),
+            },
+          ],
+        },
+      ],
+    })
+
+    const result = deserializeAggregatorResponse(response, 56, TradeType.EXACT_INPUT)
+    const pool = result!.trade.routes[0].pools[0] as { displayFee?: number }
+
+    expect(pool.displayFee).toBe(131104)
+  })
+
   it('should deserialize an exact-output response', () => {
     const result = deserializeAggregatorResponse(makeSingleRouteResponse(), 56, TradeType.EXACT_OUTPUT)
 
@@ -713,7 +745,7 @@ describe('deserializeAggregatorResponse', () => {
       },
     }
 
-    it('deserializes real BSC infinity-only response: split fee+protocolFee, API poolManager, tickSpacing, hooksRegistrationBitmap', () => {
+    it('deserializes real BSC infinity-only response: API displayFee, poolManager, tickSpacing, hooksRegistrationBitmap', () => {
       const result = deserializeAggregatorResponse(BSC_BNB_CAKE_AGGREGATOR_RESPONSE, ChainId.BSC, TradeType.EXACT_INPUT)
 
       expect(result).toBeDefined()
@@ -724,7 +756,7 @@ describe('deserializeAggregatorResponse', () => {
 
       expect(hop1.type).toBe(PoolType.InfinityCL)
       expect(hop1.fee).toBe(67)
-      expect(hop1.protocolFee).toBe(131104)
+      expect(hop1.displayFee).toBe(131104)
       expect(hop1.tickSpacing).toBe(1)
       expect(hop1.hooks).toBe('0x0000000000000000000000000000000000000000')
       expect(hop1.hooksRegistrationBitmap).toBe('0x0000')
@@ -734,12 +766,12 @@ describe('deserializeAggregatorResponse', () => {
       expect(hop1.currency1.symbol).toBe('WBNB')
 
       expect(hop2.fee).toBe(67)
-      expect(hop2.protocolFee).toBe(131104)
+      expect(hop2.displayFee).toBe(131104)
       expect(hop2.tickSpacing).toBe(1)
       expect(hop2.hooksRegistrationBitmap).toBe('0x0000')
 
       expect(hop3.fee).toBe(0x800000) // DYNAMIC_FEE_FLAG for dynamic fee hook
-      expect(hop3.protocolFee).toBe(0)
+      expect(hop3.displayFee).toBe(0)
       expect(hop3.tickSpacing).toBe(10)
       expect(hop3.hooksRegistrationBitmap).toBe('0x00c2')
       expect(hop3.hooks).toBe('0x32C59D556B16DB81DFc32525eFb3CB257f7e493d')

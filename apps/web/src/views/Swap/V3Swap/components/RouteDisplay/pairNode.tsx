@@ -36,6 +36,8 @@ export function EVMPairNodes({
   pairNode,
 }: Params): React.ReactNode[] | null {
   const { t } = useTranslation()
+  const getDisplayFee = (pool: { displayFee?: number }): number | undefined =>
+    typeof pool.displayFee === 'number' ? pool.displayFee : undefined
 
   return pairs.length > 0
     ? pairs.map((p, index) => {
@@ -52,7 +54,9 @@ export function EVMPairNodes({
           infinityFee = resolved.fee
           infinityDiscountFee = resolved.discountFee
         }
-        const useDiscountHooks = isInfinityPool && pool.hooks && hookDiscount[pool.hooks]
+        const quotedDisplayFee = getDisplayFee(pool)
+        const useDiscountHooks =
+          isInfinityPool && quotedDisplayFee === undefined && pool.hooks && hookDiscount[pool.hooks]
         const isV3Pool = SmartRouter.isV3Pool(pool)
         const isV2Pool = SmartRouter.isV2Pool(pool)
         const key = isV2Pool
@@ -65,8 +69,10 @@ export function EVMPairNodes({
         if (!key) return null
         const feePercent = isInfinityStablePool
           ? new Percent(pool.stableFee, INFINITY_STABLE_POOL_FEE_DENOMINATOR)
-          : isV3Pool || isInfinityPool
-          ? v3FeeToPercent((isV3Pool ? pool.fee : infinityDiscountFee) || 0)
+          : isV3Pool
+          ? v3FeeToPercent((quotedDisplayFee ?? pool.fee) || 0)
+          : isInfinityPool
+          ? v3FeeToPercent((quotedDisplayFee ?? infinityDiscountFee) || 0)
           : undefined
 
         const feeDisplay = feePercent ? Number(feePercent.toSignificant(3, {}, Rounding.ROUND_HALF_UP)).toString() : '-'

@@ -3,13 +3,21 @@ import { findHook, HOOK_CATEGORY, parseProtocolFeesToNumbers } from '@pancakeswa
 /**
  * Resolve the display fee for an Infinity pool.
  *
- * Valid pools go through the existing protocolFee + hook discount logic.
+ * Quoted aggregator pools can provide a display-ready fee directly; otherwise
+ * fall back to the existing protocolFee + hook discount logic.
  */
 export function resolveInfinityPoolFee(
-  pool: { fee: number; protocolFee?: number; hooks?: string },
+  pool: { fee: number; protocolFee?: number; hooks?: string; displayFee?: number },
   hookDiscount: Record<string, { discountFee: number; originalFee: number }>,
   chainId: number,
 ): { fee: number; discountFee: number } {
+  if (typeof pool.displayFee === 'number') {
+    return {
+      fee: pool.displayFee,
+      discountFee: pool.displayFee,
+    }
+  }
+
   if (pool.protocolFee === undefined || pool.protocolFee === null) {
     throw new Error('Infinity pool missing protocolFee')
   }

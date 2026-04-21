@@ -9,6 +9,15 @@ import { INFINITY_STABLE_POOL_FEE_DENOMINATOR } from '@pancakeswap/infinity-stab
 import { isAddressEqual } from './safeGetAddress'
 import { TradeEssentialForPriceBreakdown, TradePriceBreakdown } from './swapTypes'
 
+function getQuotedDisplayFee(pool: unknown) {
+  if (!pool || typeof pool !== 'object' || !('displayFee' in pool)) {
+    return undefined
+  }
+
+  const { displayFee } = pool as { displayFee?: unknown }
+  return typeof displayFee === 'number' ? displayFee : undefined
+}
+
 // computes price breakdown for the trade
 export function computeSmartTradePriceBreakdown(trade?: TradeEssentialForPriceBreakdown | null): TradePriceBreakdown {
   if (!trade) {
@@ -27,10 +36,17 @@ export function computeSmartTradePriceBreakdown(trade?: TradeEssentialForPriceBr
 
     const routeFeePercent = ONE_HUNDRED_PERCENT.subtract(
       pools.reduce<Percent>((currentFee, pool) => {
+        const quotedDisplayFee = getQuotedDisplayFee(pool)
         if (SmartRouter.isV2Pool(pool)) {
+          if (quotedDisplayFee !== undefined) {
+            return currentFee.multiply(ONE_HUNDRED_PERCENT.subtract(new Percent(quotedDisplayFee, 1e6)))
+          }
           return currentFee.multiply(INPUT_FRACTION_AFTER_FEE)
         }
         if (SmartRouter.isStablePool(pool)) {
+          if (quotedDisplayFee !== undefined) {
+            return currentFee.multiply(ONE_HUNDRED_PERCENT.subtract(new Percent(quotedDisplayFee, BIPS_BASE)))
+          }
           return currentFee.multiply(ONE_HUNDRED_PERCENT.subtract(pool.fee))
         }
 
@@ -43,9 +59,12 @@ export function computeSmartTradePriceBreakdown(trade?: TradeEssentialForPriceBr
         }
 
         if (SmartRouter.isV3Pool(pool)) {
-          return currentFee.multiply(ONE_HUNDRED_PERCENT.subtract(v3FeeToPercent(pool.fee)))
+          return currentFee.multiply(ONE_HUNDRED_PERCENT.subtract(v3FeeToPercent(quotedDisplayFee ?? pool.fee)))
         }
         if (SmartRouter.isInfinityClPool(pool) || SmartRouter.isInfinityBinPool(pool)) {
+          if (quotedDisplayFee !== undefined) {
+            return currentFee.multiply(ONE_HUNDRED_PERCENT.subtract(new Percent(quotedDisplayFee, 1e6)))
+          }
           let poolFee = pool.fee
           // override pool fee if the pool is a dynamic fee pool
           if (pool.hooks && !isAddressEqual(pool.hooks, zeroAddress)) {

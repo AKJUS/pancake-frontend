@@ -15,6 +15,21 @@ vi.mock('@pancakeswap/infinity-sdk', () => ({
 const EMPTY_DISCOUNT: Record<string, { discountFee: number; originalFee: number }> = {}
 
 describe('resolveInfinityPoolFee', () => {
+  it('prefers quote displayFee when present', () => {
+    const pool = {
+      fee: 3000,
+      displayFee: 4200,
+      protocolFee: 50,
+      hooks: '0xabc',
+    }
+    const discount = { '0xabc': { discountFee: 500, originalFee: 2500 } }
+
+    const result = resolveInfinityPoolFee(pool, discount, 1)
+
+    expect(result.fee).toBe(4200)
+    expect(result.discountFee).toBe(4200)
+  })
+
   describe('on-chain pools (with protocolFee)', () => {
     it('adds protocolFee to pool.fee when no hook discount', () => {
       const pool = { fee: 3000, protocolFee: 100, hooks: '0x0000000000000000000000000000000000000000' }

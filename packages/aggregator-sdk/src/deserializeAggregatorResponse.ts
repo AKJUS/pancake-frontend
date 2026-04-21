@@ -70,6 +70,7 @@ function toPool(p: AggregatorPool, tokenA: Token, tokenB: Token, chainId: number
   const poolType = toPoolType(p.type)
   const address = p.address as `0x${string}`
   let fee = p.fee ?? 0
+  const displayFee = p.resolvedFee ?? p.protocolFee ?? p.fee
 
   if (p.token0 === undefined || p.token1 === undefined) {
     throw new Error(`Aggregator pool ${address} missing required token0/token1`)
@@ -83,6 +84,7 @@ function toPool(p: AggregatorPool, tokenA: Token, tokenB: Token, chainId: number
       address,
       type: poolType as PoolType.V2,
       fee,
+      ...(displayFee !== undefined ? { displayFee } : {}),
       token0,
       token1,
       reserve0: CurrencyAmount.fromRawAmount(token0, 0),
@@ -96,6 +98,7 @@ function toPool(p: AggregatorPool, tokenA: Token, tokenB: Token, chainId: number
       address,
       type: poolType as PoolType.STABLE,
       fee: new Percent(fee, BIPS_BASE),
+      ...(displayFee !== undefined ? { displayFee } : {}),
       token0,
       token1,
       balances: [CurrencyAmount.fromRawAmount(token0, 0), CurrencyAmount.fromRawAmount(token1, 0)],
@@ -120,9 +123,9 @@ function toPool(p: AggregatorPool, tokenA: Token, tokenB: Token, chainId: number
       id: address,
       address,
       type: poolType,
-      // LP fee only; effective user fee is `fee + protocolFee` (see getInfinityPoolFee).
+      // Keep the raw LP fee on the pool for execution/pool-key purposes.
       fee,
-      ...(p.protocolFee !== undefined ? { protocolFee: p.protocolFee } : {}),
+      ...(displayFee !== undefined ? { displayFee } : {}),
       token0,
       token1,
       currency0: token0,
@@ -147,6 +150,7 @@ function toPool(p: AggregatorPool, tokenA: Token, tokenB: Token, chainId: number
     address,
     type: poolType,
     fee,
+    ...(displayFee !== undefined ? { displayFee } : {}),
     token0,
     token1,
   }

@@ -23,6 +23,10 @@ export interface AggregatorPool {
   type: AggregatorPoolType
   // LP fee for infinity pools (goes into PoolKey.fee verbatim).
   fee?: number
+  // Resolved fee metadata for the quoted route hop.
+  // `resolvedFee` is the current `/v2/quote` field; `protocolFee` is kept as a fallback
+  // for older responses until the BE rollout is fully complete.
+  resolvedFee?: number
   // Packed uint24: lower 12 bits = token0 fee, upper 12 bits = token1 fee.
   protocolFee?: number
   // Required for infinity pools; deserializer throws if missing.
