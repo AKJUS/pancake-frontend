@@ -70,10 +70,30 @@ export const useWritePermit = (token?: Token, spender?: Address, nonce?: number,
     const permit: Permit = generatePermitTypedData(token, nonce, spender)
 
     if (isSC) {
-      const tx = await scWritePermit(permit)
+      const permit2Address = getPermit2Address(chainId)
+      if (!permit2Address) throw new Error('PERMIT: missing permit2Address')
+
+      await scWritePermit(permit)
+
+      // Safe wallets resolve writeContract on tx proposal, not on-chain confirmation.
+      // Poll allowance until confirmed so the multicall doesn't run before transferFrom is possible.
+      const client = publicClient({ chainId })
+      const pollAllowance = async (retries: number): Promise<void> => {
+        const [allowedAmount] = await client.readContract({
+          address: permit2Address,
+          abi: Permit2ABI,
+          functionName: 'allowance',
+          args: [account as Address, token.address as Address, spender as Address],
+        })
+        if (allowedAmount > 0n || retries <= 0) return
+        await new Promise<void>((resolve) => setTimeout(resolve, 2000))
+        await pollAllowance(retries - 1)
+      }
+      // 90 retries × 2s = 3 min max — enough for Safe queue + slow chain confirmation
+      await pollAllowance(90)
+
       return {
         ...permit,
-        tx,
         signature: '0x',
       }
     }
