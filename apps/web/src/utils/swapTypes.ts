@@ -3,6 +3,7 @@ import { Currency, CurrencyAmount, Percent, TradeType } from '@pancakeswap/swap-
 
 export type TradeEssentialForPriceBreakdown = Pick<SmartRouterTrade<TradeType>, 'inputAmount' | 'outputAmount'> & {
   routes: Pick<Route, 'percent' | 'pools' | 'path' | 'inputAmount'>[]
+  priceImpactBps?: number
 }
 
 export interface TradePriceBreakdown {

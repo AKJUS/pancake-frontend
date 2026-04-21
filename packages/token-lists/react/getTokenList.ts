@@ -30,7 +30,7 @@ export async function getTokenList(listUrl: string): Promise<TokenList | undefin
       // if (i === urls.length - 1) {
       // throw new Error(`Failed to download list ${listUrl}`)
       // }
-      console.error(`Failed to download or validate list from ${url}:`, error)
+      console.warn(`Failed to download or validate list from ${url}:`, error)
 
       return undefined
     }

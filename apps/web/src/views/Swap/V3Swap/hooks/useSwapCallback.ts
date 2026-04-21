@@ -11,8 +11,10 @@ import useAccountActiveChain from 'hooks/useAccountActiveChain'
 import { useAutoSlippageWithFallback } from 'hooks/useAutoSlippageWithFallback'
 import { Address } from 'viem'
 import { ChainId as EvmChainId } from '@pancakeswap/chains'
+import { getAggregatorQuoteData } from 'quoter/utils/aggregatorOrder'
 import useSendSwapTransaction from './useSendSwapTransaction'
 import { useSwapCallArguments, SwapCall } from './useSwapCallArguments'
+import { useAggregatorSwapCallback } from './useAggregatorSwapCallback'
 import type { TWallchainMasterInput, WallchainStatus } from './useWallchain'
 
 export enum SwapCallbackState {
@@ -31,7 +33,7 @@ interface UseSwapCallbackReturns {
 }
 
 interface UseSwapCallbackArgs {
-  trade: ClassicOrder['trade'] | undefined | null // trade to execute, required
+  order: ClassicOrder | undefined | null // classic order to execute; trade is derived from it
   deadline?: bigint
   permitSignature: Permit2Signature | undefined
   feeOptions?: FeeOptions
@@ -43,27 +45,52 @@ interface UseSwapCallbackArgs {
 // returns a function that will execute a swap, if the parameters are all valid
 // and the user has approved the slippage adjusted input amount for the trade
 export function useSwapCallback({
-  trade,
+  order,
   deadline,
   permitSignature,
   feeOptions,
 }: UseSwapCallbackArgs): UseSwapCallbackReturns {
+  const trade = order?.trade
   const { t } = useTranslation()
   const { account, chainId } = useAccountActiveChain()
   const { slippageTolerance: allowedSlippageRaw } = useAutoSlippageWithFallback()
   const { recipient: recipientAddress } = useSwapState()
   const recipient = recipientAddress === null ? account : recipientAddress
 
-  const swapCalls = useSwapCallArguments(
+  // Classification comes directly off the order — not from a module-level Map.
+  const quoteData = getAggregatorQuoteData(order)
+
+  // --- Aggregator path ---
+  const { callback: aggregatorCallback } = useAggregatorSwapCallback({
     trade,
+    quoteData: quoteData!,
+    recipient: recipient ?? '',
+    chainId: chainId ?? 0,
+    account: account!,
+    slippageBps: allowedSlippageRaw,
+    deadline,
+  })
+
+  // --- On-chain path ---
+  // Pass null for aggregator trades so useSwapCallArguments never attempts to build
+  // Universal Router calldata from aggregator stub pools.
+  const swapCalls = useSwapCallArguments(
+    quoteData ? null : trade,
     basisPointsToPercent(allowedSlippageRaw),
     recipientAddress,
     permitSignature,
     deadline,
     feeOptions,
   )
+  const { callback: onChainCallback } = useSendSwapTransaction(
+    account,
+    chainId,
+    trade ?? undefined,
+    swapCalls,
+    'UniversalRouter',
+  )
 
-  const { callback } = useSendSwapTransaction(account, chainId, trade ?? undefined, swapCalls, 'UniversalRouter')
+  const callback = quoteData ? aggregatorCallback : onChainCallback ?? undefined
 
   return useMemo(() => {
     if (!trade || !account || !chainId || !callback || !(chainId in EvmChainId)) {

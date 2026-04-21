@@ -21,6 +21,7 @@ export function computeSmartTradePriceBreakdown(trade?: TradeEssentialForPriceBr
   const { routes, outputAmount, inputAmount } = trade
   let feePercent = new Percent(0)
   let outputAmountWithoutPriceImpact = CurrencyAmount.fromRawAmount(trade.outputAmount.currency, 0)
+  let anyRouteHadOnChainState = false
   for (const route of routes) {
     const { inputAmount: routeInputAmount, pools, percent } = route
 
@@ -64,6 +65,18 @@ export function computeSmartTradePriceBreakdown(trade?: TradeEssentialForPriceBr
       routeFeePercent.multiply(Percent.toPercent(parseNumberToFraction(percent / 100) || new Fraction(0))),
     )
 
+    // Aggregator stub pools carry only address/type/fee — no on-chain state (sqrtRatioX96, liquidity, etc.).
+    // getMidPrice requires full on-chain pool state; skip it for these routes to avoid noisy errors.
+    const hasOnChainState = pools.every((pool) => {
+      if (SmartRouter.isV3Pool(pool)) return 'sqrtRatioX96' in pool
+      if (SmartRouter.isV2Pool(pool)) return 'reserve0' in pool && pool.reserve0.greaterThan(0)
+      if (SmartRouter.isInfinityClPool(pool)) return 'sqrtRatioX96' in pool
+      if (SmartRouter.isInfinityBinPool(pool)) return 'activeId' in pool
+      return true
+    })
+    if (!hasOnChainState) continue
+
+    anyRouteHadOnChainState = true
     try {
       const midPrice = SmartRouter.getMidPrice(route)
       outputAmountWithoutPriceImpact = outputAmountWithoutPriceImpact.add(
@@ -76,6 +89,16 @@ export function computeSmartTradePriceBreakdown(trade?: TradeEssentialForPriceBr
       console.error('Error calculating output amount:', error)
       outputAmountWithoutPriceImpact = CurrencyAmount.fromRawAmount(trade.outputAmount.currency, 0)
       break
+    }
+  }
+
+  if (!anyRouteHadOnChainState) {
+    // All routes were aggregator stub pools — no mid-price available.
+    // feePercent was accumulated from pool fee fields; return it as lpFeeAmount.
+    // priceImpactBps from the BE response is used directly when available.
+    return {
+      priceImpactWithoutFee: trade.priceImpactBps !== undefined ? new Percent(trade.priceImpactBps, 10000) : undefined,
+      lpFeeAmount: feePercent.greaterThan(0) ? inputAmount.multiply(feePercent) : null,
     }
   }
 

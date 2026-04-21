@@ -1,5 +1,7 @@
+import { useSetAtom } from 'jotai'
 import { useRouter } from 'next/router'
 import { useEffect, useRef } from 'react'
+import { posthogFlagsAtom } from 'state/featureFlags/posthogFlagsAtom'
 import { useAccount } from 'wagmi'
 import { useWalletRuntime } from 'wallet/hook/useWalletEnv'
 
@@ -9,6 +11,7 @@ import {
   identifyPostHogUser,
   initPostHog,
   isPostHogConfigured,
+  onPostHogFeatureFlags,
   resetPostHogUser,
 } from 'utils/posthog'
 
@@ -16,6 +19,7 @@ export const usePostHog = () => {
   const router = useRouter()
   const { address, chainId, connector, status } = useAccount()
   const runtime = useWalletRuntime()
+  const setFlags = useSetAtom(posthogFlagsAtom)
   const hasTrackedInitialPageView = useRef(false)
   const lastConnectedState = useRef<{
     address?: string
@@ -29,9 +33,26 @@ export const usePostHog = () => {
       return undefined
     }
 
-    initPostHog().catch(() => {})
-    return undefined
-  }, [])
+    let unsubscribe: (() => void) | null = null
+    initPostHog()
+      .then(() => {
+        unsubscribe = onPostHogFeatureFlags((flags) => {
+          const next: Record<string, boolean> = {}
+          for (const flag of flags) {
+            next[flag] = true
+          }
+          if (process.env.NEXT_PUBLIC_VERCEL_ENV !== 'production') {
+            console.log('[PostHog] Feature flags received:', flags, 'mapped:', next)
+          }
+          setFlags(next)
+        })
+      })
+      .catch(() => {})
+
+    return () => {
+      unsubscribe?.()
+    }
+  }, [setFlags])
 
   useEffect(() => {
     if (!isPostHogConfigured() || !router.isReady || hasTrackedInitialPageView.current) {

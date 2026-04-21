@@ -4,8 +4,8 @@ import { TimeoutError } from '@pancakeswap/utils/withTimeout'
 import { getIsWrapping } from 'hooks/useWrapCallback'
 import { atom } from 'jotai'
 import { atomFamily } from 'jotai/utils'
-import { isBetterQuoteTrade } from 'quoter/utils/getBetterQuote'
 import { isEqualQuoteQuery } from 'quoter/utils/PoolHashHelper'
+import { findBestQuote } from 'quoter/utils/findBestQuote'
 import { warningSeverity } from 'utils/exchange'
 import { InterfaceOrder, isBridgeOrder, isSVMOrder } from 'views/Swap/utils'
 import { OrderType } from '@pancakeswap/price-api-sdk'
@@ -149,9 +149,8 @@ export const bestSameChainWithoutPlaceHolderAtom = atomFamily((_option: QuoteQue
       }
 
       const strategies = get(routingStrategyAtom(option))
-      const p1 = strategies.filter((x) => x.priority === 1)
-      const p2 = strategies.filter((x) => x.priority === 2)
-      const tests = [p1, p2].filter((x) => x.length > 0)
+      const priorities = [...new Set(strategies.map((x) => x.priority ?? 1))].sort((a, b) => a - b)
+      const tests = priorities.map((priority) => strategies.filter((x) => (x.priority ?? 1) === priority))
       for (let i = 0; i < tests.length; i++) {
         const strategy = tests[i]
         if (strategy.length === 0) {
@@ -173,8 +172,9 @@ export const bestSameChainWithoutPlaceHolderAtom = atomFamily((_option: QuoteQue
             // eslint-disable-next-line
             const priceImpactWithoutFee = computeTradePriceBreakdown(trade).priceImpactWithoutFee
 
-            const isHighImpact = warningSeverity(priceImpactWithoutFee) >= 3
-            if (isHighImpact) {
+            // A high-impact quote from a higher-priority strategy (aggregator) is not trustworthy
+            // for real execution — skip it so the on-chain flow can answer.
+            if (warningSeverity(priceImpactWithoutFee) >= 3) {
               continue
             }
           }
@@ -230,27 +230,3 @@ export const bestSameChainAtom = atomFamily((_option: QuoteQuery) => {
     return result.setExtra('placeholderHash', _option.placeholderHash!)
   })
 }, isEqualQuoteQuery)
-
-function findBestQuote(...args: Loadable<InterfaceOrder>[]): [InterfaceOrder, number] | undefined {
-  const fulfilledValues = args.map((x) => x.unwrapOr(undefined))
-
-  let bestOrder: InterfaceOrder | undefined
-  let idx = -1
-  for (let i = 0; i < fulfilledValues.length; i++) {
-    const order = fulfilledValues[i]
-    if (!order) {
-      continue
-    }
-    if (!order?.trade) continue
-    if (!bestOrder) {
-      bestOrder = order
-      idx = i
-      continue
-    }
-    if (isBetterQuoteTrade(bestOrder.trade, order.trade)) {
-      bestOrder = order
-      idx = i
-    }
-  }
-  return bestOrder ? [bestOrder, idx] : undefined
-}

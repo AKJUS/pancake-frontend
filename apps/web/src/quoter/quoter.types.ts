@@ -69,6 +69,7 @@ export interface Options {
   autoRevalidate?: boolean
   trackPerf?: boolean
   retry?: number | boolean
+  aggregatorOnly?: boolean
   hash: string
 }
 

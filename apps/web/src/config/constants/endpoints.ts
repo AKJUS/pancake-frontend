@@ -72,6 +72,10 @@ export const QUOTING_API_PREFIX = `${X_API_ENDPOINT}/order-price`
 
 export const QUOTING_API = `${QUOTING_API_PREFIX}/get-price`
 
+export const AGGREGATOR_API_BASE_URL = process.env.NEXT_PUBLIC_AGGREGATOR_API
+
+export const AGGREGATOR_API_KEY = process.env.NEXT_PUBLIC_AGGREGATOR_API_KEY
+
 export const FARMS_API = 'https://farms-api.pancakeswap.com'
 export const FARMS_API_V2 = 'https://v3-farm-api-prod-6ulht.ondigitalocean.app/api'
 

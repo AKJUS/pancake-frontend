@@ -1,4 +1,4 @@
-import { findHook, HOOK_CATEGORY, parseProtocolFeesToNumbers } from '@pancakeswap/infinity-sdk'
+import { HOOK_CATEGORY } from '@pancakeswap/infinity-sdk'
 import { Percent, Rounding } from '@pancakeswap/sdk'
 import { InfinityBinPool, InfinityClPool, SmartRouter } from '@pancakeswap/smart-router'
 import { Column } from '@pancakeswap/uikit'
@@ -9,6 +9,7 @@ import { v3FeeToPercent } from '../../utils/exchange'
 import { HookDiscountFeeDisplay } from './HookDiscountFeeDisplay'
 import { PairNode } from '../PairNode'
 import { Pair } from './types'
+import { resolveInfinityPoolFee } from './resolveInfinityPoolFee'
 
 export interface PairNodeProps {
   pair: Pair
@@ -44,33 +45,14 @@ export function EVMPairNodes({
         const isInfinityBinPool = SmartRouter.isInfinityBinPool(pool)
         const isInfinityStablePool = SmartRouter.isInfinityStablePool(pool)
         const isInfinityPool = isInfinityBinPool || isInfinityClPool
-        const useDiscountHooks = isInfinityPool && pool.hooks && hookDiscount[pool.hooks]
         let infinityFee = 0
         let infinityDiscountFee = 0
         if (isInfinityPool) {
-          const protocolFee = parseProtocolFeesToNumbers(pool.protocolFee)?.[0] ?? 0
-          if (useDiscountHooks) {
-            const { discountFee, originalFee } = hookDiscount[pool.hooks!]
-            infinityFee = originalFee + protocolFee
-            infinityDiscountFee = discountFee + protocolFee
-          } else {
-            infinityFee = pool.fee + protocolFee
-            infinityDiscountFee = infinityFee
-          }
-          if (pool.hooks) {
-            const hookData = findHook(pool.hooks, input.chainId)
-            if (hookData) {
-              const isDynamicHook = hookData.category?.includes(HOOK_CATEGORY.DynamicFees)
-              if (isDynamicHook) {
-                infinityFee = hookData.defaultFee || 0
-                infinityDiscountFee = infinityFee
-              }
-            }
-            // eslint-disable-next-line no-console
-            console.log('[infi]', pool.hooks, hookData, input.chainId)
-          }
-          // infinityFee = hookData?.defaultFee || 0
+          const resolved = resolveInfinityPoolFee(pool, hookDiscount, input.chainId)
+          infinityFee = resolved.fee
+          infinityDiscountFee = resolved.discountFee
         }
+        const useDiscountHooks = isInfinityPool && pool.hooks && hookDiscount[pool.hooks]
         const isV3Pool = SmartRouter.isV3Pool(pool)
         const isV2Pool = SmartRouter.isV2Pool(pool)
         const key = isV2Pool

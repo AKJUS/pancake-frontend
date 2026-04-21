@@ -68,9 +68,8 @@ const calculateGasEstimateUSD = (
   if (!supportsGasEstimate || !trade) return null
 
   if (isV4Trade(trade)) {
-    // For V4Trade, use gasUseEstimateBase and convert to USD
     const baseGasEstimate = trade.gasUseEstimateBase
-    if (baseGasEstimate && baseGasEstimatePrice) {
+    if (baseGasEstimate?.greaterThan(0) && baseGasEstimatePrice) {
       const baseAmount = parseFloat(baseGasEstimate.toSignificant(6))
       return baseAmount * parseFloat(baseGasEstimatePrice.toSignificant(6))
     }
@@ -152,8 +151,8 @@ export default function useClassicAutoSlippageTolerance(trade?: SupportedTrade):
   const supportsGasEstimate = useMemo(() => chainId && chainSupportsGasEstimates(chainId), [chainId])
   const gasEstimate = guesstimateGas(trade)
 
-  // Get base gas estimate currency price for V4 trades
-  const baseGasEstimateCurrency = isV4Trade(trade) ? trade?.gasUseEstimateBase?.currency : undefined
+  const baseGasEstimateCurrency =
+    isV4Trade(trade) && trade.gasUseEstimateBase?.greaterThan(0) ? trade.gasUseEstimateBase.currency : undefined
   const baseGasEstimatePrice = useStablecoinPrice(baseGasEstimateCurrency, { enabled: Boolean(trade) })
 
   const gasCostAmount = useMemo(() => {

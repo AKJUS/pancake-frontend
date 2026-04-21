@@ -1,16 +1,23 @@
 import { getCurrencyAddress } from '@pancakeswap/swap-sdk-core'
 import { Loadable } from '@pancakeswap/utils/Loadable'
+import { AGGREGATOR_SUPPORTED_CHAIN_IDS } from 'config/constants/aggregatorRouters'
 import { Atom, atom } from 'jotai'
 import { atomFamily } from 'jotai/utils'
 import { AtomFamily } from 'jotai/vanilla/utils/atomFamily'
 import { QuoteQuery } from 'quoter/quoter.types'
+import { POSTHOG_FLAGS, posthogFlagsAtom } from 'state/featureFlags/posthogFlagsAtom'
 import { InterfaceOrder } from 'views/Swap/utils'
 import { atomWithLoadable } from './atomWithLoadable'
+import { bestAggregatorQuoteAtom } from './bestAggregatorQuoteAtom'
 import { bestAMMTradeFromQuoterWorker2Atom } from './bestAMMTradeFromQuoterWorker2Atom'
 import { bestAMMTradeFromQuoterWorkerAtom } from './bestAMMTradeFromQuoterWorkerAtom'
 import { bestRoutingSDKTradeAtom } from './bestRoutingSDKTradeAtom'
 import { bestXApiAtom } from './bestXAPIAtom'
 import { isRwaTokenAtom } from './rwaTokenAtoms'
+
+// Off production we want aggregator to run for QA/dev regardless of PostHog flag state,
+// so the release flag only gates prod traffic.
+const isProductionEnv = () => process.env.NEXT_PUBLIC_VERCEL_ENV === 'production'
 
 type AtomType = AtomFamily<QuoteQuery, Atom<Loadable<InterfaceOrder>>>
 export interface StrategyRoute {
@@ -22,6 +29,10 @@ export interface StrategyRoute {
 }
 
 const Strategies = {
+  aggregator: {
+    query: bestAggregatorQuoteAtom,
+    overrides: {},
+  },
   single: {
     query: bestAMMTradeFromQuoterWorker2Atom,
     overrides: {
@@ -49,6 +60,13 @@ interface StrategyConfig {
   isShadow?: boolean
 }
 
+const AGGREGATOR_ONLY_ROUTING_CONFIG: StrategyConfig[] = [
+  {
+    key: 'aggregator',
+    priority: 1,
+  },
+]
+
 const RWA_ONLY_ROUTING_CONFIG: StrategyConfig[] = [
   {
     key: 'x',
@@ -56,28 +74,61 @@ const RWA_ONLY_ROUTING_CONFIG: StrategyConfig[] = [
   },
 ]
 
-const defaultRoutingConfig: StrategyConfig[] = [
-  // Single hop route & with light pools
+const AGGREGATOR_FIRST_ROUTING_CONFIG: StrategyConfig[] = [
+  {
+    key: 'aggregator',
+    priority: 1,
+  },
+  {
+    key: 'single',
+    priority: 2,
+  },
+  {
+    key: 'routing-sdk',
+    priority: 2,
+  },
+  {
+    key: 'x',
+    priority: 2,
+  },
+  {
+    key: 'full',
+    priority: 3,
+  },
+]
+
+const LEGACY_FIRST_ROUTING_CONFIG: StrategyConfig[] = [
+  {
+    key: 'aggregator',
+    priority: 1,
+  },
   {
     key: 'single',
     priority: 1,
   },
-  // routing-sdk
   {
     key: 'routing-sdk',
     priority: 1,
   },
-  // X
   {
     key: 'x',
     priority: 1,
   },
   {
-    // Fallback full route
     key: 'full',
     priority: 2,
   },
 ]
+
+export type RoutingMode = 'aggregator-first' | 'legacy-first'
+
+export function getRoutingMode(): RoutingMode {
+  return process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' ? 'legacy-first' : 'aggregator-first'
+}
+
+export function getDefaultRoutingConfig(mode: RoutingMode): StrategyConfig[] {
+  return mode === 'aggregator-first' ? AGGREGATOR_FIRST_ROUTING_CONFIG : LEGACY_FIRST_ROUTING_CONFIG
+}
 
 interface TokenSpecificRoutingStrategy {
   [chainId: number]: {
@@ -127,29 +178,59 @@ export const routingStrategyAtom = atomFamily(
           ? get(isRwaTokenAtom({ chainId: quoteCurrency.chainId, address: quoteAddress }))
           : false)
 
-      return getRoutingStrategy(query, config.unwrap(), isRwaTrade)
+      const flags = get(posthogFlagsAtom)
+      const aggregatorReleaseEnabled = isProductionEnv() ? flags[POSTHOG_FLAGS.AGGREGATOR_V1] === true : true
+      if (process.env.NEXT_PUBLIC_VERCEL_ENV !== 'production') {
+        console.log('[PostHog] Routing strategy evaluation:', {
+          isProduction: isProductionEnv(),
+          flagValue: flags[POSTHOG_FLAGS.AGGREGATOR_V1],
+          aggregatorReleaseEnabled,
+          allFlags: flags,
+        })
+      }
+
+      return getRoutingStrategy(query, config.unwrap(), isRwaTrade, aggregatorReleaseEnabled)
     })
   },
   (a, b) => a.hash === b.hash,
 )
 
-function getRoutingStrategy(
+export function getRoutingStrategy(
   query: QuoteQuery,
   tokenSpecificConfig: TokenSpecificRoutingStrategy,
   isRwaTrade: boolean,
+  aggregatorReleaseEnabled: boolean,
 ): StrategyRoute[] {
   const currencyA = query.baseCurrency!
   const currencyB = query.currency!
   const { chainId } = currencyA
   const addressA = getCurrencyAddress(currencyA)
   const addressB = getCurrencyAddress(currencyB)
+  if (query.aggregatorOnly && !isProductionEnv()) {
+    return AGGREGATOR_ONLY_ROUTING_CONFIG.map((x) => ({ ...Strategies[x.key], ...x })) as StrategyRoute[]
+  }
   if (isRwaTrade) {
     return RWA_ONLY_ROUTING_CONFIG.map((x) => ({ ...Strategies[x.key], ...x })) as StrategyRoute[]
   }
   const config =
-    tokenSpecificConfig[chainId]?.[addressA] || tokenSpecificConfig[chainId]?.[addressB] || defaultRoutingConfig
+    tokenSpecificConfig[chainId]?.[addressA] ||
+    tokenSpecificConfig[chainId]?.[addressB] ||
+    getDefaultRoutingConfig(getRoutingMode())
 
-  return config.map((x) => {
+  const isAggregatorSupported = AGGREGATOR_SUPPORTED_CHAIN_IDS.includes(chainId)
+  const aggregatorAllowed = isAggregatorSupported && aggregatorReleaseEnabled
+  const filteredConfig = aggregatorAllowed ? config : config.filter((x) => x.key !== 'aggregator')
+  if (process.env.NEXT_PUBLIC_VERCEL_ENV !== 'production') {
+    console.log('[PostHog] Routing config applied:', {
+      chainId,
+      isAggregatorSupported,
+      aggregatorReleaseEnabled,
+      aggregatorAllowed,
+      selectedStrategies: filteredConfig.map((x) => x.key),
+    })
+  }
+
+  return filteredConfig.map((x) => {
     const strategy = Strategies[x.key]
     if (!strategy) {
       throw new Error(`Routing strategy ${x.key} not found`)

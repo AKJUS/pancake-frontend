@@ -1,15 +1,23 @@
 import { fetchQuotes, Quote } from '@pancakeswap/routing-sdk-addon-quoter'
+import { Currency, CurrencyAmount, Fraction, TradeType } from '@pancakeswap/swap-sdk-core'
 import { InfinityRouter, RouteType } from '@pancakeswap/smart-router'
-import { CurrencyAmount, Fraction, TradeType } from '@pancakeswap/swap-sdk-core'
 
 import { toRoutingSDKTrade } from 'utils/convertTrade'
 import { getViemClients } from 'utils/viem'
 
-export async function getVerifiedTrade(trade?: InfinityRouter.InfinityTradeWithoutGraph<TradeType>) {
-  if (!trade) throw new Error(`Invalid trade ${trade} to verify`)
+type Trade = InfinityRouter.InfinityTradeWithoutGraph<TradeType>
+
+type OnChainQuoteCheck = {
+  quotes: (Quote | undefined)[]
+  indexesOfRoutesToVerify: number[]
+  isExactIn: boolean
+  quoteCurrency: Currency
+}
+
+// Returns `null` when there's nothing to verify (pure V2/stable exactOut).
+async function runOnChainQuoteCheck(trade: Trade): Promise<OnChainQuoteCheck | null> {
   const isExactIn = trade.tradeType === TradeType.EXACT_INPUT
   const quoteCurrency = isExactIn ? trade.outputAmount.currency : trade.inputAmount.currency
-  // For pure v2 / ss routes, we don't need to verify
   const indexesOfRoutesToVerify = isExactIn
     ? trade.routes.map((_, index) => index)
     : trade.routes.reduce<number[]>(
@@ -17,10 +25,9 @@ export async function getVerifiedTrade(trade?: InfinityRouter.InfinityTradeWitho
         [],
       )
   if (!indexesOfRoutesToVerify.length) {
-    return trade
+    return null
   }
 
-  const getQuotePosition = (routeIndex: number) => indexesOfRoutesToVerify.findIndex((i) => i === routeIndex)
   const sdkTrade = toRoutingSDKTrade(trade)
   const quoteRoutes = sdkTrade.routes
     .filter((_, index) => indexesOfRoutesToVerify.includes(index))
@@ -35,6 +42,25 @@ export async function getVerifiedTrade(trade?: InfinityRouter.InfinityTradeWitho
   if (quotes.some((q) => q === undefined)) {
     throw new Error('Fail to validate')
   }
+  return { quotes, indexesOfRoutesToVerify, isExactIn, quoteCurrency }
+}
+
+// Validation only — throws if any route can't be quoted on-chain. Use when the
+// caller trusts the trade amounts (e.g. aggregator BE).
+export async function validateTradeOnChain(trade?: Trade): Promise<void> {
+  if (!trade) throw new Error(`Invalid trade ${trade} to verify`)
+  await runOnChainQuoteCheck(trade)
+}
+
+// Validation + revision — returns a new trade with amounts/gas replaced by the
+// on-chain quote results. Use when the FE's recomputation is the source of truth.
+export async function getVerifiedTrade(trade?: Trade): Promise<Trade> {
+  if (!trade) throw new Error(`Invalid trade ${trade} to verify`)
+  const check = await runOnChainQuoteCheck(trade)
+  if (!check) return trade
+  const { quotes, indexesOfRoutesToVerify, isExactIn, quoteCurrency } = check
+
+  const getQuotePosition = (routeIndex: number) => indexesOfRoutesToVerify.findIndex((i) => i === routeIndex)
   const { quote, gasUseEstimate } = trade.routes.reduce<NonNullable<Quote>>(
     (total, r, index) => {
       const position = getQuotePosition(index)
@@ -56,12 +82,12 @@ export async function getVerifiedTrade(trade?: InfinityRouter.InfinityTradeWitho
     ...trade,
     routes: trade.routes.map((r, index) => {
       const quotePosition = getQuotePosition(index)
-      const hasVerifiedQuote = quotePosition !== -1
+      const verifiedQuote = quotePosition !== -1 ? quotes[quotePosition]! : undefined
       return {
         ...r,
-        inputAmount: isExactIn || !hasVerifiedQuote ? r.inputAmount : quotes[quotePosition]?.quote,
-        outputAmount: isExactIn && hasVerifiedQuote ? quotes[quotePosition]?.quote : r.outputAmount,
-        ...(hasVerifiedQuote ? reviseGasUseEstimate(trade.tradeType, r, quotes[quotePosition]!.gasUseEstimate) : {}),
+        inputAmount: isExactIn || !verifiedQuote ? r.inputAmount : verifiedQuote.quote,
+        outputAmount: isExactIn && verifiedQuote ? verifiedQuote.quote : r.outputAmount,
+        ...(verifiedQuote ? reviseGasUseEstimate(trade.tradeType, r, verifiedQuote.gasUseEstimate) : {}),
       }
     }),
     inputAmount: isExactIn ? trade.inputAmount : quote,
@@ -71,7 +97,7 @@ export async function getVerifiedTrade(trade?: InfinityRouter.InfinityTradeWitho
 }
 
 type GasUseEstimate = Pick<
-  InfinityRouter.InfinityTradeWithoutGraph<TradeType>,
+  Trade,
   | 'gasUseEstimate'
   | 'inputAmountWithGasAdjusted'
   | 'outputAmountWithGasAdjusted'

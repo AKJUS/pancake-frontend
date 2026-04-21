@@ -12,6 +12,7 @@ import { ALLOWED_PRICE_IMPACT_HIGH, PRICE_IMPACT_WITHOUT_FEE_CONFIRM_MIN } from 
 import { useActiveChainId } from 'hooks/useActiveChainId'
 import useNativeCurrency from 'hooks/useNativeCurrency'
 import { useNativeWrap } from 'hooks/useNativeWrap'
+import { useApproveCallback, ApprovalState } from 'hooks/useApproveCallback'
 import { Calldata, usePermit2 } from 'hooks/usePermit2'
 import { usePermit2Requires } from 'hooks/usePermit2Requires'
 import { useSafeTxHashTransformer } from 'hooks/useSafeTxHashTransformer'
@@ -59,8 +60,10 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { sendTransactionSafely } from 'components/WalletModalV2/utils/solanaSafeTransaction'
 import { confirmTransaction } from '@pancakeswap/solana-core-sdk'
 import { useAllTypeBestTrade } from 'quoter/hook/useAllTypeBestTrade'
+import { isAggregatorOrder as checkIsAggregatorOrder } from 'quoter/utils/aggregatorOrder'
 import { useEVMToSolanaBridgeCalldata } from 'views/Swap/Bridge/hooks/useEVMToSolanaBridgeCalldata'
 import { calculateGasMargin } from 'utils'
+import { transactionErrorToUserReadableMessage } from 'utils/transactionErrorToUserReadableMessage'
 import { viemClients } from 'utils/viem'
 import MultisigToastDescription from 'components/Toast/MultisigToastDescription'
 import { isMultisigWallet } from 'utils/solana/isMultisigWallet'
@@ -124,6 +127,14 @@ const useCreateConfirmSteps = (
 
   const { requiresApproval, approvalData } = useBridgeCheckApproval(order)
 
+  // Aggregator trades require direct ERC20 approval to the aggregator contract — not Permit2.
+  const isAggregatorOrder = useMemo(() => isClassicOrder(order) && checkIsAggregatorOrder(order), [order])
+
+  const { approvalState: directApprovalState } = useApproveCallback(
+    isAggregatorOrder ? amountToApprove : undefined,
+    spender,
+  )
+
   return useCallback(async () => {
     const steps: ConfirmModalState[] = []
     if (
@@ -134,21 +145,30 @@ const useCreateConfirmSteps = (
     ) {
       steps.push(ConfirmModalState.WRAPPING)
     }
-    if (requireRevoke) {
-      steps.push(ConfirmModalState.RESETTING_APPROVAL)
+
+    if (isAggregatorOrder) {
+      // Aggregator uses direct ERC20 allowance — skip Permit2 entirely.
+      // Native input does NOT require approval; backend handles it via msg.value.
+      if (amountToApprove && directApprovalState === ApprovalState.NOT_APPROVED) {
+        steps.push(ConfirmModalState.APPROVING_TOKEN)
+      }
+    } else {
+      if (requireRevoke) {
+        steps.push(ConfirmModalState.RESETTING_APPROVAL)
+      }
+      // Handle bridge order approval check
+      if (isBridgeOrder(order)) {
+        if (requiresApproval) steps.push(ConfirmModalState.APPROVING_TOKEN)
+        if (approvalData?.isPermit2Required) steps.push(ConfirmModalState.PERMITTING)
+      } else if (requireApprove) {
+        steps.push(ConfirmModalState.APPROVING_TOKEN)
+      }
+
+      if (isClassicOrder(order) && requirePermit) {
+        steps.push(ConfirmModalState.PERMITTING)
+      }
     }
 
-    // Handle bridge order approval check
-    if (isBridgeOrder(order)) {
-      if (requiresApproval) steps.push(ConfirmModalState.APPROVING_TOKEN)
-      if (approvalData?.isPermit2Required) steps.push(ConfirmModalState.PERMITTING)
-    } else if (requireApprove) {
-      steps.push(ConfirmModalState.APPROVING_TOKEN)
-    }
-
-    if (isClassicOrder(order) && requirePermit) {
-      steps.push(ConfirmModalState.PERMITTING)
-    }
     steps.push(ConfirmModalState.PENDING_CONFIRMATION)
     return steps
   }, [
@@ -160,6 +180,8 @@ const useCreateConfirmSteps = (
     amountToApprove,
     requiresApproval,
     approvalData?.isPermit2Required,
+    isAggregatorOrder,
+    directApprovalState,
   ])
 }
 
@@ -180,15 +202,27 @@ const useConfirmActions = (
     enablePaymaster: true,
   })
   const nativeWrap = useNativeWrap()
+
+  // Aggregator trades require direct ERC20 approval to the aggregator contract — not Permit2.
+  const isAggregatorOrder = useMemo(() => isClassicOrder(order) && checkIsAggregatorOrder(order), [order])
+
+  const { approveNoCheck: directApproveNoCheck } = useApproveCallback(
+    isAggregatorOrder ? amountToApprove : undefined,
+    spender,
+  )
+
   const getAllowanceArgs = useMemo(() => {
     if (!chainId || !(chainId in EvmChainId)) return undefined
-    const inputs = [account, getPermit2Address(chainId)] as [`0x${string}`, `0x${string}`]
+    // Aggregator uses direct allowance to aggregator address; Permit2 path uses Permit2 contract
+    const spenderAddress = isAggregatorOrder ? spender : getPermit2Address(chainId)
+    if (!spenderAddress) return undefined
+    const inputs = [account, spenderAddress] as [`0x${string}`, `0x${string}`]
     return {
       chainId,
       address: amountToApprove?.currency.address as Address,
       inputs,
     }
-  }, [chainId, amountToApprove?.currency.address, account])
+  }, [chainId, amountToApprove?.currency.address, account, isAggregatorOrder, spender])
   const [permit2Signature, setPermit2Signature] = useState<Permit2Signature | undefined>(undefined)
 
   const {
@@ -196,7 +230,7 @@ const useConfirmActions = (
     error: swapError,
     swapCalls,
   } = useSwapCallback({
-    trade: isClassicOrder(order) ? order.trade : undefined,
+    order: isClassicOrder(order) ? order : undefined,
     deadline,
     permitSignature: permit2Signature,
   })
@@ -490,6 +524,32 @@ const useConfirmActions = (
     showError,
     t,
   ])
+
+  const aggregatorApproveStep = useMemo(() => {
+    return {
+      step: ConfirmModalState.APPROVING_TOKEN,
+      action: async (nextState?: ConfirmModalState) => {
+        setTxHash(undefined)
+        setConfirmState(ConfirmModalState.APPROVING_TOKEN)
+        try {
+          const result = await directApproveNoCheck?.()
+          if (result?.hash && chainId) {
+            const hash = await safeTxHashTransformer(result.hash)
+            setTxHash(hash)
+            await retryWaitForTransaction({ hash })
+          }
+          setConfirmState(nextState ?? ConfirmModalState.PENDING_CONFIRMATION)
+        } catch (error) {
+          if (userRejectedError(error)) {
+            showError(t('Transaction rejected'))
+          } else {
+            showError(typeof error === 'string' ? error : (error as any)?.message)
+          }
+        }
+      },
+      showIndicator: true,
+    }
+  }, [directApproveNoCheck, chainId, safeTxHashTransformer, retryWaitForTransaction, showError, t])
 
   const approvalBridgeStep = useMemo(() => {
     return {
@@ -868,7 +928,7 @@ const useConfirmActions = (
           if (userRejectedError(error)) {
             showError(t('Transaction rejected'))
           } else {
-            showError(typeof error === 'string' ? error : (error as any)?.message)
+            showError(transactionErrorToUserReadableMessage(error, t))
           }
         }
       },
@@ -1030,7 +1090,11 @@ const useConfirmActions = (
       [ConfirmModalState.WRAPPING]: wrapStep,
       [ConfirmModalState.RESETTING_APPROVAL]: revokeStep,
       [ConfirmModalState.PERMITTING]: permitStep,
-      [ConfirmModalState.APPROVING_TOKEN]: isBridgeOrder(order) ? approvalBridgeStep : approveStep,
+      [ConfirmModalState.APPROVING_TOKEN]: isBridgeOrder(order)
+        ? approvalBridgeStep
+        : isAggregatorOrder
+        ? aggregatorApproveStep
+        : approveStep,
       [ConfirmModalState.PENDING_CONFIRMATION]: isBridgeOrder(order)
         ? isSolana(order.trade.inputAmount.currency.chainId)
           ? swapBridgeFromSolanaToEVMStep
@@ -1047,6 +1111,8 @@ const useConfirmActions = (
     revokeStep,
     permitStep,
     approveStep,
+    aggregatorApproveStep,
+    isAggregatorOrder,
     order,
     swapStep,
     xSwapStep,

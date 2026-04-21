@@ -1,0 +1,71 @@
+{
+  "name": "@pancakeswap/aggregator-sdk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SDK for PancakeSwap aggregator API",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pancakeswap/pancake-frontend.git",
+    "directory": "packages/aggregator-sdk"
+  },
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest --run",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+  },
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "@pancakeswap/chains": "workspace:*",
+    "@pancakeswap/infinity-sdk": "workspace:*",
+    "@pancakeswap/price-api-sdk": "workspace:*",
+    "@pancakeswap/smart-router": "workspace:*",
+    "@pancakeswap/swap-sdk-core": "workspace:*",
+    "@pancakeswap/farms": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "@pancakeswap/chains": {
+      "optional": true
+    },
+    "@pancakeswap/infinity-sdk": {
+      "optional": true
+    },
+    "@pancakeswap/price-api-sdk": {
+      "optional": true
+    },
+    "@pancakeswap/smart-router": {
+      "optional": true
+    },
+    "@pancakeswap/swap-sdk-core": {
+      "optional": true
+    },
+    "@pancakeswap/farms": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@pancakeswap/chains": "workspace:*",
+    "@pancakeswap/infinity-sdk": "workspace:*",
+    "@pancakeswap/price-api-sdk": "workspace:*",
+    "@pancakeswap/smart-router": "workspace:*",
+    "@pancakeswap/swap-sdk-core": "workspace:*",
+    "@pancakeswap/farms": "workspace:*",
+    "@pancakeswap/tsconfig": "workspace:*",
+    "tsup": "^6.7.0"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  }
+}

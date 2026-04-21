@@ -15,6 +15,7 @@ export default defineConfig({
       '@pancakeswap/wagmi/connectors/trustWallet': r('../../packages/wagmi/connectors/trustWallet/index.ts'),
       '@pancakeswap/uikit': r('../../packages/uikit/src'),
       '@pancakeswap/localization': r('../../packages/localization/src'),
+      '@pancakeswap/aggregator-sdk': r('../../packages/aggregator-sdk/src'),
     },
   },
   test: {

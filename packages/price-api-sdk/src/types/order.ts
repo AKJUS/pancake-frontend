@@ -49,6 +49,10 @@ export type XOrder<
 export type ClassicOrder<tradeType extends TradeType = TradeType> = {
   type: OrderType.PCS_CLASSIC
   trade: InfinityRouter.InfinityTradeWithoutGraph<tradeType>
+  // Present iff produced by the aggregator strategy. Opaque here to avoid a
+  // dependency on @pancakeswap/aggregator-sdk; cast at the app callsite via
+  // the helpers in apps/web/src/quoter/utils/aggregatorOrder.ts.
+  aggregatorQuoteData?: unknown
 }
 
 export type BridgeRoute = {

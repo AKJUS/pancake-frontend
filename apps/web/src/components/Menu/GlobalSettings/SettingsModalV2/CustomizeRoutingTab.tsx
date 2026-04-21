@@ -18,6 +18,7 @@ import { useSpeedQuote } from 'hooks/useSpeedQuote'
 import { memo, useEffect } from 'react'
 import {
   useOnlyOneAMMSourceEnabled,
+  useUserAggregatorOnly,
   useUserInfinitySwapEnable,
   useUserSplitRouteEnable,
   useUserStableSwapEnable,
@@ -39,6 +40,7 @@ export const CustomizeRoutingTab = memo(() => {
   const [split, setSplit] = useUserSplitRouteEnable()
   const [singleHopOnly, setSingleHopOnly] = useUserSingleHopOnly()
   const [speedQuote, setSpeedQuote] = useSpeedQuote()
+  const [aggregatorOnly, setAggregatorOnly] = useUserAggregatorOnly()
   const onlyOneAMMSourceEnabled = useOnlyOneAMMSourceEnabled()
   const { pauseQuoting, resumeQuoting } = useAllTypeBestTrade()
 
@@ -270,6 +272,27 @@ export const CustomizeRoutingTab = memo(() => {
             />
           </Flex>
         </AtomBox>
+        {process.env.NEXT_PUBLIC_VERCEL_ENV !== 'production' && (
+          <AtomBox>
+            <PreTitle mb="24px">{t('QA / Testing')}</PreTitle>
+            <Flex justifyContent="space-between" alignItems="center" mb="24px">
+              <Flex alignItems="center">
+                <Text>{t('Aggregator Only')}</Text>
+                <QuestionHelper
+                  text={t('Forces aggregator routing exclusively — no fallback to V2/V3. For QA testing only.')}
+                  placement="top"
+                  ml="4px"
+                />
+              </Flex>
+              <Toggle
+                id="toggle-aggregator-only"
+                checked={aggregatorOnly}
+                scale="md"
+                onChange={() => setAggregatorOnly((s) => !s)}
+              />
+            </Flex>
+          </AtomBox>
+        )}
       </AutoColumn>
     </TabContent>
   )

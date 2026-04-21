@@ -32,6 +32,8 @@ export type RouteDisplayEssentials = Pick<Route, 'path' | 'pools' | 'inputAmount
 
 interface Props extends UseModalV2Props {
   routes: RouteDisplayEssentials[]
+  tradeInputCurrency?: Currency
+  tradeOutputCurrency?: Currency
 }
 
 interface RoutesDisplayButtonViewProps extends ButtonProps {
@@ -47,7 +49,15 @@ export const RoutesDisplayButtonView = ({ onClick, children, ...props }: RoutesD
   )
 }
 
-const RoutesDisplayView = ({ routes }: { routes: RouteDisplayEssentials[] }) => {
+const RoutesDisplayView = ({
+  routes,
+  tradeInputCurrency,
+  tradeOutputCurrency,
+}: {
+  routes: RouteDisplayEssentials[]
+  tradeInputCurrency?: Currency
+  tradeOutputCurrency?: Currency
+}) => {
   const { t } = useTranslation()
   const isBridgeRouting = routes?.some((route) => route.type === RouteType.BRIDGE)
 
@@ -72,7 +82,12 @@ const RoutesDisplayView = ({ routes }: { routes: RouteDisplayEssentials[] }) => 
         <AutoColumn gap="56px" height="100%" pb="16px">
           {routes.map((route, i) => (
             // eslint-disable-next-line react/no-array-index-key
-            <RouteDisplay key={i} route={route} />
+            <RouteDisplay
+              key={i}
+              route={route}
+              tradeInputCurrency={tradeInputCurrency}
+              tradeOutputCurrency={tradeOutputCurrency}
+            />
           ))}
         </AutoColumn>
       )}
@@ -80,7 +95,13 @@ const RoutesDisplayView = ({ routes }: { routes: RouteDisplayEssentials[] }) => 
   )
 }
 
-export const RouteDisplayModal = memo(function RouteDisplayModal({ isOpen, onDismiss, routes }: Props) {
+export const RouteDisplayModal = memo(function RouteDisplayModal({
+  isOpen,
+  onDismiss,
+  routes,
+  tradeInputCurrency,
+  tradeOutputCurrency,
+}: Props) {
   const [showRoutingSettingsModal, setShowRoutingSettingsModal] = useState(false)
 
   return (
@@ -96,7 +117,11 @@ export const RouteDisplayModal = memo(function RouteDisplayModal({ isOpen, onDis
       {showRoutingSettingsModal ? (
         <RoutingSettingsModalContent onBack={() => setShowRoutingSettingsModal(false)} />
       ) : (
-        <RoutesDisplayView routes={routes} />
+        <RoutesDisplayView
+          routes={routes}
+          tradeInputCurrency={tradeInputCurrency}
+          tradeOutputCurrency={tradeOutputCurrency}
+        />
       )}
     </ModalV2>
   )
@@ -104,6 +129,8 @@ export const RouteDisplayModal = memo(function RouteDisplayModal({ isOpen, onDis
 
 interface RouteDisplayProps {
   route: RouteDisplayEssentials
+  tradeInputCurrency?: Currency
+  tradeOutputCurrency?: Currency
 }
 
 function RouteDisplayView({
@@ -176,13 +203,28 @@ function getPairs(path: UnifiedCurrency[]) {
   return currencyPairs
 }
 
-export function EVMRouteDisplayContainer({ route }: RouteDisplayProps) {
+export function EVMRouteDisplayContainer({ route, tradeInputCurrency, tradeOutputCurrency }: RouteDisplayProps) {
   const { hookDiscount, category } = useHookDiscount(route.pools)
   const { path, pools, inputAmount, outputAmount } = route
-  const { currency: inputCurrency } = inputAmount
-  const { currency: outputCurrency } = outputAmount
 
-  const pairs = useMemo(() => getPairs(path), [path])
+  // When the trade-level currency is native (e.g. ETH), substitute it at the first/last
+  // path positions so logos render as ETH instead of WETH. The aggregator API returns
+  // wrapped-token addresses in route paths even when the user is swapping native ETH.
+  const displayPath = useMemo(() => {
+    let result = path
+    if (tradeInputCurrency?.isNative && result.length > 0) {
+      result = [tradeInputCurrency, ...result.slice(1)]
+    }
+    if (tradeOutputCurrency?.isNative && result.length > 0) {
+      result = [...result.slice(0, -1), tradeOutputCurrency]
+    }
+    return result
+  }, [path, tradeInputCurrency, tradeOutputCurrency])
+
+  const inputCurrency = tradeInputCurrency?.isNative ? tradeInputCurrency : inputAmount.currency
+  const outputCurrency = tradeOutputCurrency?.isNative ? tradeOutputCurrency : outputAmount.currency
+
+  const pairs = useMemo(() => getPairs(displayPath), [displayPath])
 
   return (
     <RouteDisplayView
@@ -229,10 +271,20 @@ function SolanaRouteDisplayContainer({ route }: RouteDisplayProps) {
   )
 }
 
-export const RouteDisplay = memo(function RouteDisplay({ route }: RouteDisplayProps) {
+export const RouteDisplay = memo(function RouteDisplay({
+  route,
+  tradeInputCurrency,
+  tradeOutputCurrency,
+}: RouteDisplayProps) {
   if (route.type === RouteType.SVM) {
     return <SolanaRouteDisplayContainer route={route} />
   }
 
-  return <EVMRouteDisplayContainer route={route} />
+  return (
+    <EVMRouteDisplayContainer
+      route={route}
+      tradeInputCurrency={tradeInputCurrency}
+      tradeOutputCurrency={tradeOutputCurrency}
+    />
+  )
 })

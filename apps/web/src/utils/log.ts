@@ -15,6 +15,7 @@ export type LogTradeType =
   | 'MarketMakerSwap'
   | 'V3SmartSwap'
   | 'UniversalRouter'
+  | 'Aggregator'
   | 'X'
   | 'X-Filled'
   | 'SolanaSwap'

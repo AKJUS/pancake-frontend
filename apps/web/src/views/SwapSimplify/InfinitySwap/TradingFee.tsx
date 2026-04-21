@@ -179,9 +179,9 @@ export const TradingFee: React.FC<TradingFeeProps> = memo(({ order, loaded }) =>
     )
   } else {
     feeText = (
-      <Text color="textSubtle" fontSize="14px">{`${hasDynamicHooks ? '~' : ''}${formatAmount(lpFeeAmount, 4)} ${
-        inputAmount?.currency?.symbol
-      }`}</Text>
+      <Text color="textSubtle" fontSize="14px">{`${hasDynamicHooks ? '~' : ''}${
+        lpFeeAmount ? formatAmount(lpFeeAmount, 4) : '-'
+      } ${inputAmount?.currency?.symbol}`}</Text>
     )
   }
 

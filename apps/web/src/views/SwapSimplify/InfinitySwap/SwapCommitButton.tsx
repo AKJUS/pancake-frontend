@@ -39,6 +39,9 @@ import { useBridgeTradeErrorHandler } from 'views/Swap/Bridge/CrossChainConfirmS
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
 import { isEvm, isSolana, NonEVMChainId } from '@pancakeswap/chains'
 
+import { isAllowedAggregatorRouter } from 'config/constants/aggregatorRouters'
+import { getAggregatorQuoteData } from 'quoter/utils/aggregatorOrder'
+import { logger } from 'utils/datadog'
 import { ConfirmSwapModalV3 } from '../../Swap/Bridge/CrossChainConfirmSwapModal/ConfirmSwapModalV3'
 import { useParsedAmounts, useSlippageAdjustedAmounts, useSwapInputError } from '../../Swap/V3Swap/hooks'
 import { useConfirmModalState } from '../../Swap/V3Swap/hooks/useConfirmModalState'
@@ -218,24 +221,39 @@ const SwapCommitButtonInner = memo(function SwapCommitButtonInner({
     [isExpertMode, order, tradeToConfirm],
   )
   const slippageAdjustedAmounts = useSlippageAdjustedAmounts(orderToExecute)
-  const amountToApprove = useMemo(
-    () =>
-      isSVMOrder(orderToExecute)
-        ? undefined
-        : inputCurrency?.isNative
-        ? isXOrder(orderToExecute)
-          ? slippageAdjustedAmounts[Field.INPUT]
-          : undefined
-        : slippageAdjustedAmounts[Field.INPUT],
-    [inputCurrency?.isNative, orderToExecute, slippageAdjustedAmounts],
-  ) as CurrencyAmount<Currency> | undefined
+  const amountToApprove = useMemo(() => {
+    if (isSVMOrder(orderToExecute)) return undefined
+    if (!inputCurrency?.isNative) return slippageAdjustedAmounts[Field.INPUT]
+
+    // Native input: only xOrders need wrapped-token (WETH) approval
+    // Aggregator and classic swap handle native via msg.value
+    if (isXOrder(orderToExecute)) {
+      return slippageAdjustedAmounts[Field.INPUT]
+    }
+
+    return undefined
+  }, [inputCurrency?.isNative, orderToExecute, slippageAdjustedAmounts]) as CurrencyAmount<Currency> | undefined
+
+  const spender = useMemo(() => {
+    if (!isEvm(chainId)) return undefined
+    const aggregatorData = getAggregatorQuoteData(orderToExecute)
+    if (aggregatorData) {
+      const candidate = aggregatorData.aggregatorAddress
+      // Belt-and-braces: bestAggregatorQuoteAtom already gates at ingestion, but
+      // never prompt the user to approve a spender that isn't on the allowlist.
+      // Returning undefined disables the approve step; the strategy layer falls
+      // back to the legacy router on the next quote refresh.
+      if (!isAllowedAggregatorRouter(chainId, candidate)) {
+        logger.warn('aggregator.spender.rejected', { chainId, candidate })
+        return undefined
+      }
+      return candidate as `0x${string}`
+    }
+    return getUniversalRouterAddress(chainId)
+  }, [chainId, orderToExecute])
 
   const { callToAction, confirmState, txHash, orderHash, confirmActions, errorMessage, resetState } =
-    useConfirmModalState(
-      orderToExecute,
-      amountToApprove?.wrapped,
-      isEvm(chainId) ? getUniversalRouterAddress(chainId) : undefined,
-    )
+    useConfirmModalState(orderToExecute, amountToApprove?.wrapped, spender)
 
   const { onUserInput } = useSwapActionHandlers()
   const reset = useCallback(() => {

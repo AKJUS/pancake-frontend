@@ -12,6 +12,7 @@ import {
   useUserSplitRouteEnable,
   useUserStableSwapEnable,
   useUserV2SwapEnable,
+  useUserAggregatorOnly,
   useUserV3SwapEnable,
 } from 'state/user/smartRouter'
 import { useMulticallGasLimit } from './useMulticallGasLimit'
@@ -29,6 +30,7 @@ export interface QuoteContext {
   chainId: number
   speedQuoteEnabled: boolean
   xEnabled: boolean
+  aggregatorOnly?: boolean
 }
 
 const QuoteContext = createContext<QuoteContext>({
@@ -62,6 +64,7 @@ export const QuoteContextProvider = ({ children }: { children: React.ReactNode }
   const [infinitySwap] = useUserInfinitySwapEnable()
   const infinityStableSwap = useUserInfinityStableSwapEnable()
   const [stableSwap] = useUserStableSwapEnable()
+  const [aggregatorOnly] = useUserAggregatorOnly()
   const config = useAtomValue(tokenRoutingConfigForInitAtom)
   if (config.loading || config.error) {
     return null
@@ -83,6 +86,7 @@ export const QuoteContextProvider = ({ children }: { children: React.ReactNode }
         chainId,
         speedQuoteEnabled,
         xEnabled: Boolean(xEnabled && xEnabledOnChain),
+        aggregatorOnly,
       }}
       key={chainId}
     >

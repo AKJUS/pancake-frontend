@@ -4,6 +4,7 @@ import { memo, useMemo } from 'react'
 
 import { styled } from 'styled-components'
 
+import { Currency } from '@pancakeswap/sdk'
 import { PriceOrder } from '@pancakeswap/price-api-sdk'
 import { isBridgeOrder, isClassicOrder, isXOrder } from 'views/Swap/utils'
 import { RouteDisplayEssentials } from 'views/Swap/V3Swap/components/RouteDisplayModal'
@@ -75,6 +76,8 @@ export const TradeDetails = memo(function TradeDetails({ loaded, order }: Props)
                 // TODO: remove when bridge is implemented
                 order?.trade?.routes as RouteDisplayEssentials[]
               }
+              tradeInputCurrency={inputAmount.currency as Currency}
+              tradeOutputCurrency={outputAmount.currency as Currency}
               wrapperStyle={{ padding: 0 }}
               loading={!loaded}
             />

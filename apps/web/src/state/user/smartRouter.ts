@@ -44,6 +44,12 @@ export function useUserSplitRouteEnable() {
   return useAtom(userUserSplitRouteAtom)
 }
 
+const userAggregatorOnlyAtom = atomWithStorageWithErrorCatch<boolean>('pcs:aggregatorOnly', false)
+
+export function useUserAggregatorOnly() {
+  return useAtom(userAggregatorOnlyAtom)
+}
+
 const derivedOnlyOneAMMSourceEnabledAtom = atom((get) => {
   return (
     [get(userUseStableSwapAtom), get(userUseV2SwapAtom), get(userUseV3SwapAtom), get(userUseInfinitySwapAtom)].filter(

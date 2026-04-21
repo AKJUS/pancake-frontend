@@ -4,6 +4,7 @@ import { Route } from '@pancakeswap/smart-router'
 import { Box, ModalV2, PoolTypeIcon, QuestionHelperV2, SkeletonV2, Text, useModalV2 } from '@pancakeswap/uikit'
 import { memo } from 'react'
 import { styled } from 'styled-components'
+import { Currency } from '@pancakeswap/sdk'
 
 import { RowBetween, RowFixed } from 'components/Layout/Row'
 import SwapRoute from 'views/Swap/components/SwapRoute'
@@ -21,13 +22,21 @@ interface Props {
   routes?: RouteDisplayEssentials[]
   wrapperStyle?: React.CSSProperties
   loading?: boolean
+  tradeInputCurrency?: Currency
+  tradeOutputCurrency?: Currency
 }
 
 const RouteInfoContainer = styled(RowBetween)`
   padding: 4px 24px 0;
 `
 
-export const RoutesBreakdown = memo(function RoutesBreakdown({ routes = [], wrapperStyle, loading }: Props) {
+export const RoutesBreakdown = memo(function RoutesBreakdown({
+  routes = [],
+  wrapperStyle,
+  loading,
+  tradeInputCurrency,
+  tradeOutputCurrency,
+}: Props) {
   const [wallchainStatus] = useWallchainStatus()
   const { t } = useTranslation()
   const { theme } = useTheme()
@@ -86,7 +95,12 @@ export const RoutesBreakdown = memo(function RoutesBreakdown({ routes = [], wrap
             </TertiaryButton>
           ) : null}
         </RowFixed>
-        <RouteDisplayModal {...routeDisplayModal} routes={routes} />
+        <RouteDisplayModal
+          {...routeDisplayModal}
+          routes={routes}
+          tradeInputCurrency={tradeInputCurrency}
+          tradeOutputCurrency={tradeOutputCurrency}
+        />
         <ModalV2 isOpen={routingSettingsModal.isOpen} onDismiss={routingSettingsModal.onDismiss} closeOnOverlayClick>
           <RoutingSettingsModalContent />
         </ModalV2>

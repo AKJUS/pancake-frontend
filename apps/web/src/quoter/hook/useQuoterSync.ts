@@ -52,6 +52,7 @@ export const useQuoterSync = () => {
     chainId,
     speedQuoteEnabled,
     xEnabled,
+    aggregatorOnly,
   } = useQuoteContext()
   const setTrade = useSetAtom(baseAllTypeBestTradeAtom)
   const setTyping = useSetAtom(userTypingAtom)
@@ -79,6 +80,7 @@ export const useQuoterSync = () => {
     stableSwap,
     speedQuoteEnabled,
     xEnabled,
+    aggregatorOnly,
     slippage,
     isAutoSlippage: isAuto,
     address: currentChain === NonEVMChainId.SOLANA ? solanaAccount : address,

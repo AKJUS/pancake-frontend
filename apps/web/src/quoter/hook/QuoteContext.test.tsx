@@ -23,6 +23,7 @@ vi.mock('state/user/smartRouter', () => ({
   useUserStableSwapEnable: () => [true, vi.fn()],
   useUserV2SwapEnable: () => [true, vi.fn()],
   useUserV3SwapEnable: () => [true, vi.fn()],
+  useUserAggregatorOnly: () => [false, vi.fn()],
 }))
 
 vi.mock('@pancakeswap/utils/user', () => ({

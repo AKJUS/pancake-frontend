@@ -169,6 +169,27 @@ export const resetPostHogUser = () => {
     .catch(() => {})
 }
 
+export const onPostHogFeatureFlags = (callback: (flags: string[]) => void): (() => void) => {
+  let cancelled = false
+  let unsubscribe: (() => void) | null = null
+
+  getPostHogClient()
+    .then((posthog) => {
+      if (cancelled || !posthog || !posthogInitialized) {
+        return
+      }
+
+      const result = posthog.onFeatureFlags((flags) => callback(flags))
+      unsubscribe = typeof result === 'function' ? result : null
+    })
+    .catch(() => {})
+
+  return () => {
+    cancelled = true
+    unsubscribe?.()
+  }
+}
+
 export const buildPostHogBaseProperties = ({
   account,
   chainId,

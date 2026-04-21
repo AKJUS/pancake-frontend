@@ -287,14 +287,18 @@ const TradingFeeDisplay = memo(function TradingFeeDisplay({
               <Text fontSize="14px" style={{ textDecoration: 'underline dotted', cursor: 'help' }}>
                 {feeUsdValue !== undefined
                   ? `~${formatDollarAmount(feeUsdValue, 3)}`
-                  : `~${formatAmount(priceBreakdown.lpFeeAmount, 4)} ${inputAmount?.currency?.symbol}`}
+                  : `~${priceBreakdown.lpFeeAmount ? formatAmount(priceBreakdown.lpFeeAmount, 4) : '-'} ${
+                      inputAmount?.currency?.symbol
+                    }`}
               </Text>
             </QuestionHelperV2>
           ) : (
             <Text fontSize="14px">
               {feeUsdValue !== undefined
                 ? formatDollarAmount(feeUsdValue, 3)
-                : `${formatAmount(priceBreakdown.lpFeeAmount, 4)} ${inputAmount?.currency?.symbol}`}
+                : `${priceBreakdown.lpFeeAmount ? formatAmount(priceBreakdown.lpFeeAmount, 4) : '-'} ${
+                    inputAmount?.currency?.symbol
+                  }`}
             </Text>
           )}
         </SkeletonV2>
