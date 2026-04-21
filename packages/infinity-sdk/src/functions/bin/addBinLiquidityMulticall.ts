@@ -52,11 +52,11 @@ export const addBinLiquidityMulticall = ({
     calls.push(encodeBinPositionManagerInitializePoolCalldata(poolKey, activeIdDesired))
   }
 
-  if (token0Permit2Signature && token0Permit2Signature.signature !== '0x') {
+  if (token0Permit2Signature) {
     calls.push(encodePermit2(owner, token0Permit2Signature))
   }
 
-  if (token1Permit2Signature && token1Permit2Signature.signature !== '0x') {
+  if (token1Permit2Signature) {
     calls.push(encodePermit2(owner, token1Permit2Signature))
   }
 
