@@ -59,6 +59,11 @@ describe('getRoutingStrategy (PostHog release flag)', () => {
     expect(strategyKeys(result)).toContain('aggregator')
   })
 
+  it('keeps aggregator in production when device override is enabled even if the flag is off', () => {
+    const result = getRoutingStrategy(makeQuery(), {}, false, true, true)
+    expect(strategyKeys(result)).toContain('aggregator')
+  })
+
   it('aggregatorOnly QA toggle overrides release flag on non-prod envs', () => {
     vi.stubEnv('NEXT_PUBLIC_VERCEL_ENV', 'preview')
     const result = getRoutingStrategy(makeQuery({ aggregatorOnly: true }), {}, false, false)

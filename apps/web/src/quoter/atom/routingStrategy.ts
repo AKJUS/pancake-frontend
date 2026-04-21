@@ -5,6 +5,7 @@ import { Atom, atom } from 'jotai'
 import { atomFamily } from 'jotai/utils'
 import { AtomFamily } from 'jotai/vanilla/utils/atomFamily'
 import { QuoteQuery } from 'quoter/quoter.types'
+import { aggregatorOverrideAtom, isAggregatorOverrideEnabled } from 'state/featureFlags/aggregatorOverrideAtom'
 import { POSTHOG_FLAGS, posthogFlagsAtom } from 'state/featureFlags/posthogFlagsAtom'
 import { InterfaceOrder } from 'views/Swap/utils'
 import { atomWithLoadable } from './atomWithLoadable'
@@ -179,17 +180,20 @@ export const routingStrategyAtom = atomFamily(
           : false)
 
       const flags = get(posthogFlagsAtom)
-      const aggregatorReleaseEnabled = isProductionEnv() ? flags[POSTHOG_FLAGS.AGGREGATOR_V1] === true : true
+      const aggregatorOverrideEnabled = isAggregatorOverrideEnabled(get(aggregatorOverrideAtom))
+      const aggregatorReleaseEnabled =
+        aggregatorOverrideEnabled || (isProductionEnv() ? flags[POSTHOG_FLAGS.AGGREGATOR_V1] === true : true)
       if (process.env.NEXT_PUBLIC_VERCEL_ENV !== 'production') {
         console.log('[PostHog] Routing strategy evaluation:', {
           isProduction: isProductionEnv(),
           flagValue: flags[POSTHOG_FLAGS.AGGREGATOR_V1],
+          aggregatorOverrideEnabled,
           aggregatorReleaseEnabled,
           allFlags: flags,
         })
       }
 
-      return getRoutingStrategy(query, config.unwrap(), isRwaTrade, aggregatorReleaseEnabled)
+      return getRoutingStrategy(query, config.unwrap(), isRwaTrade, aggregatorReleaseEnabled, aggregatorOverrideEnabled)
     })
   },
   (a, b) => a.hash === b.hash,
@@ -200,6 +204,7 @@ export function getRoutingStrategy(
   tokenSpecificConfig: TokenSpecificRoutingStrategy,
   isRwaTrade: boolean,
   aggregatorReleaseEnabled: boolean,
+  aggregatorOverrideEnabled = false,
 ): StrategyRoute[] {
   const currencyA = query.baseCurrency!
   const currencyB = query.currency!
@@ -224,6 +229,7 @@ export function getRoutingStrategy(
     console.log('[PostHog] Routing config applied:', {
       chainId,
       isAggregatorSupported,
+      aggregatorOverrideEnabled,
       aggregatorReleaseEnabled,
       aggregatorAllowed,
       selectedStrategies: filteredConfig.map((x) => x.key),

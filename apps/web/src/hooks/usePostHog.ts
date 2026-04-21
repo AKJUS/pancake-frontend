@@ -1,6 +1,11 @@
 import { useSetAtom } from 'jotai'
 import { useRouter } from 'next/router'
 import { useEffect, useRef } from 'react'
+import {
+  aggregatorOverrideAtom,
+  createAggregatorOverrideState,
+  getAggregatorOverrideQueryAction,
+} from 'state/featureFlags/aggregatorOverrideAtom'
 import { posthogFlagsAtom } from 'state/featureFlags/posthogFlagsAtom'
 import { useAccount } from 'wagmi'
 import { useWalletRuntime } from 'wallet/hook/useWalletEnv'
@@ -20,6 +25,7 @@ export const usePostHog = () => {
   const { address, chainId, connector, status } = useAccount()
   const runtime = useWalletRuntime()
   const setFlags = useSetAtom(posthogFlagsAtom)
+  const setAggregatorOverride = useSetAtom(aggregatorOverrideAtom)
   const hasTrackedInitialPageView = useRef(false)
   const lastConnectedState = useRef<{
     address?: string
@@ -53,6 +59,22 @@ export const usePostHog = () => {
       unsubscribe?.()
     }
   }, [setFlags])
+
+  useEffect(() => {
+    if (!router.isReady) {
+      return
+    }
+
+    const action = getAggregatorOverrideQueryAction(router.query.agg_override)
+    if (action === 'enable') {
+      setAggregatorOverride(createAggregatorOverrideState())
+      return
+    }
+
+    if (action === 'clear') {
+      setAggregatorOverride(null)
+    }
+  }, [router.isReady, router.query.agg_override, setAggregatorOverride])
 
   useEffect(() => {
     if (!isPostHogConfigured() || !router.isReady || hasTrackedInitialPageView.current) {
