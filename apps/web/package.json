@@ -47,7 +47,7 @@
     "@farcaster/miniapp-wagmi-connector": "^1.1.0",
     "@gelatonetwork/limit-orders-lib": "^4.1.0",
     "@gnosis.pm/safe-apps-wagmi": "^1.2.0",
-    "@kyberswap/pancake-liquidity-widgets": "2.0.6",
+    "@kyberswap/pancake-liquidity-widgets": "2.0.8",
     "@next/bundle-analyzer": "13.0.7",
     "@orbs-network/twap-ui": "0.11.51",
     "@orbs-network/twap-ui-pancake": "0.11.51",
