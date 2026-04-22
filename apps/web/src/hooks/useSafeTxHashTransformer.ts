@@ -15,7 +15,7 @@ type SafeTxDetails = {
   txHash?: string
 }
 
-export const useSafeTxHashTransformer = () => {
+export const useSafeTxHashTransformer = (disableWalletConnectSafe?: boolean | undefined) => {
   const { connector, chainId } = useAccount()
   const confirmationSeconds = chainId ? AVERAGE_CHAIN_BLOCK_TIMES[chainId] : AVERAGE_CHAIN_BLOCK_TIMES[ChainId.BSC]
 
@@ -60,25 +60,33 @@ export const useSafeTxHashTransformer = () => {
         // SDK path not available (e.g. WalletConnect Safe), fall through to REST API
       }
 
+      if (disableWalletConnectSafe) return hash
+
       // Path 2: WalletConnect Safe — use Safe Transaction Service REST API.
-      const service = chainId ? SafeTransactionService.forChain(chainId) : null
-      if (!service) return hash
+      try {
+        const service = chainId ? SafeTransactionService.forChain(chainId) : null
+        if (!service) return hash
 
-      const isSafe = await service.isSafeTxHash(hash)
-      if (!isSafe) return hash
+        const isSafe = await service.isSafeTxHash(hash)
+        if (!isSafe) return hash
 
-      const pollViaApi = async (): Promise<Hash> => {
-        const data = await service.getTransaction(hash)
-        if (!data?.isExecuted || !data.transactionHash) throw new RetryableError('Safe tx not yet executed')
-        return data.transactionHash as Hash
+        const pollViaApi = async (): Promise<Hash> => {
+          const data = await service.getTransaction(hash)
+          if (!data?.isExecuted || !data.transactionHash) throw new RetryableError('Safe tx not yet executed')
+          return data.transactionHash as Hash
+        }
+
+        return retry(pollViaApi, {
+          n: 10,
+          minWait: 5000,
+          maxWait: 10000,
+          delay: confirmationSeconds * 1000 + 1000,
+        }).promise as Promise<Hash>
+      } catch (e) {
+        // REST API path failed, return original hash
+        console.error('Error while transforming Safe transaction hash:', e)
+        return hash
       }
-
-      return retry(pollViaApi, {
-        n: 10,
-        minWait: 5000,
-        maxWait: 10000,
-        delay: confirmationSeconds * 1000 + 1000,
-      }).promise as Promise<Hash>
     },
     [chainId, confirmationSeconds, connector],
   )

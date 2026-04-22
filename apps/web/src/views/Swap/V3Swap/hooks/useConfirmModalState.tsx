@@ -197,7 +197,7 @@ const useConfirmActions = (
   const { refreshOrder, resumeQuoting } = useAllTypeBestTrade()
 
   const [deadline] = useTransactionDeadline()
-  const safeTxHashTransformer = useSafeTxHashTransformer()
+  const safeTxHashTransformer = useSafeTxHashTransformer(true)
   const { revoke, permit, approve, getPermitCalldata, getApproveCalldata } = usePermit2(amountToApprove, spender, {
     enablePaymaster: true,
   })
