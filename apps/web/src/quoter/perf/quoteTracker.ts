@@ -75,8 +75,10 @@ class RouteTracker extends PerfTracker<QuoteTrace> {
     }
   }
 
-  public async report() {
-    super.report(`quote-${this.trace.route}`)
+  public async report(_key?: string) {
+    // Route-level quote logs were removed in favor of a single session-level
+    // logger emitted by quoteStrategyLogger.
+    const _route = this.trace.route
   }
 }
 

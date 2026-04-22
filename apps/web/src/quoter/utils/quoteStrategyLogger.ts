@@ -1,8 +1,16 @@
 import { TradeType } from '@pancakeswap/swap-sdk-core'
 import type { InterfaceOrder } from 'views/Swap/utils'
 import type { Loadable } from '@pancakeswap/utils/Loadable'
-import { createQuoteStrategyTracker } from 'quoter/perf/quoteStrategyTracker'
+import { shouldReportQuoteSession } from 'quoter/perf/quoteSessionReportGuard'
+import {
+  serializeOrder,
+  serializeQuoteSessionLog,
+  type QuoteSessionCandidateSnapshot,
+} from 'quoter/utils/quoteLogSerializer'
+import { getLogger } from 'utils/datadog'
 import type { StrategyRoute } from '../atom/routingStrategy'
+
+const sessionLogger = getLogger('quote-session')
 
 function formatAmount(amount: any): string {
   if (!amount) return '0'
@@ -52,20 +60,15 @@ export async function logStrategyComparison(
       return
     }
 
+    if (!shouldReportQuoteSession(option.hash)) {
+      return
+    }
+
     const isExactInput = selectedTrade.tradeType === TradeType.EXACT_INPUT
     const selectedAmount = isExactInput
       ? formatAmount(selectedTrade.outputAmount)
       : formatAmount(selectedTrade.inputAmount)
     const selectedStrategy = selectedIndex !== undefined ? quotes[selectedIndex].key : 'unknown'
-
-    const tracker = createQuoteStrategyTracker(
-      selectedStrategy,
-      selectedAmount,
-      selectedTrade.tradeType,
-      option.baseCurrency?.symbol,
-      option.currency?.symbol,
-      quotes.length,
-    )
 
     // Record all strategies and build console table data
     const strategyTable: Array<{
@@ -74,6 +77,7 @@ export async function logStrategyComparison(
       Amount: string
     }> = []
     const comparisonMetrics: Record<string, { amount: string; diffPercent: string }> = {}
+    const allStrategies: QuoteSessionCandidateSnapshot[] = []
 
     quotes.forEach((q, idx) => {
       const order = q.result.unwrapOr(undefined)
@@ -95,13 +99,6 @@ export async function logStrategyComparison(
         error = err?.message || String(err)
       }
 
-      tracker.recordStrategy({
-        strategy: q.key,
-        status,
-        amount,
-        error,
-      })
-
       // Build console table row
       strategyTable.push({
         Strategy: q.key,
@@ -110,15 +107,25 @@ export async function logStrategyComparison(
       })
 
       // Record comparisons for non-selected strategies
+      let diffPercent: string | undefined
       if (idx !== selectedIndex && trade) {
         const tradeAmount = isExactInput ? formatAmount(trade.outputAmount) : formatAmount(trade.inputAmount)
         const { percent } = calculateDiff(selectedAmount, tradeAmount)
-        tracker.recordComparison(q.key, percent)
+        diffPercent = percent
         comparisonMetrics[q.key] = {
           amount: tradeAmount,
           diffPercent: percent,
         }
       }
+
+      allStrategies.push({
+        strategy: q.key,
+        status,
+        amount,
+        diffPercent,
+        error,
+        order: serializeOrder(order),
+      })
     })
 
     // Console output for non-production
@@ -138,8 +145,18 @@ export async function logStrategyComparison(
       console.groupEnd()
     }
 
-    tracker.success()
-    await tracker.report()
+    const sessionPayload = serializeQuoteSessionLog({
+      option,
+      selectedStrategy,
+      selectedAmount,
+      selectedOrder,
+      allStrategies,
+    })
+
+    // eslint-disable-next-line no-console
+    console.log('[quote-session]', sessionPayload)
+
+    sessionLogger.log('quote.session.completed', sessionPayload)
   } catch (error) {
     // Silently fail to avoid breaking quote flow
   }

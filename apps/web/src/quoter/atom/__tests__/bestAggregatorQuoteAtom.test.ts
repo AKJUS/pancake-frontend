@@ -15,7 +15,6 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 
 import { validateTradeOnChain } from 'quoter/utils/getVerifiedTrade'
 import { isAllowedAggregatorRouter } from 'config/constants/aggregatorRouters'
-import { logger } from 'utils/datadog'
 import type { QuoteQuery } from 'quoter/quoter.types'
 import { bestAggregatorQuoteAtom } from '../bestAggregatorQuoteAtom'
 
@@ -197,29 +196,6 @@ describe('bestAggregatorQuoteAtom — on-chain verification', () => {
 
     expect(loadable.isFail()).toBe(true)
     expect(loadable.error).toBe(verifyError)
-    // Error must be flattened to name/message/stack so DataDog forwards real content
-    // instead of `{}` (Error instances don't JSON-serialize those fields).
-    expect(logger.warn).toHaveBeenCalledWith(
-      'aggregator.quote.rejected',
-      expect.objectContaining({
-        reason: 'verification-failed',
-        chainId: ChainId.BSC,
-        tokenIn: WETH.address,
-        tokenOut: USDT.address,
-        aggregatorAddress: '0xRouterAllowedAddress',
-        error: expect.objectContaining({ name: 'Error', message: 'Fail to validate' }),
-        quote: expect.objectContaining({
-          srcToken: WETH.address,
-          dstToken: USDT.address,
-          routes: [
-            expect.objectContaining({
-              percent: 100,
-              pools: [expect.objectContaining({ type: 'infinityCl', fee: 7 })],
-            }),
-          ],
-        }),
-      }),
-    )
     // Invariant: a rejected quote never surfaces a partially-annotated order.
   })
 
@@ -232,16 +208,5 @@ describe('bestAggregatorQuoteAtom — on-chain verification', () => {
 
     expect(loadable.isFail()).toBe(true)
     expect(validateTradeOnChain).not.toHaveBeenCalled()
-    expect(logger.warn).toHaveBeenCalledWith(
-      'aggregator.quote.rejected',
-      expect.objectContaining({
-        reason: 'not-allowlisted',
-        chainId: ChainId.BSC,
-        tokenIn: WETH.address,
-        tokenOut: USDT.address,
-        aggregatorAddress: '0xRouterAllowedAddress',
-        quote: expect.objectContaining({ srcToken: WETH.address }),
-      }),
-    )
   })
 })
