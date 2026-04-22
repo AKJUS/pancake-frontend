@@ -84,4 +84,15 @@ describe('getRoutingStrategy (PostHog release flag)', () => {
     const result = getRoutingStrategy(makeQuery(), {}, true, false)
     expect(strategyKeys(result)).toEqual(['x'])
   })
+
+  it('filters aggregator out when excludeAggregator is true regardless of release flag', () => {
+    const result = getRoutingStrategy(makeQuery({ excludeAggregator: true }), {}, false, true)
+    expect(strategyKeys(result)).not.toContain('aggregator')
+    expect(strategyKeys(result).length).toBeGreaterThan(0)
+  })
+
+  it('keeps aggregator when excludeAggregator is false and release flag is enabled', () => {
+    const result = getRoutingStrategy(makeQuery({ excludeAggregator: false }), {}, false, true)
+    expect(strategyKeys(result)).toContain('aggregator')
+  })
 })

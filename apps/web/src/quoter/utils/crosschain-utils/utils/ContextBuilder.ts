@@ -101,6 +101,8 @@ export class ContextBuilder {
             infinityStableSwap,
             // Disable xSwap is not supported for cross chain swap
             xEnabled: false,
+            // Aggregator is for same-chain swaps only; exclude from cross-chain intermediate swaps
+            excludeAggregator: true,
             ...swapOption,
           }
 

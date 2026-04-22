@@ -1,4 +1,4 @@
-import { Currency, Percent, SPLToken, TradeType } from '@pancakeswap/swap-sdk-core'
+import { Currency, SPLToken, TradeType } from '@pancakeswap/swap-sdk-core'
 import { Loadable } from '@pancakeswap/utils/Loadable'
 import { TimeoutError } from '@pancakeswap/utils/withTimeout'
 import { getIsWrapping } from 'hooks/useWrapCallback'
@@ -6,6 +6,7 @@ import { atom } from 'jotai'
 import { atomFamily } from 'jotai/utils'
 import { isEqualQuoteQuery } from 'quoter/utils/PoolHashHelper'
 import { findBestQuote } from 'quoter/utils/findBestQuote'
+import { logStrategyComparison } from 'quoter/utils/quoteStrategyLogger'
 import { warningSeverity } from 'utils/exchange'
 import { InterfaceOrder, isBridgeOrder, isSVMOrder } from 'views/Swap/utils'
 import { OrderType } from '@pancakeswap/price-api-sdk'
@@ -71,7 +72,10 @@ export const bestSameChainWithoutPlaceHolderAtom = atomFamily((_option: QuoteQue
         const [bestQuote, index] = best
         if (bestQuote) {
           if (!anyPending) {
-            // updateStrategy(strategyHash, routes[bestIndex])
+            // Fire and forget logging
+            logStrategyComparison(strategies, quotes, index, option).catch(() => {
+              // Silently handle logging errors
+            })
             return {
               quote: Loadable.Just<InterfaceOrder>(bestQuote),
               anyShadowFail,

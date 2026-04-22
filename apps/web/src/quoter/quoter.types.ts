@@ -70,6 +70,7 @@ export interface Options {
   trackPerf?: boolean
   retry?: number | boolean
   aggregatorOnly?: boolean
+  excludeAggregator?: boolean
   hash: string
 }
 

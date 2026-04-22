@@ -75,30 +75,7 @@ const RWA_ONLY_ROUTING_CONFIG: StrategyConfig[] = [
   },
 ]
 
-const AGGREGATOR_FIRST_ROUTING_CONFIG: StrategyConfig[] = [
-  {
-    key: 'aggregator',
-    priority: 1,
-  },
-  {
-    key: 'single',
-    priority: 2,
-  },
-  {
-    key: 'routing-sdk',
-    priority: 2,
-  },
-  {
-    key: 'x',
-    priority: 2,
-  },
-  {
-    key: 'full',
-    priority: 3,
-  },
-]
-
-const LEGACY_FIRST_ROUTING_CONFIG: StrategyConfig[] = [
+const ROUTING_STRATEGY_CONFIG: StrategyConfig[] = [
   {
     key: 'aggregator',
     priority: 1,
@@ -120,16 +97,6 @@ const LEGACY_FIRST_ROUTING_CONFIG: StrategyConfig[] = [
     priority: 2,
   },
 ]
-
-export type RoutingMode = 'aggregator-first' | 'legacy-first'
-
-export function getRoutingMode(): RoutingMode {
-  return process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' ? 'legacy-first' : 'aggregator-first'
-}
-
-export function getDefaultRoutingConfig(mode: RoutingMode): StrategyConfig[] {
-  return mode === 'aggregator-first' ? AGGREGATOR_FIRST_ROUTING_CONFIG : LEGACY_FIRST_ROUTING_CONFIG
-}
 
 interface TokenSpecificRoutingStrategy {
   [chainId: number]: {
@@ -218,12 +185,10 @@ export function getRoutingStrategy(
     return RWA_ONLY_ROUTING_CONFIG.map((x) => ({ ...Strategies[x.key], ...x })) as StrategyRoute[]
   }
   const config =
-    tokenSpecificConfig[chainId]?.[addressA] ||
-    tokenSpecificConfig[chainId]?.[addressB] ||
-    getDefaultRoutingConfig(getRoutingMode())
+    tokenSpecificConfig[chainId]?.[addressA] || tokenSpecificConfig[chainId]?.[addressB] || ROUTING_STRATEGY_CONFIG
 
   const isAggregatorSupported = AGGREGATOR_SUPPORTED_CHAIN_IDS.includes(chainId)
-  const aggregatorAllowed = isAggregatorSupported && aggregatorReleaseEnabled
+  const aggregatorAllowed = isAggregatorSupported && aggregatorReleaseEnabled && !query.excludeAggregator
   const filteredConfig = aggregatorAllowed ? config : config.filter((x) => x.key !== 'aggregator')
   if (process.env.NEXT_PUBLIC_VERCEL_ENV !== 'production') {
     console.log('[PostHog] Routing config applied:', {
