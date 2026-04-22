@@ -17,7 +17,6 @@ import { useTranslation } from '@pancakeswap/localization'
 import { useActiveChainId } from 'hooks/useActiveChainId'
 
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
-import { useSafeTxHashTransformer } from 'hooks/useSafeTxHashTransformer'
 import { isSolana, NonEVMChainId } from '@pancakeswap/chains'
 import {
   CrossChainFarmStepType,
@@ -61,7 +60,6 @@ export function useTransactionAdder(overrideChainId?: number): (
   const from = isSolana(chainId) ? solanaAccount : evmAccount
 
   const dispatch = useAppDispatch()
-  const safeTxHashTransformer = useSafeTxHashTransformer()
 
   return useCallback(
     async (
@@ -104,12 +102,6 @@ export function useTransactionAdder(overrideChainId?: number): (
         throw Error('No transaction hash found.')
       }
 
-      try {
-        hash = await safeTxHashTransformer(hash as Hash)
-      } catch (e) {
-        console.error('Failed to get transaction hash from Safe', e)
-      }
-
       dispatch(
         addTransaction({
           hash,
@@ -127,7 +119,7 @@ export function useTransactionAdder(overrideChainId?: number): (
         }),
       )
     },
-    [from, chainId, safeTxHashTransformer, dispatch],
+    [from, chainId, dispatch],
   )
 }
 

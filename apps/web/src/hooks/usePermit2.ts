@@ -4,6 +4,7 @@ import { Permit2Signature } from '@pancakeswap/universal-router-sdk'
 import { QueryObserverResult } from '@tanstack/react-query'
 import { useCallback, useMemo, useState } from 'react'
 import { Address, encodeFunctionData, Hash, erc20Abi, Hex } from 'viem'
+import { useHasPendingApproval } from 'state/transactions/hooks'
 import { useAccountActiveChain } from './useAccountActiveChain'
 import { useApproveCallback } from './useApproveCallback'
 import { Permit2Details, usePermit2Details } from './usePermit2Details'
@@ -100,7 +101,11 @@ export const usePermit2 = (
 
   const [isPermitting, setIsPermitting] = useState(false)
   const [isRevoking, setIsRevoking] = useState(false)
-  const [isApproving, setIsApproving] = useState(false)
+  const [isApprovingLocal, setIsApprovingLocal] = useState(false)
+
+  const pendingApproval = useHasPendingApproval(amount?.currency?.address, approveTarget, chainId)
+  // Stay in approving state while the tx is pending in Redux (covers Safe Wallet queue window).
+  const isApproving = isApprovingLocal || pendingApproval
 
   const writePermit = useWritePermit(amount?.currency, spender, permit2Details?.nonce, chainId)
   const { approveNoCheck, revokeNoCheck } = useApproveCallback(amount, approveTarget, {
@@ -119,12 +124,13 @@ export const usePermit2 = (
   }, [writePermit])
 
   const approve = useCallback(async () => {
-    setIsApproving(true)
+    setIsApprovingLocal(true)
     try {
       const result = await approveNoCheck()
+      console.log('[usePermit2] approve result:', result)
       return result
     } finally {
-      setIsApproving(false)
+      setIsApprovingLocal(false)
     }
   }, [approveNoCheck])
 

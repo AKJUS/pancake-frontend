@@ -31,6 +31,7 @@ import {
   finalizeTransaction,
 } from './actions'
 import { fetchCelerApi } from './fetchCelerApi'
+import { SafeTransactionService } from './safeTransactionService'
 import { getReadableTransactionType, useAllChainTransactions, useSolanaTransactions } from './hooks'
 import { TransactionDetails } from './reducer'
 
@@ -98,6 +99,38 @@ export const Updater: React.FC<{ chainId: number }> = ({ chainId }) => {
             if (error instanceof TransactionNotFoundError) {
               throw new RetryableError(`Transaction not found: ${transaction.hash}`)
             } else if (error instanceof TransactionReceiptNotFoundError) {
+              // May be a Safe tx hash — check the Safe Transaction Service.
+              const service = SafeTransactionService.forChain(chainId)
+              if (service) {
+                const safeTx = await service.getTransaction(transaction.hash as `0x${string}`)
+                if (safeTx) {
+                  if (!safeTx.isExecuted || !safeTx.transactionHash) {
+                    throw new RetryableError(`Safe tx not yet executed: ${transaction.hash}`)
+                  }
+                  const safeReceipt: any = await provider.getTransactionReceipt({
+                    hash: safeTx.transactionHash as `0x${string}`,
+                  })
+                  if (safeReceipt) {
+                    dispatch(
+                      finalizeTransaction({
+                        chainId,
+                        hash: transaction.hash,
+                        receipt: {
+                          blockHash: safeReceipt.blockHash,
+                          blockNumber: Number(safeReceipt.blockNumber),
+                          contractAddress: safeReceipt.contractAddress ?? '',
+                          from: safeReceipt.from,
+                          status: safeReceipt.status === 'success' ? 1 : 0,
+                          to: safeReceipt.to ?? '',
+                          transactionHash: safeReceipt.transactionHash,
+                          transactionIndex: safeReceipt.transactionIndex,
+                        },
+                      }),
+                    )
+                    return
+                  }
+                }
+              }
               throw new RetryableError(`Transaction receipt not found: ${transaction.hash}`)
             } else if (error instanceof BlockNotFoundError) {
               throw new RetryableError(`Block not found for transaction: ${transaction.hash}`)

@@ -70,3 +70,4 @@ AGENTS.md
 tmp
 
 .vscode/
+.mcp.json

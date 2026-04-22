@@ -1,79 +1,85 @@
 import { ChainId, AVERAGE_CHAIN_BLOCK_TIMES } from '@pancakeswap/chains'
-import { useCallback, useMemo } from 'react'
+import { useCallback } from 'react'
 import { RetryableError, retry } from 'state/multicall/retry'
+import { SafeTransactionService } from 'state/transactions/safeTransactionService'
 import { Hash } from 'viem'
 import { useAccount } from 'wagmi'
 
 enum TransactionStatus {
   AWAITING_CONFIRMATIONS = 'AWAITING_CONFIRMATIONS',
   AWAITING_EXECUTION = 'AWAITING_EXECUTION',
-  CANCELLED = 'CANCELLED',
-  FAILED = 'FAILED',
-  SUCCESS = 'SUCCESS',
 }
 
-type TransactionDetails = {
+type SafeTxDetails = {
   txStatus: TransactionStatus
   txHash?: string
 }
 
-class SafeTxHashNotAvailableError extends Error {
-  constructor() {
-    super('Safe transaction hash is not available')
-  }
-}
-
 export const useSafeTxHashTransformer = () => {
   const { connector, chainId } = useAccount()
-  const isGnosisSafe = useMemo(() => connector?.name === 'Safe', [connector])
   const confirmationSeconds = chainId ? AVERAGE_CHAIN_BLOCK_TIMES[chainId] : AVERAGE_CHAIN_BLOCK_TIMES[ChainId.BSC]
 
   return useCallback(
-    async <T = Hash | TransactionDetails>(safeTxHash: T): Promise<Hash> => {
-      if (!isGnosisSafe) return safeTxHash as Hash
-      const hash = safeTxHash as Hash
+    async (hash: Hash): Promise<Hash> => {
+      if (!hash || !connector) return hash
 
+      // Path 1: Safe App browser — provider.sdk is available.
       try {
-        if (!hash) {
-          return safeTxHash as Hash
-        }
+        const provider: any = await connector.getProvider()
+        if (provider?.sdk?.txs) {
+          const initialResp: SafeTxDetails = await provider.sdk.txs.getBySafeTxHash(hash)
 
-        const getTxHash = async (): Promise<Hash> => {
-          try {
-            const provider: any = await connector!.getProvider()
-            const resp = (await provider.sdk.txs.getBySafeTxHash(hash)) as TransactionDetails
+          if (
+            initialResp.txHash &&
+            initialResp.txStatus !== TransactionStatus.AWAITING_CONFIRMATIONS &&
+            initialResp.txStatus !== TransactionStatus.AWAITING_EXECUTION
+          ) {
+            return initialResp.txHash as Hash
+          }
 
+          const pollViaSdk = async (): Promise<Hash> => {
+            const p: any = await connector.getProvider()
+            const resp: SafeTxDetails = await p.sdk.txs.getBySafeTxHash(hash)
             if (
               resp.txStatus === TransactionStatus.AWAITING_CONFIRMATIONS ||
               resp.txStatus === TransactionStatus.AWAITING_EXECUTION
             ) {
-              throw new SafeTxHashNotAvailableError()
+              throw new RetryableError('Safe tx not yet executed')
             }
-
-            if (resp.txHash) return resp.txHash as Hash
-
             return (resp.txHash as Hash) ?? hash
-          } catch (error) {
-            console.error('Failed to get transaction hash from Safe SDK', error)
-            if (error instanceof SafeTxHashNotAvailableError) {
-              throw new RetryableError(error.message)
-            }
-            throw error
           }
-        }
 
-        return retry(getTxHash, {
-          n: 10,
-          minWait: 5000,
-          maxWait: 10000,
-          delay: confirmationSeconds * 1000 + 1000,
-        }).promise as Promise<Hash>
-      } catch (error) {
-        console.error('Failed to get transaction hash from Safe SDK', error)
+          return retry(pollViaSdk, {
+            n: 10,
+            minWait: 5000,
+            maxWait: 10000,
+            delay: confirmationSeconds * 1000 + 1000,
+          }).promise as Promise<Hash>
+        }
+      } catch (e) {
+        // SDK path not available (e.g. WalletConnect Safe), fall through to REST API
       }
 
-      return safeTxHash as Hash
+      // Path 2: WalletConnect Safe — use Safe Transaction Service REST API.
+      const service = chainId ? SafeTransactionService.forChain(chainId) : null
+      if (!service) return hash
+
+      const isSafe = await service.isSafeTxHash(hash)
+      if (!isSafe) return hash
+
+      const pollViaApi = async (): Promise<Hash> => {
+        const data = await service.getTransaction(hash)
+        if (!data?.isExecuted || !data.transactionHash) throw new RetryableError('Safe tx not yet executed')
+        return data.transactionHash as Hash
+      }
+
+      return retry(pollViaApi, {
+        n: 10,
+        minWait: 5000,
+        maxWait: 10000,
+        delay: confirmationSeconds * 1000 + 1000,
+      }).promise as Promise<Hash>
     },
-    [confirmationSeconds, connector, isGnosisSafe],
+    [chainId, confirmationSeconds, connector],
   )
 }

@@ -22,7 +22,7 @@ import { useSelectIdRouteParams } from 'hooks/dynamicRoute/useSelectIdRoute'
 import { useCLPriceRange } from 'hooks/infinity/useCLPriceRange'
 import { usePermit2 } from 'hooks/usePermit2'
 import { useStablecoinPriceAmount } from 'hooks/useStablecoinPrice'
-import React, { useMemo } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useInverted } from 'state/infinity/shared'
 import { useCurrencyBalances } from 'state/wallet/hooks'
 import { getInfinityPositionManagerAddress } from 'utils/addressHelpers'
@@ -306,6 +306,15 @@ export const SubmitCreateButton: React.FC<SubmitCreateButtonProps> = ({ ...boxPr
   )
 
   const onSubmit = useFormSubmitCallback()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const handleConfirm = useCallback(async () => {
+    setIsSubmitting(true)
+    try {
+      await onSubmit()
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [onSubmit])
 
   const submitDisabled = useMemo(() => {
     return !isSubmitEnabled || showApprovalA || showApprovalB || invalidBinRange || invalidClRange
@@ -425,7 +434,8 @@ export const SubmitCreateButton: React.FC<SubmitCreateButtonProps> = ({ ...boxPr
           [Field.CURRENCY_A]: depositCurrencyAmount0 ?? undefined,
           [Field.CURRENCY_B]: depositCurrencyAmount1 ?? undefined,
         }}
-        onConfirm={onSubmit}
+        onConfirm={handleConfirm}
+        attemptingTxn={isSubmitting}
         details={{
           poolType: poolType === 'Bin' ? t('LBAMM') : t('CLAMM'),
           feeTierSetting: feeTierSetting === 'dynamic' ? t('Dynamic') : t('Static %fee%%', { fee: feeLevel || '' }),

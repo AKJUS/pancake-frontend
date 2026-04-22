@@ -164,7 +164,13 @@ export const PreviewModal = ({
           </Text>
         </FlexGap>
 
-        <Button width="100%" mt="24px" onClick={onConfirm} disabled={!ackAccepted || attemptingTxn}>
+        <Button
+          width="100%"
+          mt="24px"
+          onClick={onConfirm}
+          disabled={!ackAccepted || attemptingTxn}
+          isLoading={attemptingTxn}
+        >
           {t('Create Pool')}
         </Button>
       </Modal>

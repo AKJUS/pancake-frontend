@@ -19,6 +19,7 @@ import { ConfirmationPendingContent } from '@pancakeswap/widgets-internal'
 import { useCurrencyByChainId } from 'hooks/Tokens'
 import { useInfinityCLPositionManagerContract } from 'hooks/useContract'
 import { usePublicNodeWaitForTransaction } from 'hooks/usePublicNodeWaitForTransaction'
+import { useSafeTxHashTransformer } from 'hooks/useSafeTxHashTransformer'
 import { useCallback, useState } from 'react'
 import { useLatestTxReceipt } from 'state/farmsV4/state/accountPositions/hooks/useLatestTxReceipt'
 import { useTransactionAdder } from 'state/transactions/hooks'
@@ -136,18 +137,12 @@ export const addCLiquidity = async (
         throw error
       }
     })
-    .then((response) => {
-      onDone?.(response)
+    .then(async (response) => {
+      await onDone?.(response)
     })
     .catch((err) => {
-      console.error('add liq error')
-      console.trace(err)
-      // console.error(err)
+      console.error(err)
       onError?.(err)
-      // we only care if the error is something _other_ than the user rejected the tx
-      // if (!isUserRejected(err)) {
-      //   setTxnErrorMessage(transactionErrorToUserReadableMessage(err, t))
-      // }
     })
     .finally(() => {
       setAttemptingTx?.(false)
@@ -181,6 +176,7 @@ export const useAddCLPoolAndPosition = (
   const { sendTransactionAsync } = useSendTransaction()
   const [, setLatestTxReceipt] = useLatestTxReceipt()
   const { waitForTransaction } = usePublicNodeWaitForTransaction(chainId)
+  const safeTxHashTransformer = useSafeTxHashTransformer()
   const [onPresentConfirmationModal, onDismissConfirmationModal] = useModal(
     <ConfirmModal />,
     true,
@@ -211,9 +207,8 @@ export const useAddCLPoolAndPosition = (
             },
           )
         }
-        const receipt = await waitForTransaction({
-          hash: response,
-        })
+        const realHash = await safeTxHashTransformer(response)
+        const receipt = await waitForTransaction({ hash: realHash })
         setLatestTxReceipt({ blockHash: receipt.blockHash, status: receipt.status })
         onDone?.()
       }
@@ -251,6 +246,7 @@ export const useAddCLPoolAndPosition = (
       quoteCurrency,
       setLatestTxReceipt,
       waitForTransaction,
+      safeTxHashTransformer,
       onDone,
       addTransaction,
       onError,
