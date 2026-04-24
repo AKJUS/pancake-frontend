@@ -1,6 +1,6 @@
 import { isEvm, NonEVMChainId } from '@pancakeswap/chains'
 import { useTranslation } from '@pancakeswap/localization'
-import { WNATIVE } from '@pancakeswap/sdk'
+import { ERC20Token, Native, WNATIVE, type UnifiedCurrency } from '@pancakeswap/sdk'
 import { ZERO_ADDRESS } from '@pancakeswap/swap-sdk-core'
 import {
   ArrowBackIcon,
@@ -30,6 +30,7 @@ import { safeGetUnifiedAddress } from 'utils/safeGetAddress'
 import { CHAIN_QUERY_NAME } from 'config/chains'
 import { PERSIST_CHAIN_KEY } from 'config/constants'
 import { BalanceData } from 'hooks/useAddressBalance'
+import { useCurrencyUsdPrice } from 'hooks/useCurrencyUsdPrice'
 import { PnLTag } from './PnLTag'
 import { useEnhancedTokenLogo } from './hooks/useEnhancedTokenLogo'
 
@@ -154,10 +155,10 @@ interface TokenDetailsPanelProps {
   onDismissModal: () => void
 }
 
-const formatStat = (value?: string | null) => {
+const formatStat = (value?: string | number | null) => {
   if (value == null) return '—'
-  const num = Number(value)
-  if (!Number.isFinite(num)) return '—'
+  const num = typeof value === 'number' ? value : Number(value)
+  if (!Number.isFinite(num) || num <= 0) return '—'
   return `$${formatAmount(num)}`
 }
 
@@ -200,19 +201,62 @@ export const TokenDetailsPanel: React.FC<TokenDetailsPanelProps> = ({ asset, onC
     return raw
   }, [asset.chainId, asset.token.address])
 
-  const tokenDataQuery = useQuery({
-    queryKey: ['walletTokenDetailV2', asset.chainId, chartAddress],
-    queryFn: async ({ signal }) => {
-      const res = await explorerApiClient.GET('/cached/tokens/v2/{chainName}/{address}', {
-        signal,
-        params: { path: { chainName: chainName!, address: chartAddress } },
-      })
-      return res.data ?? null
-    },
-    enabled: Boolean(chainName) && Boolean(chartAddress),
-    staleTime: 60 * 1000,
-    retry: 1,
+  // The `/cached/tokens/{protocol}/{chain}/{address}` path segment is the AMM
+  // protocol — not an API version. Each protocol exposes its own slice of volume
+  // and price. Aggregate across all of them so the 24h Volume reflects the full
+  // on-PancakeSwap activity. For the PnL %, use the protocol with the highest
+  // volume — its price delta is the most representative.
+  //
+  // Address handling for natives: v2/v3/stable 500 on zero-address, so we use
+  // the wrapped (`chartAddress`). infinityBin accepts the zero-address and
+  // returns the aggregated native data (passing wrapped returns zeroes because
+  // infinity routes trade native directly), so we pass the raw address.
+  const protocolTargets = useMemo(
+    () =>
+      [
+        { path: '/cached/tokens/v2/{chainName}/{address}', address: chartAddress },
+        { path: '/cached/tokens/v3/{chainName}/{address}', address: chartAddress },
+        { path: '/cached/tokens/stable/{chainName}/{address}', address: chartAddress },
+        { path: '/cached/tokens/infinityBin/{chainName}/{address}', address: asset.token.address },
+        { path: '/cached/tokens/infinityCl/{chainName}/{address}', address: asset.token.address },
+      ] as const,
+    [chartAddress, asset.token.address],
+  )
+  const protocolQueries = useQueries({
+    queries: protocolTargets.map(({ path, address }) => ({
+      queryKey: ['walletTokenDetail', path, asset.chainId, address],
+      queryFn: async ({ signal }: { signal?: AbortSignal }) => {
+        const res = await explorerApiClient.GET(path, {
+          signal,
+          params: { path: { chainName: chainName!, address } },
+        })
+        return res.data ?? null
+      },
+      enabled: Boolean(chainName) && Boolean(address),
+      staleTime: 60 * 1000,
+      retry: 1,
+    })),
   })
+
+  const tokenDataAggregate = useMemo(() => {
+    const results = protocolQueries.map((q) => q.data).filter((d): d is NonNullable<typeof d> => d != null)
+    if (!results.length) return null
+    const totalVolume = results.reduce((sum, r) => {
+      const v = Number(r.volumeUSD24h)
+      return Number.isFinite(v) ? sum + v : sum
+    }, 0)
+    // Pick the protocol entry with the largest volume for price-delta calc.
+    const top = results.reduce((best, r) => {
+      const v = Number(r.volumeUSD24h)
+      const bestV = Number(best?.volumeUSD24h ?? -Infinity)
+      return Number.isFinite(v) && v > bestV ? r : best
+    }, results[0])
+    return {
+      volumeUSD24h: totalVolume,
+      priceUSD: top.priceUSD,
+      priceUSD24h: top.priceUSD24h,
+    }
+  }, [protocolQueries])
 
   const chartQueries = useQueries({
     queries: PERIOD_OPTIONS.map((p) => ({
@@ -260,20 +304,52 @@ export const TokenDetailsPanel: React.FC<TokenDetailsPanelProps> = ({ asset, onC
     return Number.isFinite(num) ? num : undefined
   }, [totalSupplyQuery.data, asset.token.decimals])
 
+  // Use useCurrencyUsdPrice (price-api-sdk) as the single source of truth for the
+  // header price and FDV. Explorer API's priceUSD is missing for many tokens
+  // (VIRTUAL/Base, CAKE/ETH, USDF/BNB) and wallet-api balance prices are unreliable
+  // for long-tail tokens. EVM-only — Solana SPLToken needs a programId we don't
+  // carry on BalanceData.
+  const priceCurrency = useMemo<UnifiedCurrency | undefined>(() => {
+    if (!isEvmChain) return undefined
+    if (isNativeAsset) return Native.onChain(asset.chainId)
+    const parsed = safeGetUnifiedAddress(asset.chainId, asset.token.address)
+    if (!parsed) return undefined
+    return new ERC20Token(asset.chainId, parsed as Address, asset.token.decimals, asset.token.symbol, asset.token.name)
+  }, [
+    isEvmChain,
+    isNativeAsset,
+    asset.chainId,
+    asset.token.address,
+    asset.token.decimals,
+    asset.token.symbol,
+    asset.token.name,
+  ])
+
+  const priceQuery = useCurrencyUsdPrice(priceCurrency)
+
+  const effectivePrice = useMemo(() => {
+    const v = priceQuery.data
+    if (v != null && Number.isFinite(v) && v > 0) return v
+    // Fallback to wallet-api balance price: keeps Solana working (priceCurrency
+    // is undefined for SPLTokens) and prevents a $0.00 flash while the hook is
+    // still loading.
+    const walletApiPrice = Number(asset.price?.usd ?? NaN)
+    if (Number.isFinite(walletApiPrice) && walletApiPrice > 0) return walletApiPrice
+    return undefined
+  }, [priceQuery.data, asset.price?.usd])
+
   const fdv = useMemo(() => {
-    const price = Number(tokenDataQuery.data?.priceUSD ?? asset.price?.usd ?? NaN)
-    if (!Number.isFinite(price) || totalSupplyNum == null) return undefined
-    return totalSupplyNum * price
-  }, [totalSupplyNum, tokenDataQuery.data?.priceUSD, asset.price?.usd])
+    if (effectivePrice == null || totalSupplyNum == null) return undefined
+    return totalSupplyNum * effectivePrice
+  }, [totalSupplyNum, effectivePrice])
 
   const priceChangePercent = useMemo(() => {
-    const { data } = tokenDataQuery
-    if (!data) return undefined
-    const current = Number(data.priceUSD)
-    const past = Number(data.priceUSD24h)
+    if (!tokenDataAggregate) return undefined
+    const current = Number(tokenDataAggregate.priceUSD)
+    const past = Number(tokenDataAggregate.priceUSD24h)
     if (!Number.isFinite(current) || !Number.isFinite(past) || past === 0) return undefined
     return ((current - past) / past) * 100
-  }, [tokenDataQuery.data])
+  }, [tokenDataAggregate])
 
   const chartPoints = useMemo(() => {
     return (chartQuery.data ?? [])
@@ -350,7 +426,7 @@ export const TokenDetailsPanel: React.FC<TokenDetailsPanelProps> = ({ asset, onC
           </FlexGap>
           <FlexGap flexDirection="column" alignItems="flex-end" gap="2px" flexShrink={0}>
             <Text bold fontSize="16px">
-              {formatUsd(tokenDataQuery.data?.priceUSD ?? asset.price?.usd)}
+              {formatUsd(effectivePrice)}
             </Text>
             {priceChangePercent !== undefined && <PnLTag priceChangePercent={priceChangePercent} size="sm" />}
           </FlexGap>
@@ -409,7 +485,7 @@ export const TokenDetailsPanel: React.FC<TokenDetailsPanelProps> = ({ asset, onC
                 {t('24h Volume')}
               </Text>
               <Text bold fontSize="12px">
-                {formatStat(tokenDataQuery.data?.volumeUSD24h)}
+                {formatStat(tokenDataAggregate?.volumeUSD24h)}
               </Text>
             </StatCell>
             <StatCell>

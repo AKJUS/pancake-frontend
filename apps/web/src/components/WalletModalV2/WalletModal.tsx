@@ -507,7 +507,17 @@ export const WalletContent = ({
                   )}
                 </FlexGap>
               </Box>
-              {view === WalletView.GIFTS ? (
+              {noAssets && view === WalletView.WALLET_INFO && viewState === ViewState.WALLET_INFO ? (
+                chainId === NonEVMChainId.SOLANA ? (
+                  <EmptyWalletActions
+                    onDismiss={onDismiss}
+                    setViewState={setViewState}
+                    description={t('This wallet looks new. Does not have any assets.')}
+                  />
+                ) : (
+                  <EmptyWalletActions onDismiss={onDismiss} setViewState={setViewState} />
+                )
+              ) : view === WalletView.GIFTS ? (
                 <GiftsDashboard setViewState={setViewState} />
               ) : view === WalletView.WALLET_INFO && !noAssets ? (
                 <>
@@ -540,19 +550,9 @@ export const WalletContent = ({
           )}
         </WalletContentBody>
       </CancelGiftProvider>
-      {viewState === ViewState.WALLET_INFO && (
+      {viewState === ViewState.WALLET_INFO && !noAssets && (
         <>
-          {noAssets ? (
-            chainId === NonEVMChainId.SOLANA ? (
-              <EmptyWalletActions
-                onDismiss={onDismiss}
-                setViewState={setViewState}
-                description={t('This wallet looks new. Does not have any assets.')}
-              />
-            ) : (
-              <EmptyWalletActions onDismiss={onDismiss} setViewState={setViewState} />
-            )
-          ) : view === WalletView.GIFTS ? null : (
+          {view === WalletView.GIFTS ? null : (
             <ActionButtonsContainer>
               <FlexGap gap="8px" width="100%">
                 <ActionButton
