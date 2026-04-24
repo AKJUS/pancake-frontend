@@ -12,6 +12,7 @@ import { useRouter } from 'next/router'
 import { connectedWalletModalVisibleAtom } from 'state/wallet/atom'
 import styled from 'styled-components'
 import { formatAmount } from 'utils/formatInfoNumbers'
+import isPancakeLpToken from 'utils/isPancakeLpToken'
 import { ClaimGiftConfirmView } from 'views/Gift/components/ClaimGiftConfirmView'
 import { ClaimGiftView } from 'views/Gift/components/ClaimGiftView'
 import { GiftInfoDetailView } from 'views/Gift/components/GiftInfoDetailView'
@@ -290,6 +291,7 @@ export const WalletContent = ({
   const filteredBalances = useMemo(() => {
     return balances.filter((balance) => {
       if (hideSmallBalances && (balance.price?.totalUsd ?? 0) < 0.01) return false
+      if (isPancakeLpToken(balance.token)) return false
       return true
     })
   }, [balances, hideSmallBalances])
@@ -302,7 +304,7 @@ export const WalletContent = ({
     }
   }, [totalBalanceUsd])
 
-  const noAssets = (balances.length === 0 || totalBalanceUsd === 0) && !isLoading
+  const noAssets = (filteredBalances.length === 0 || totalBalanceUsd === 0) && !isLoading
   const handleClick = useCallback(
     (newIndex: number) => {
       setView(newIndex)
