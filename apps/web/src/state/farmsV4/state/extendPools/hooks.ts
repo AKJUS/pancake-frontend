@@ -186,14 +186,14 @@ export const usePoolInfo = <TPoolType extends PoolInfo>({
         }
       }
 
-      if (!result) {
-        throw new Error('no pool found')
-      }
-      return result
+      // Return null (not throw) so "pool confirmed absent" caches as a real value.
+      // Both explorer + on-chain fallback have already run — null here means no pool exists,
+      // not a transient failure, so retrying would spin for no gain.
+      return result ?? null
     },
     enabled: !!poolAddress && !!chainId && isEvmChain,
-    retryDelay: 1000,
-    retry: 10,
+    retryDelay: (attempt) => Math.min(500 * 2 ** attempt, 2000),
+    retry: 2,
     ...QUERY_SETTINGS_IMMUTABLE,
   })
 

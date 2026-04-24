@@ -9,8 +9,9 @@ export const ResponsiveColumns = styled(Box)`
 
   grid-template-rows: max-content;
   grid-auto-flow: row;
+  align-items: start;
 
-  ${({ theme }) => theme.mediaQueries.xl} {
+  ${({ theme }) => theme.mediaQueries.lg} {
     grid-template-columns: 5fr 3fr;
   }
 `

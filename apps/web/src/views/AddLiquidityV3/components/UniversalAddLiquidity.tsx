@@ -54,10 +54,11 @@ export function UniversalAddLiquidity({
   const dispatch = useAddLiquidityV2FormDispatch()
   const { chainId } = useAccountActiveChain()
 
+  // Reset form state whenever the pool (currency pair) changes so amounts from
+  // the previous pool don't persist when navigating to a new one via
+  // MiniUniversalFarmsOverlay or currency selectors.
   useEffect(() => {
-    if (!currencyIdA && !currencyIdB) {
-      dispatch(resetMintState())
-    }
+    dispatch(resetMintState())
   }, [dispatch, currencyIdA, currencyIdB])
 
   const baseCurrency = useUnifiedCurrency(currencyIdA)

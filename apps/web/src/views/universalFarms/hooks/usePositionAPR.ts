@@ -638,6 +638,7 @@ export const useInfinityCLDerivedApr = (poolInfo: InfinityCLPoolInfo) => {
   }, [aprAmountB, depositCurrencyAmount1])
 
   const [{ lowerTick, upperTick }] = useClRangeQueryState()
+  const hasRange = typeof lowerTick === 'number' && typeof upperTick === 'number'
 
   const liquidity = useMemo(() => {
     if (!amountA || !amountB || !sqrtRatioX96 || typeof lowerTick !== 'number' || typeof upperTick !== 'number')
@@ -714,8 +715,8 @@ export const useInfinityCLDerivedApr = (poolInfo: InfinityCLPoolInfo) => {
   return {
     lpApr: parseFloat((liquidity === 0n ? globalLpApr : lpApr) ?? 0),
     cakeApr,
-    merklApr: inRange ? parseFloat(merklApr ?? 0) ?? 0 : 0,
-    incentraApr: inRange ? parseFloat(incentraApr ?? 0) ?? 0 : 0,
+    merklApr: !hasRange || inRange ? parseFloat(merklApr ?? '0') ?? 0 : 0,
+    incentraApr: !hasRange || inRange ? parseFloat(incentraApr ?? '0') ?? 0 : 0,
   }
 }
 
@@ -742,6 +743,7 @@ export const useInfinityBinDerivedApr = (poolInfo: InfinityBinPoolInfo) => {
   // const poolLiquidity = useBinPoolLiquidity({ poolId: poolInfo.poolId, chainId: poolInfo.chainId })
 
   const [{ lowerBinId, upperBinId }] = useBinRangeQueryState()
+  const hasRange = lowerBinId !== null && lowerBinId !== undefined && upperBinId !== null && upperBinId !== undefined
   const { depositCurrencyAmount0, depositCurrencyAmount1 } = useAddDepositAmounts()
 
   const [aprAmountA, aprAmountB] = useBinAmountsFromUsdValue({
@@ -855,7 +857,7 @@ export const useInfinityBinDerivedApr = (poolInfo: InfinityBinPoolInfo) => {
   return {
     lpApr: parseFloat(apr.toFixed(5)),
     cakeApr,
-    merklApr: inRange ? parseFloat(merklApr ?? 0) ?? 0 : 0,
-    incentraApr: inRange ? parseFloat(incentraApr ?? 0) ?? 0 : 0,
+    merklApr: !hasRange || inRange ? parseFloat(merklApr ?? '0') ?? 0 : 0,
+    incentraApr: !hasRange || inRange ? parseFloat(incentraApr ?? '0') ?? 0 : 0,
   }
 }

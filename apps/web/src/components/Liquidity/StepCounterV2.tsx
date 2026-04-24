@@ -101,7 +101,7 @@ export const StepCounterV2 = ({
 
   return (
     <StepCounterCard error={error} padding="0" {...props}>
-      <AutoColumn py="12px" textAlign="center" gap="4px" width="100%" onFocus={handleOnFocus} onBlur={handleOnBlur}>
+      <AutoColumn py="8px" textAlign="center" gap="4px" width="100%" onFocus={handleOnFocus} onBlur={handleOnBlur}>
         {title}
         <AutoRow>
           {!locked && (

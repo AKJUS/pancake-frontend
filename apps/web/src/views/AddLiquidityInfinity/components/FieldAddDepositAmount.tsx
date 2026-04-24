@@ -1,82 +1,146 @@
-import { useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 import { Currency } from '@pancakeswap/swap-sdk-core'
-import { BoxProps, RowBetween, Column, Text, SkeletonV2, Skeleton } from '@pancakeswap/uikit'
-import { FieldDepositAmount } from 'components/Liquidity/Form/FieldDepositAmount'
-import { useInfinityPoolIdRouteParams } from 'hooks/dynamicRoute/usePoolIdRoute'
-import { useInverted } from 'state/infinity/shared'
 import { useTranslation } from '@pancakeswap/localization'
-import { LiquiditySlippageButton } from 'views/Swap/components/SlippageButton'
-import { useTotalUsdValue } from 'views/AddLiquidity/hooks/useTotalUsdValue'
-import tryParseAmount from '@pancakeswap/utils/tryParseAmount'
-import { formatDollarAmount } from 'views/V3Info/utils/numbers'
+import { BoxProps, Skeleton } from '@pancakeswap/uikit'
+import { DepositAmountPanel } from 'components/Liquidity/DepositAmountPanel'
+import { useMaxAmount } from 'hooks/useMaxAmount'
+import { useUsdDepositAmount } from 'hooks/useUsdDepositAmount'
+import { useClTokenValueRatio } from 'hooks/useClTokenValueRatio'
+import { useUnifiedTokenUsdPrice } from 'hooks/useUnifiedTokenUsdPrice'
+import { useInfinityPoolIdRouteParams } from 'hooks/dynamicRoute/usePoolIdRoute'
+import { useInverted, useClRangeQueryState } from 'state/infinity/shared'
+import { useCurrencyBalances } from 'state/wallet/hooks'
+import useAccountActiveChain from 'hooks/useAccountActiveChain'
 import { useAddDepositAmounts, useAddDepositAmountsEnabled } from '../hooks/useAddDepositAmounts'
+import { usePool } from '../hooks/usePool'
 
-type FieldDepositAmountProps = BoxProps & {
+type FieldAddDepositAmountProps = BoxProps & {
   baseCurrency: Currency | undefined
   quoteCurrency: Currency | undefined
 }
 
-export const FieldAddDepositAmount: React.FC<FieldDepositAmountProps> = ({
+export const FieldAddDepositAmount: React.FC<FieldAddDepositAmountProps> = ({
   baseCurrency,
   quoteCurrency,
   ...boxProps
 }) => {
   const { t } = useTranslation()
   const { chainId } = useInfinityPoolIdRouteParams()
+  const { account } = useAccountActiveChain()
   const { inputValue0, inputValue1, handleDepositAmountChange } = useAddDepositAmounts()
   const { isDepositEnabled, isDeposit0Enabled, isDeposit1Enabled } = useAddDepositAmountsEnabled()
   const [inverted] = useInverted()
+  const pool = usePool()
+  const [{ lowerTick, upperTick }] = useClRangeQueryState()
 
-  const input0 = useMemo(() => (inverted ? inputValue1 : inputValue0), [inverted, inputValue0, inputValue1])
-  const input1 = useMemo(() => (inverted ? inputValue0 : inputValue1), [inverted, inputValue0, inputValue1])
+  // --- Map 0/1 to base/quote based on inversion ---
+  const baseInput = useMemo(() => (inverted ? inputValue1 : inputValue0), [inverted, inputValue0, inputValue1])
+  const quoteInput = useMemo(() => (inverted ? inputValue0 : inputValue1), [inverted, inputValue0, inputValue1])
 
-  const parsedAmountA = useMemo(() => tryParseAmount(input0, baseCurrency), [input0, baseCurrency])
-  const parsedAmountB = useMemo(() => tryParseAmount(input1, quoteCurrency), [input1, quoteCurrency])
+  const onBaseInput = useCallback(
+    (amount: string) => handleDepositAmountChange(amount, inverted ? 1 : 0),
+    [inverted, handleDepositAmountChange],
+  )
+  const onQuoteInput = useCallback(
+    (amount: string) => handleDepositAmountChange(amount, inverted ? 0 : 1),
+    [inverted, handleDepositAmountChange],
+  )
 
-  const { totalUsdValue } = useTotalUsdValue({
-    parsedAmountA,
-    parsedAmountB,
+  // Deposit enabled in display order
+  const isBaseDepositEnabled = inverted ? isDeposit1Enabled : isDeposit0Enabled
+  const isQuoteDepositEnabled = inverted ? isDeposit0Enabled : isDeposit1Enabled
+
+  // --- Balances ---
+  const [baseBalance, quoteBalance] = useCurrencyBalances(
+    account ?? undefined,
+    useMemo(() => [baseCurrency, quoteCurrency], [baseCurrency, quoteCurrency]),
+  )
+  const maxBaseAmount = useMaxAmount(baseCurrency)
+  const maxQuoteAmount = useMaxAmount(quoteCurrency)
+
+  // --- USD Prices (for ratio calculation) ---
+  const { data: basePriceUsd } = useUnifiedTokenUsdPrice(baseCurrency, Boolean(baseCurrency))
+  const { data: quotePriceUsd } = useUnifiedTokenUsdPrice(quoteCurrency, Boolean(quoteCurrency))
+
+  // --- Token value ratio ---
+  const isBinPool = pool?.poolType === 'Bin'
+  const sqrtRatioX96 = useMemo(() => {
+    if (!pool || pool.poolType !== 'CL') return undefined
+    return (pool as { sqrtRatioX96: bigint }).sqrtRatioX96
+  }, [pool])
+
+  // For CL pools: compute ratio in pool token order (0/1), then flip for display order
+  const token0Ratio = useClTokenValueRatio(
+    sqrtRatioX96,
+    lowerTick,
+    upperTick,
+    pool?.token0?.decimals,
+    pool?.token1?.decimals,
+    inverted ? quotePriceUsd ?? 0 : basePriceUsd ?? 0,
+    inverted ? basePriceUsd ?? 0 : quotePriceUsd ?? 0,
+  )
+  const baseTokenRatio = useMemo(() => {
+    if (isBinPool) return 0.5
+    return inverted ? 1 - token0Ratio : token0Ratio
+  }, [isBinPool, inverted, token0Ratio])
+
+  // --- USD deposit hook ---
+  const {
+    usdDisplayValue,
+    onUsdInput,
+    totalUsdValue,
+    canUseUsdMode,
+    onBaseInputWrapped,
+    onQuoteInputWrapped,
+    basePriceUsd: hookBasePriceUsd,
+    quotePriceUsd: hookQuotePriceUsd,
+  } = useUsdDepositAmount({
+    baseCurrency,
+    quoteCurrency,
+    baseInputValue: baseInput ?? '',
+    quoteInputValue: quoteInput ?? '',
+    onBaseInput,
+    onQuoteInput,
+    baseTokenRatio,
+    independentQuote: isBinPool,
+    isBaseDepositEnabled,
+    isQuoteDepositEnabled,
   })
 
-  // NOTE: FieldAddDepositAmount is only used in Add Liquidity page,
-  // so we can assume that baseCurrency and quoteCurrency are always available
-  return (
-    <>
-      {baseCurrency && quoteCurrency ? (
-        <FieldDepositAmount
-          {...boxProps}
-          addOnly
-          chainId={chainId}
-          baseCurrency={baseCurrency}
-          quoteCurrency={quoteCurrency}
-          handleDepositAmountChange={handleDepositAmountChange}
-          inputValue0={inputValue0}
-          inputValue1={inputValue1}
-          isDeposit0Enabled={isDeposit0Enabled}
-          isDepositEnabled={isDepositEnabled}
-          isDeposit1Enabled={isDeposit1Enabled}
-        />
-      ) : (
-        <Skeleton height="220px" width="100%" />
-      )}
+  if (!baseCurrency || !quoteCurrency) {
+    return <Skeleton height="220px" width="100%" />
+  }
 
-      <Column mt="16px" gap="16px">
-        <RowBetween>
-          <Text color="textSubtle">{t('Total.amount')}</Text>
-          <Text>
-            ~
-            {formatDollarAmount(
-              isDepositEnabled && (isDeposit0Enabled || isDeposit1Enabled) ? totalUsdValue : 0,
-              2,
-              false,
-            )}
-          </Text>
-        </RowBetween>
-        <RowBetween>
-          <Text color="textSubtle">{t('Slippage Tolerance')}</Text>
-          <LiquiditySlippageButton />
-        </RowBetween>
-      </Column>
-    </>
+  return (
+    <DepositAmountPanel
+      baseCurrency={baseCurrency}
+      quoteCurrency={quoteCurrency}
+      baseInputValue={baseInput ?? ''}
+      quoteInputValue={quoteInput ?? ''}
+      onBaseInput={onBaseInputWrapped}
+      onQuoteInput={onQuoteInputWrapped}
+      usdDisplayValue={usdDisplayValue}
+      onUsdInput={onUsdInput}
+      canUseUsdMode={canUseUsdMode}
+      totalUsdValue={totalUsdValue}
+      isDepositEnabled={isDepositEnabled}
+      isBaseDepositEnabled={isBaseDepositEnabled}
+      isQuoteDepositEnabled={isQuoteDepositEnabled}
+      baseBalance={baseBalance}
+      quoteBalance={quoteBalance}
+      maxBaseAmount={maxBaseAmount}
+      maxQuoteAmount={maxQuoteAmount}
+      basePriceUsd={hookBasePriceUsd}
+      quotePriceUsd={hookQuotePriceUsd}
+      disabledMessage={t('Set price range first')}
+      baseDisabledMessage={
+        !isDepositEnabled ? t('Set price range first') : t('The price range is outside current pool price')
+      }
+      quoteDisabledMessage={
+        !isDepositEnabled ? t('Set price range first') : t('The price range is outside current pool price')
+      }
+      showSettings
+      {...boxProps}
+    />
   )
 }

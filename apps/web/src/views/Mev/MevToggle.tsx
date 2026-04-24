@@ -10,7 +10,7 @@ import {
   ModalHeader,
   ModalTitle,
   ModalV2,
-  ShieldIcon,
+  ShieldCheckIcon,
   Text,
   Toggle,
   useModalV2,
@@ -29,15 +29,14 @@ export const ToggleWrapper = styled.div<{
   size: 'sm' | 'md'
 }>`
   border: 1px solid ${({ theme }) => theme.colors.cardBorder};
-  background-color: ${({ theme }) => theme.colors.tertiary};
-  padding: ${({ size }) => (size === 'sm' ? '12px 16px' : '16px')};
+  background-color: ${({ theme }) => theme.colors.cardSecondary};
+  padding: ${({ size }) => (size === 'sm' ? '8px 16px' : '16px')};
   display: flex;
   width: 100%;
   gap: 4px;
-  border-radius: 16px;
+  border-radius: 24px;
   align-items: center;
   justify-content: space-between;
-  margin-top: 8px;
 `
 export const ModalImg = styled.img`
   width: 258px;
@@ -66,25 +65,26 @@ export const MevToggle: React.FC<{ size?: 'sm' | 'md' }> = ({ size = 'md' }) => 
     <>
       <ToggleWrapper size={size}>
         <FlexGap gap="4px" alignItems="center">
-          <ShieldIcon width="24px" />
-          <Text fontSize={isSmall ? '14px' : undefined}>{t('Enable.Feature')}</Text>
+          <ShieldCheckIcon width="18px" color="textSubtle" />
+          <Text fontSize={isSmall ? '14px' : undefined} ml="4px">
+            {t('Enable.Feature')}
+          </Text>
           <Text
             ref={targetRef}
-            bold
             fontSize={isSmall ? '14px' : undefined}
             style={{
               textDecoration: 'underline',
-              textDecorationStyle: 'dotted',
+              textDecorationStyle: 'dashed',
               cursor: 'pointer',
               textUnderlineOffset: '4px',
               textDecorationColor: theme.colors.textSubtle,
             }}
           >
-            {t('MEV Protect')}
+            {t('MEV Protection')}
           </Text>
           {tooltipVisible && tooltip}
         </FlexGap>
-        <Toggle scale="md" checked={isMEVEnabled} onClick={onOpen} defaultColor={theme.isDark ? 'disabled' : 'input'} />
+        <Toggle scale={isSmall ? 'sm' : 'md'} checked={isMEVEnabled} onClick={onOpen} defaultColor="disabled" />
       </ToggleWrapper>
       <MevModal isOpen={isOpen} onDismiss={onDismiss} />
     </>

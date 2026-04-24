@@ -109,22 +109,24 @@ export function V3SubmitButton({
           currentAllowanceB={currentAllowanceB}
           shouldShowApprovalGroup={shouldShowApprovalGroup}
         />
-        <CommitButton
-          endIcon={endIcon}
-          variant={
-            !isValid && !!parsedAmounts[Field.CURRENCY_A] && !!parsedAmounts[Field.CURRENCY_B] ? 'danger' : 'primary'
-          }
-          onClick={onClick}
-          disabled={
-            !isValid ||
-            attemptingTxn ||
-            (approvalA !== ApprovalState.APPROVED && !depositADisabled) ||
-            (approvalB !== ApprovalState.APPROVED && !depositBDisabled) ||
-            !!DISABLED_ADD_LIQUIDITY_CHAINS[chainId]
-          }
-        >
-          {errorMessage || buttonText}
-        </CommitButton>
+        {!shouldShowApprovalGroup && (
+          <CommitButton
+            endIcon={endIcon}
+            variant={
+              !isValid && !!parsedAmounts[Field.CURRENCY_A] && !!parsedAmounts[Field.CURRENCY_B] ? 'danger' : 'primary'
+            }
+            onClick={onClick}
+            disabled={
+              !isValid ||
+              attemptingTxn ||
+              (approvalA !== ApprovalState.APPROVED && !depositADisabled) ||
+              (approvalB !== ApprovalState.APPROVED && !depositBDisabled) ||
+              !!DISABLED_ADD_LIQUIDITY_CHAINS[chainId]
+            }
+          >
+            {errorMessage || buttonText}
+          </CommitButton>
+        )}
       </AutoColumn>
     )
   }

@@ -1,23 +1,27 @@
-import { Box, Card, CardBody } from '@pancakeswap/uikit'
+import { Protocol } from '@pancakeswap/farms'
+import { Box, Card, CardBody, Column } from '@pancakeswap/uikit'
 import { ZAP_INFINITY_CL_SUPPORTED_CHAINS } from 'config/constants/zap'
 import { ZapLiquidityWidget, ZapPoolType } from 'components/ZapLiquidityWidget'
 import { usePoolKeyByPoolId } from 'hooks/infinity/usePoolKeyByPoolId'
 import { useCurrencyByPoolId } from 'hooks/infinity/useCurrencyByPoolId'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
 import { useMemo } from 'react'
+import { usePoolInfo } from 'state/farmsV4/hooks'
+import { InfinityBinPoolInfo, InfinityCLPoolInfo } from 'state/farmsV4/state/type'
 import { useCurrencyBalances } from 'state/wallet/hooks'
 import { useInverted, useClRangeQueryState } from 'state/infinity/shared'
 import styled from 'styled-components'
 import { isHookWhitelisted } from 'utils/getHookByAddress'
 import { Address } from 'viem'
-import { MevProtectToggle } from 'views/Mev/MevProtectToggle'
 import { useAddDepositAmounts } from '../hooks/useAddDepositAmounts'
 import { usePool } from '../hooks/usePool'
+import { BinEstimatedFeesPanel, CLEstimatedFeesPanel } from './EstimatedFeesPanel'
 import { FieldAddDepositAmount } from './FieldAddDepositAmount'
 import { SubmitButton } from './SubmitButton'
 
 const StyledCard = styled(Card)`
   height: fit-content;
+  overflow: visible;
 `
 
 interface InfinityDepositPanelProps {
@@ -26,6 +30,11 @@ interface InfinityDepositPanelProps {
 }
 
 export const InfinityDepositPanel = ({ poolId, chainId }: InfinityDepositPanelProps) => {
+  // Pool info for estimated fees
+  const poolInfo = usePoolInfo({ poolAddress: poolId, chainId })
+  const isBinPool = poolInfo?.protocol === Protocol.InfinityBIN
+  const isCLPool = poolInfo?.protocol === Protocol.InfinityCLAMM
+
   // Base currencies from pool (not inverted)
   const { currency0: currency0Base, currency1: currency1Base } = useCurrencyByPoolId({ chainId, poolId })
   const [inverted] = useInverted()
@@ -88,28 +97,41 @@ export const InfinityDepositPanel = ({ poolId, chainId }: InfinityDepositPanelPr
   }, [pool, isHookWhitelistedOrNoHook, hasInsufficientBalance, lowerTick, upperTick, poolId, chainId])
 
   return (
-    <StyledCard>
-      <CardBody>
-        {showZap && (
-          <Box mb="16px">
-            <ZapLiquidityWidget
-              poolId={poolId}
-              poolType={ZapPoolType.DEX_PANCAKE_INFINITY_CL}
-              tickLower={lowerTick ?? undefined}
-              tickUpper={upperTick ?? undefined}
-              baseCurrency={currency0}
-              baseCurrencyAmount={displayInputValue0}
-              quoteCurrency={currency1}
-              quoteCurrencyAmount={displayInputValue1}
-            />
-          </Box>
-        )}
-        <FieldAddDepositAmount baseCurrency={currency0} quoteCurrency={currency1} />
-        <Box mt="16px">
-          <MevProtectToggle size="sm" />
-        </Box>
-        <SubmitButton mt="16px" />
-      </CardBody>
-    </StyledCard>
+    <Column gap="16px">
+      {isBinPool && poolInfo && (
+        <BinEstimatedFeesPanel
+          poolInfo={poolInfo as InfinityBinPoolInfo}
+          baseCurrency={currency0Base}
+          quoteCurrency={currency1Base}
+        />
+      )}
+      {isCLPool && poolInfo && (
+        <CLEstimatedFeesPanel
+          poolInfo={poolInfo as InfinityCLPoolInfo}
+          baseCurrency={currency0Base}
+          quoteCurrency={currency1Base}
+        />
+      )}
+      <StyledCard>
+        <CardBody>
+          {showZap && (
+            <Box mb="16px">
+              <ZapLiquidityWidget
+                poolId={poolId}
+                poolType={ZapPoolType.DEX_PANCAKE_INFINITY_CL}
+                tickLower={lowerTick ?? undefined}
+                tickUpper={upperTick ?? undefined}
+                baseCurrency={currency0}
+                baseCurrencyAmount={displayInputValue0}
+                quoteCurrency={currency1}
+                quoteCurrencyAmount={displayInputValue1}
+              />
+            </Box>
+          )}
+          <FieldAddDepositAmount baseCurrency={currency0} quoteCurrency={currency1} />
+          <SubmitButton mt="16px" />
+        </CardBody>
+      </StyledCard>
+    </Column>
   )
 }

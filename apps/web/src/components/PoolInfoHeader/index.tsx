@@ -78,8 +78,10 @@ export const PoolInfoHeader = ({
 
   const protocol = poolInfo?.protocol
 
-  // Determine loading state based on essential data availability
-  const isLoading = !poolInfo || !currency0 || !currency1
+  // poolInfo: undefined = still fetching, null = confirmed absent (uncreated pool),
+  // object = loaded. Don't skeleton on null — the currencies from props already give us
+  // enough to render the "pool not yet initialized" header.
+  const isLoading = poolInfo === undefined || !currency0 || !currency1
 
   return (
     <>
@@ -100,7 +102,7 @@ export const PoolInfoHeader = ({
               <Box>
                 <Skeleton width="40px" height="40px" />
               </Box>
-              <FlexGap flexDirection={['column', 'column', 'column', 'row']} flexWrap="wrap" gap="16px">
+              <FlexGap flexDirection={['column', 'column', 'column', 'row']} flexWrap="wrap" gap="8px">
                 <FlexGap
                   gap="12px"
                   alignItems={isSmallScreen ? 'flex-start' : 'center'}
@@ -113,7 +115,7 @@ export const PoolInfoHeader = ({
                     <Skeleton width="80px" height="24px" />
                   </FlexGap>
                 </FlexGap>
-                <FlexGap gap="16px" flexWrap="wrap" alignItems="center" alignContent="center">
+                <FlexGap gap="8px" flexWrap="wrap" alignItems="center" alignContent="center">
                   <Skeleton width="60px" height="24px" />
                   <Skeleton width="80px" height="24px" />
                 </FlexGap>
@@ -152,7 +154,7 @@ export const PoolInfoHeader = ({
               <Box>
                 <MiniUniversalFarmsOverlay linkType={linkType} />
               </Box>
-              <FlexGap flexDirection={['column', 'column', 'column', 'row']} flexWrap="wrap" gap="16px">
+              <FlexGap flexDirection={['column', 'column', 'column', 'row']} flexWrap="wrap" gap="8px">
                 <FlexGap
                   gap="12px"
                   alignItems={isSmallScreen ? 'flex-start' : 'center'}
@@ -272,7 +274,7 @@ export const PoolInfoHeader = ({
                   </FlexGap>
                 </FlexGap>
                 {poolInfo && (
-                  <FlexGap gap="16px" flexWrap="wrap" alignItems="center" alignContent="center">
+                  <FlexGap gap="8px" flexWrap="wrap" alignItems="center" alignContent="center">
                     {poolInfo?.protocol ? (
                       <AutoColumn rowGap="4px">
                         <Box>

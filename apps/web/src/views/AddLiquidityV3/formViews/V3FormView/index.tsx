@@ -25,7 +25,7 @@ import {
 } from '@pancakeswap/uikit'
 import { formatPrice } from '@pancakeswap/utils/formatFractions'
 import { useIsExpertMode, useUserSlippage } from '@pancakeswap/utils/user'
-import { FeeAmount, NonfungiblePositionManager, Pool } from '@pancakeswap/v3-sdk'
+import { encodeSqrtRatioX96, FeeAmount, NonfungiblePositionManager, Pool } from '@pancakeswap/v3-sdk'
 import {
   ConfirmationModalContent,
   Liquidity,
@@ -35,7 +35,13 @@ import {
   ZoomLevels,
 } from '@pancakeswap/widgets-internal'
 import BigNumber from 'bignumber.js'
-import CurrencyInputPanelSimplify from 'components/CurrencyInputPanelSimplify'
+import { DepositAmountPanel } from 'components/Liquidity/DepositAmountPanel'
+import { V3EstimatedFeesPanel } from 'components/Liquidity/V3EstimatedFeesPanel'
+import { usePoolInfo } from 'state/farmsV4/hooks'
+import type { V3PoolInfo } from 'state/farmsV4/state/type'
+import { useUsdDepositAmount } from 'hooks/useUsdDepositAmount'
+import { useClTokenValueRatio } from 'hooks/useClTokenValueRatio'
+import { useUnifiedTokenUsdPrice } from 'hooks/useUnifiedTokenUsdPrice'
 import TransactionConfirmationModal from 'components/TransactionConfirmationModal'
 import { ZapLiquidityWidget } from 'components/ZapLiquidityWidget'
 import { Bound } from 'config/constants/types'
@@ -305,6 +311,17 @@ export default function V3FormView({
     parsedAmountB: parsedAmounts[Field.CURRENCY_B],
   })
 
+  // Pool info for Estimated Fees panel
+  const v3PoolAddress = useMemo(() => {
+    if (!pool) return undefined
+    try {
+      return Pool.getAddress(pool.token0, pool.token1, pool.fee)
+    } catch {
+      return undefined
+    }
+  }, [pool])
+  const v3PoolInfo = usePoolInfo<V3PoolInfo>({ poolAddress: v3PoolAddress, chainId: pool?.chainId })
+
   // Get the max amounts user can add
   const maxAmounts: { [field in Field]?: CurrencyAmount<Currency> } = useMemo(
     () =>
@@ -502,6 +519,55 @@ export default function V3FormView({
   // get value and prices at ticks
   const { [Bound.LOWER]: tickLower, [Bound.UPPER]: tickUpper } = ticks
   const { [Bound.LOWER]: priceLower, [Bound.UPPER]: priceUpper } = pricesAtTicks
+
+  // --- USD deposit support ---
+  const { data: basePriceUsd } = useUnifiedTokenUsdPrice(baseCurrency ?? undefined, Boolean(baseCurrency))
+  const { data: quotePriceUsd } = useUnifiedTokenUsdPrice(quoteCurrency ?? undefined, Boolean(quoteCurrency))
+
+  // Uncreated pools have no `pool` but do have `price` (from startPriceTypedValue via
+  // useV3DerivedInfo). Reconstruct sqrtRatioX96 so the USD split uses the correct ratio for the
+  // user's starting price; otherwise useClTokenValueRatio falls back to 0.5 and the dependent
+  // token amount (computed from the same starting price by V3 math) mismatches the split.
+  const effectiveToken0 = pool?.token0 ?? price?.baseCurrency
+  const effectiveToken1 = pool?.token1 ?? price?.quoteCurrency
+  const effectiveSqrtRatioX96 = useMemo(() => {
+    if (pool?.sqrtRatioX96) return pool.sqrtRatioX96
+    if (!price) return undefined
+    try {
+      return encodeSqrtRatioX96(price.numerator, price.denominator)
+    } catch {
+      return undefined
+    }
+  }, [pool?.sqrtRatioX96, price])
+
+  const baseIsToken0 = useMemo(() => {
+    if (!baseCurrency || !effectiveToken0) return true
+    return baseCurrency.wrapped.address.toLowerCase() === effectiveToken0.address.toLowerCase()
+  }, [baseCurrency, effectiveToken0])
+
+  const token0Ratio = useClTokenValueRatio(
+    effectiveSqrtRatioX96,
+    tickLower,
+    tickUpper,
+    effectiveToken0?.decimals,
+    effectiveToken1?.decimals,
+    baseIsToken0 ? basePriceUsd ?? 0 : quotePriceUsd ?? 0,
+    baseIsToken0 ? quotePriceUsd ?? 0 : basePriceUsd ?? 0,
+  )
+
+  const v3BaseTokenRatio = useMemo(() => (baseIsToken0 ? token0Ratio : 1 - token0Ratio), [baseIsToken0, token0Ratio])
+
+  const usdDeposit = useUsdDepositAmount({
+    baseCurrency: baseCurrency ?? undefined,
+    quoteCurrency: quoteCurrency ?? undefined,
+    baseInputValue: formattedAmounts[Field.CURRENCY_A] ?? '',
+    quoteInputValue: formattedAmounts[Field.CURRENCY_B] ?? '',
+    onBaseInput: onFieldAInput,
+    onQuoteInput: onFieldBInput,
+    baseTokenRatio: v3BaseTokenRatio,
+    isBaseDepositEnabled: !depositADisabled,
+    isQuoteDepositEnabled: !depositBDisabled,
+  })
 
   useInitialRange(baseCurrency?.wrapped, quoteCurrency?.wrapped)
 
@@ -977,102 +1043,103 @@ export default function V3FormView({
           </CardBody>
         </Card>
       </LeftContainer>
-      <Card style={{ height: 'fit-content' }}>
-        <CardBody>
-          <DynamicSection disabled={!baseCurrency || !quoteCurrency}>
-            <FeeSelector
-              currencyA={baseCurrency ?? undefined}
-              currencyB={quoteCurrency ?? undefined}
-              handleFeePoolSelect={handleFeePoolSelect}
-              feeAmount={feeAmount}
-            />
-          </DynamicSection>
-          <DynamicSection
-            mt="16px"
-            style={{
-              gridAutoRows: 'max-content',
-              gridAutoColumns: '100%',
-            }}
-            gap="8px"
-            disabled={
-              !feeAmount || invalidPool || (noLiquidity && !startPriceTypedValue) || (!priceLower && !priceUpper)
-            }
-          >
-            {hasZapV3Pool && hasInsufficentBalance && (
-              <Box mb="8px">
-                <ZapLiquidityWidget
-                  tickLower={tickLower}
-                  tickUpper={tickUpper}
-                  pool={pool}
-                  baseCurrency={baseCurrency}
-                  baseCurrencyAmount={formattedAmounts[Field.CURRENCY_A]}
-                  quoteCurrency={quoteCurrency}
-                  quoteCurrencyAmount={formattedAmounts[Field.CURRENCY_B]}
-                  onSubmit={handleOnZapSubmit}
-                />
-              </Box>
-            )}
-
-            <LockedDeposit locked={depositADisabled}>
-              <Box mb="8px">
-                <CurrencyInputPanelSimplify
-                  showUSDPrice
-                  maxAmount={maxAmounts[Field.CURRENCY_A]}
-                  onMax={() => onFieldAInput(maxAmounts[Field.CURRENCY_A]?.toExact() ?? '')}
-                  onPercentInput={(percent) =>
-                    onFieldAInput(maxAmounts[Field.CURRENCY_A]?.multiply(new Percent(percent, 100))?.toExact() ?? '')
-                  }
-                  disableCurrencySelect
-                  defaultValue={formattedAmounts[Field.CURRENCY_A] ?? '0'}
-                  onUserInput={onFieldAInput}
-                  showQuickInputButton
-                  showMaxButton
-                  currency={currencies[Field.CURRENCY_A]}
-                  id="add-liquidity-input-tokena"
-                  title={<PreTitle>{t('Deposit Amount')}</PreTitle>}
-                />
-              </Box>
-            </LockedDeposit>
-
-            <LockedDeposit locked={depositBDisabled}>
-              <CurrencyInputPanelSimplify
-                showUSDPrice
-                maxAmount={maxAmounts[Field.CURRENCY_B]}
-                onMax={() => onFieldBInput(maxAmounts[Field.CURRENCY_B]?.toExact() ?? '')}
-                onPercentInput={(percent) =>
-                  onFieldBInput(maxAmounts[Field.CURRENCY_B]?.multiply(new Percent(percent, 100))?.toExact() ?? '')
-                }
-                disableCurrencySelect
-                defaultValue={formattedAmounts[Field.CURRENCY_B] ?? '0'}
-                onUserInput={onFieldBInput}
-                showQuickInputButton
-                showMaxButton
-                currency={currencies[Field.CURRENCY_B]}
-                id="add-liquidity-input-tokenb"
-                title={<>&nbsp;</>}
+      <Column gap="16px" style={{ height: 'fit-content' }}>
+        {invalidPool || (noLiquidity && !startPriceTypedValue) ? null : (
+          <V3EstimatedFeesPanel
+            poolInfo={v3PoolInfo}
+            outOfRange={outOfRange}
+            totalUsdValue={totalUsdValue}
+            invertPrice={invertPrice}
+          />
+        )}
+        <Card style={{ height: 'fit-content' }}>
+          <CardBody>
+            <DynamicSection disabled={!baseCurrency || !quoteCurrency}>
+              <FeeSelector
+                currencyA={baseCurrency ?? undefined}
+                currencyB={quoteCurrency ?? undefined}
+                handleFeePoolSelect={handleFeePoolSelect}
+                feeAmount={feeAmount}
               />
-            </LockedDeposit>
-            <Column mt="16px" gap="16px">
+            </DynamicSection>
+            <DynamicSection
+              mt="16px"
+              style={{
+                gridAutoRows: 'max-content',
+                gridAutoColumns: '100%',
+              }}
+              gap="8px"
+              disabled={
+                !feeAmount || invalidPool || (noLiquidity && !startPriceTypedValue) || (!priceLower && !priceUpper)
+              }
+            >
+              {hasZapV3Pool && hasInsufficentBalance && (
+                <Box mb="8px">
+                  <ZapLiquidityWidget
+                    tickLower={tickLower}
+                    tickUpper={tickUpper}
+                    pool={pool}
+                    baseCurrency={baseCurrency}
+                    baseCurrencyAmount={formattedAmounts[Field.CURRENCY_A]}
+                    quoteCurrency={quoteCurrency}
+                    quoteCurrencyAmount={formattedAmounts[Field.CURRENCY_B]}
+                    onSubmit={handleOnZapSubmit}
+                  />
+                </Box>
+              )}
+
+              {invalidPool || (noLiquidity && !startPriceTypedValue) ? null : (
+                <DepositAmountPanel
+                  baseCurrency={currencies[Field.CURRENCY_A]}
+                  quoteCurrency={currencies[Field.CURRENCY_B]}
+                  baseInputValue={formattedAmounts[Field.CURRENCY_A] ?? ''}
+                  quoteInputValue={formattedAmounts[Field.CURRENCY_B] ?? ''}
+                  onBaseInput={usdDeposit.onBaseInputWrapped}
+                  onQuoteInput={usdDeposit.onQuoteInputWrapped}
+                  usdDisplayValue={usdDeposit.usdDisplayValue}
+                  onUsdInput={usdDeposit.onUsdInput}
+                  canUseUsdMode={usdDeposit.canUseUsdMode}
+                  totalUsdValue={usdDeposit.totalUsdValue}
+                  isDepositEnabled={!invalidPool && !invalidRange}
+                  isBaseDepositEnabled={!depositADisabled}
+                  isQuoteDepositEnabled={!depositBDisabled}
+                  baseBalance={currencyBalances[Field.CURRENCY_A]}
+                  quoteBalance={currencyBalances[Field.CURRENCY_B]}
+                  maxBaseAmount={maxAmounts[Field.CURRENCY_A]}
+                  maxQuoteAmount={maxAmounts[Field.CURRENCY_B]}
+                  basePriceUsd={usdDeposit.basePriceUsd}
+                  quotePriceUsd={usdDeposit.quotePriceUsd}
+                  disabledMessage={
+                    noLiquidity ? t('Set starting price and price range first') : t('Set price range first')
+                  }
+                  baseDisabledMessage={
+                    depositADisabled
+                      ? invalidPool
+                        ? t('Set price range first')
+                        : t('The price range is outside current pool price')
+                      : undefined
+                  }
+                  quoteDisabledMessage={
+                    depositBDisabled
+                      ? invalidPool
+                        ? t('Set price range first')
+                        : t('The price range is outside current pool price')
+                      : undefined
+                  }
+                  showSettings
+                />
+              )}
               {canUseNativeCurrency && (
-                <RowBetween>
+                <RowBetween mt="8px">
                   <Text color="textSubtle">Use {native.symbol} instead</Text>
                   <Toggle scale="sm" checked={useNativeInstead} onChange={handleUseNative} />
                 </RowBetween>
               )}
-              <RowBetween>
-                <Text color="textSubtle">{t('Total.amount')}</Text>
-                <Text>~{formatDollarAmount(totalUsdValue, 2, false)}</Text>
-              </RowBetween>
-              <RowBetween>
-                <Text color="textSubtle">{t('Slippage Tolerance')}</Text>
-                <LiquiditySlippageButton />
-              </RowBetween>
-            </Column>
-            <MevProtectToggle size="sm" />
-            <Box mt="8px">{buttons}</Box>
-          </DynamicSection>
-        </CardBody>
-      </Card>
+              <Box mt="8px">{buttons}</Box>
+            </DynamicSection>
+          </CardBody>
+        </Card>
+      </Column>
     </>
   )
 }
