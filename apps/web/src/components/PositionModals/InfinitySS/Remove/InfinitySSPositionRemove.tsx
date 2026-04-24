@@ -886,7 +886,7 @@ export const InfinitySSPositionRemove = ({ poolInfo }: InfinitySSPositionRemoveP
             currency1NewAmount={newParsedAmountB?.toSignificant(6) || '0'}
             totalPositionUsd={formatDollarAmount(currentTotalUSD, 2, false)}
             totalPositionNewUsd={formatDollarAmount(newTotalUSD, 2, false)}
-            removedAmountUsd={formatDollarAmount(removedTotalUSD, 2, false)}
+            amountUsd={formatDollarAmount(removedTotalUSD, 2, false)}
           />
           {slippageLossUSD > 0 && (
             <RowBetween mt="8px">

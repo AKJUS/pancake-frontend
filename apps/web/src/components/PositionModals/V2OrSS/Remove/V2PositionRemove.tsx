@@ -675,7 +675,7 @@ const V2PositionRemoveInner = ({ position, poolInfo }: V2PositionRemoveProps) =>
         currency1NewAmount={currency1NewAmount}
         totalPositionUsd={totalPositionUsd}
         totalPositionNewUsd={totalPositionNewUsd}
-        removedAmountUsd={`$${removedTokensUsd}`}
+        amountUsd={`$${removedTokensUsd}`}
       />
 
       {chainId !== positionChainId ? (

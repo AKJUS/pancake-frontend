@@ -428,7 +428,7 @@ const SSPositionRemoveInner = ({ position, poolInfo }: SSPositionRemoveProps) =>
         currency1NewAmount={currency1NewAmount}
         totalPositionUsd={totalPositionUsd}
         totalPositionNewUsd={totalPositionNewUsd}
-        removedAmountUsd={`$${removedTokensUsd}`}
+        amountUsd={`$${removedTokensUsd}`}
       />
 
       {chainId !== positionChainId ? (

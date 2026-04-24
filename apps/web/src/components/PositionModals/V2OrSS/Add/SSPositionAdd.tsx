@@ -17,6 +17,8 @@ import {
   Toggle,
 } from '@pancakeswap/uikit'
 import { LightGreyCard } from '@pancakeswap/widgets-internal'
+import { BalanceDifferenceDisplay } from 'components/PositionModals/shared/BalanceDifferenceDisplay'
+import { getV2StablePositionCurrencyOverrides } from 'components/PositionModals/shared/v2StablePositionCurrencyOverrides'
 import CurrencyInputPanelSimplify from 'components/CurrencyInputPanelSimplify'
 import { StableLPDetail } from 'state/farmsV4/state/accountPositions/type'
 import { PoolInfo } from 'state/farmsV4/state/type'
@@ -51,7 +53,7 @@ interface SSPositionAddProps {
   position: StableLPDetail
   poolInfo: PoolInfo
 }
-export const SSPositionAdd = ({ poolInfo }: SSPositionAddProps) => {
+export const SSPositionAdd = ({ position, poolInfo }: SSPositionAddProps) => {
   const { t } = useTranslation()
 
   // Currencies
@@ -117,7 +119,7 @@ export const SSPositionAdd = ({ poolInfo }: SSPositionAddProps) => {
 
       <StableConfigContext.Provider value={stableConfig}>
         <AddStableLiquidity currencyA={currency0} currencyB={currency1}>
-          {(props) => <SSPositionAddInner {...props} />}
+          {(props) => <SSPositionAddInner {...props} position={position} />}
         </AddStableLiquidity>
       </StableConfigContext.Provider>
     </Box>
@@ -125,6 +127,7 @@ export const SSPositionAdd = ({ poolInfo }: SSPositionAddProps) => {
 }
 
 const SSPositionAddInner = ({
+  position,
   formattedAmounts,
   shouldShowApprovalGroup,
   approveACallback,
@@ -145,7 +148,7 @@ const SSPositionAddInner = ({
   loading,
   maxAmounts,
   inputAmountsTotalUsdValue,
-}: AddStableChildrenProps) => {
+}: AddStableChildrenProps & { position: StableLPDetail }) => {
   const { t } = useTranslation()
 
   // Currencies
@@ -179,6 +182,68 @@ const SSPositionAddInner = ({
     const parsed = tryParseAmount(raw, currency1)
     return Boolean(parsed && max.lessThan(parsed))
   }, [account, currency1, maxAmounts, formattedAmounts])
+
+  // Position Breakdown — current (from LP share) vs. new after deposit
+  const { data: currencyPrice0 } = useCurrencyUsdPrice(currency0)
+  const { data: currencyPrice1 } = useCurrencyUsdPrice(currency1)
+
+  const { override0: positionBalance0, override1: positionBalance1 } = useMemo(
+    () =>
+      currency0 && currency1
+        ? getV2StablePositionCurrencyOverrides(position, currency0, currency1)
+        : { override0: undefined, override1: undefined },
+    [position, currency0, currency1],
+  )
+
+  const currency0Amount = positionBalance0?.toSignificant(6) ?? '0'
+  const currency1Amount = positionBalance1?.toSignificant(6) ?? '0'
+
+  const parsedAddAmount0 = useMemo(
+    () =>
+      currency0 && formattedAmounts[Field.CURRENCY_A]
+        ? tryParseAmount(formattedAmounts[Field.CURRENCY_A], currency0)
+        : undefined,
+    [currency0, formattedAmounts],
+  )
+  const parsedAddAmount1 = useMemo(
+    () =>
+      currency1 && formattedAmounts[Field.CURRENCY_B]
+        ? tryParseAmount(formattedAmounts[Field.CURRENCY_B], currency1)
+        : undefined,
+    [currency1, formattedAmounts],
+  )
+
+  const currency0NewAmount = useMemo(() => {
+    if (!positionBalance0) return parsedAddAmount0?.toSignificant(6) ?? '0'
+    if (!parsedAddAmount0) return currency0Amount
+    return positionBalance0.wrapped.add(parsedAddAmount0.wrapped).toSignificant(6)
+  }, [positionBalance0, parsedAddAmount0, currency0Amount])
+
+  const currency1NewAmount = useMemo(() => {
+    if (!positionBalance1) return parsedAddAmount1?.toSignificant(6) ?? '0'
+    if (!parsedAddAmount1) return currency1Amount
+    return positionBalance1.wrapped.add(parsedAddAmount1.wrapped).toSignificant(6)
+  }, [positionBalance1, parsedAddAmount1, currency1Amount])
+
+  const totalPositionUsdValue = useMemo(() => {
+    if (!positionBalance0 || !positionBalance1 || !currencyPrice0 || !currencyPrice1) return null
+    const usd0 = BN(currencyPrice0).multipliedBy(positionBalance0.toExact())
+    const usd1 = BN(currencyPrice1).multipliedBy(positionBalance1.toExact())
+    return usd0.plus(usd1)
+  }, [positionBalance0, positionBalance1, currencyPrice0, currencyPrice1])
+
+  const totalPositionUsd = useMemo(() => {
+    if (!totalPositionUsdValue) return '$0'
+    return `$${totalPositionUsdValue.toFormat(2)}`
+  }, [totalPositionUsdValue])
+
+  const totalPositionNewUsd = useMemo(() => {
+    if (!totalPositionUsdValue) return '$0'
+    if (!inputAmountsTotalUsdValue) return totalPositionUsd
+    return `$${totalPositionUsdValue.plus(inputAmountsTotalUsdValue).toFormat(2)}`
+  }, [totalPositionUsdValue, inputAmountsTotalUsdValue, totalPositionUsd])
+
+  const hasAddAmount = Boolean(parsedAddAmount0?.greaterThan(0) || parsedAddAmount1?.greaterThan(0))
 
   // Buttons
   const renderButtons = useCallback(() => {
@@ -281,38 +346,32 @@ const SSPositionAddInner = ({
           showUSDPrice
           isUserInsufficientBalance={isUserInsufficientBalanceA}
         />
-        <br />
-        <CurrencyInputPanelSimplify
-          id="position-modal-increase-v2-B"
-          defaultValue={formattedAmounts[Field.CURRENCY_B]}
-          currency={currencies[Field.CURRENCY_B]}
-          onUserInput={onFieldBInput}
-          title={<>&nbsp;</>}
-          wrapperProps={{ style: { backgroundColor: 'transparent' } }}
-          onPercentInput={(percent) => {
-            if (maxAmounts[Field.CURRENCY_B]) {
-              onFieldBInput(maxAmounts[Field.CURRENCY_B]?.multiply(new Percent(percent, 100)).toExact() ?? '')
-            }
-          }}
-          onMax={() => {
-            onFieldBInput(maxAmounts[Field.CURRENCY_B]?.toExact() ?? '')
-          }}
-          maxAmount={maxAmounts[Field.CURRENCY_B]}
-          showMaxButton
-          disableCurrencySelect
-          showUSDPrice
-          isUserInsufficientBalance={isUserInsufficientBalanceB}
-        />
+        <Box mt="8px">
+          <CurrencyInputPanelSimplify
+            id="position-modal-increase-v2-B"
+            defaultValue={formattedAmounts[Field.CURRENCY_B]}
+            currency={currencies[Field.CURRENCY_B]}
+            onUserInput={onFieldBInput}
+            title={<>&nbsp;</>}
+            wrapperProps={{ style: { backgroundColor: 'transparent' } }}
+            onPercentInput={(percent) => {
+              if (maxAmounts[Field.CURRENCY_B]) {
+                onFieldBInput(maxAmounts[Field.CURRENCY_B]?.multiply(new Percent(percent, 100)).toExact() ?? '')
+              }
+            }}
+            onMax={() => {
+              onFieldBInput(maxAmounts[Field.CURRENCY_B]?.toExact() ?? '')
+            }}
+            maxAmount={maxAmounts[Field.CURRENCY_B]}
+            showMaxButton
+            disableCurrencySelect
+            showUSDPrice
+            isUserInsufficientBalance={isUserInsufficientBalanceB}
+          />
+        </Box>
       </LightGreyCard>
 
       <RowBetween mt="16px">
-        <Text color="textSubtle" small>
-          {t('Total Deposit Value')}
-        </Text>
-        <Text small>~{formatDollarAmount(inputAmountsTotalUsdValue, 2, false)}</Text>
-      </RowBetween>
-
-      <RowBetween mt="8px">
         <FlexGap gap="4px" alignItems="center">
           <Text color="textSubtle" small>
             {t('Slippage')}
@@ -327,6 +386,21 @@ const SSPositionAddInner = ({
         </FlexGap>
         <FormattedSlippage slippage={executionSlippage} loading={loading} small />
       </RowBetween>
+
+      {currency0 && currency1 && hasAddAmount && (
+        <BalanceDifferenceDisplay
+          currency0={currency0}
+          currency1={currency1}
+          currency0Amount={currency0Amount}
+          currency0NewAmount={currency0NewAmount}
+          currency1Amount={currency1Amount}
+          currency1NewAmount={currency1NewAmount}
+          totalPositionUsd={totalPositionUsd}
+          totalPositionNewUsd={totalPositionNewUsd}
+          amountUsd={formatDollarAmount(inputAmountsTotalUsdValue, 2, false)}
+          amountUsdLabel={t('Total deposit value (USD)')}
+        />
+      )}
 
       <Box mt="16px">
         <MevProtectToggle size="sm" />

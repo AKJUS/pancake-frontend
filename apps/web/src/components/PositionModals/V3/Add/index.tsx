@@ -4,6 +4,7 @@ import { Box, Button, FlexGap, IconButton, PreTitle, RowBetween, SwapHorizIcon, 
 import { formatNumber } from '@pancakeswap/utils/formatNumber'
 import { INITIAL_ALLOWED_SLIPPAGE, useLiquidityUserSlippage } from '@pancakeswap/utils/user'
 import { LightGreyCard } from '@pancakeswap/widgets-internal'
+import { BalanceDifferenceDisplay } from 'components/PositionModals/shared/BalanceDifferenceDisplay'
 import CurrencyInputPanelSimplify from 'components/CurrencyInputPanelSimplify'
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
 import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
@@ -222,19 +223,63 @@ export const V3PositionAdd = ({ position: existingPositionDetail, poolInfo }: V3
 
   // Total USD Value
   const { data: currencyPrice0 } = useCurrencyUsdPrice(currency0, {
-    enabled: !!currency0 && !!parsedAmounts[Field.CURRENCY_A],
+    enabled: !!currency0,
   })
   const { data: currencyPrice1 } = useCurrencyUsdPrice(currency1, {
-    enabled: !!currency1 && !!parsedAmounts[Field.CURRENCY_B],
+    enabled: !!currency1,
   })
   const totalDepositUsdValue = useMemo(() => {
-    if (!currencyPrice0 || !currencyPrice1) return 0
+    if (!currencyPrice0 || !currencyPrice1) return null
 
     const usd0 = BN(currencyPrice0).multipliedBy(parsedAmounts[Field.CURRENCY_A]?.toExact() || 0)
     const usd1 = BN(currencyPrice1).multipliedBy(parsedAmounts[Field.CURRENCY_B]?.toExact() || 0)
 
-    return usd0.plus(usd1).toFormat(2)
+    return usd0.plus(usd1)
   }, [currencyPrice0, currencyPrice1, parsedAmounts[Field.CURRENCY_A], parsedAmounts[Field.CURRENCY_B]])
+
+  // Position Breakdown — current vs. new after deposit (shown after user enters amounts)
+  const existingAmount0 = existingPosition?.amount0
+  const existingAmount1 = existingPosition?.amount1
+
+  const currency0Amount = existingAmount0?.toSignificant(6) ?? '0'
+  const currency1Amount = existingAmount1?.toSignificant(6) ?? '0'
+
+  const currency0NewAmount = useMemo(() => {
+    const added = parsedAmounts[Field.CURRENCY_A]
+    if (!existingAmount0) return added?.toSignificant(6) ?? '0'
+    if (!added) return currency0Amount
+    return existingAmount0.wrapped.add(added.wrapped).toSignificant(6)
+  }, [existingAmount0, parsedAmounts[Field.CURRENCY_A], currency0Amount])
+
+  const currency1NewAmount = useMemo(() => {
+    const added = parsedAmounts[Field.CURRENCY_B]
+    if (!existingAmount1) return added?.toSignificant(6) ?? '0'
+    if (!added) return currency1Amount
+    return existingAmount1.wrapped.add(added.wrapped).toSignificant(6)
+  }, [existingAmount1, parsedAmounts[Field.CURRENCY_B], currency1Amount])
+
+  const totalPositionUsdValue = useMemo(() => {
+    if (!existingAmount0 || !existingAmount1 || !currencyPrice0 || !currencyPrice1) return null
+    const usd0 = BN(currencyPrice0).multipliedBy(existingAmount0.toExact())
+    const usd1 = BN(currencyPrice1).multipliedBy(existingAmount1.toExact())
+    return usd0.plus(usd1)
+  }, [existingAmount0, existingAmount1, currencyPrice0, currencyPrice1])
+
+  const totalPositionUsd = useMemo(() => {
+    if (!totalPositionUsdValue) return '$0'
+    return `$${totalPositionUsdValue.toFormat(2)}`
+  }, [totalPositionUsdValue])
+
+  const totalPositionNewUsd = useMemo(() => {
+    if (!totalPositionUsdValue) return '$0'
+    if (!totalDepositUsdValue) return totalPositionUsd
+    return `$${totalPositionUsdValue.plus(totalDepositUsdValue).toFormat(2)}`
+  }, [totalPositionUsdValue, totalDepositUsdValue, totalPositionUsd])
+
+  const hasAddAmount = useMemo(
+    () => Boolean(parsedAmounts[Field.CURRENCY_A]?.greaterThan(0) || parsedAmounts[Field.CURRENCY_B]?.greaterThan(0)),
+    [parsedAmounts[Field.CURRENCY_A], parsedAmounts[Field.CURRENCY_B]],
+  )
 
   // Token Approvals
   const {
@@ -468,36 +513,45 @@ export const V3PositionAdd = ({ position: existingPositionDetail, poolInfo }: V3
             isUserInsufficientBalance={isUserInsufficientBalanceA}
           />
         </LockedDeposit>
-        <br />
 
-        <LockedDeposit locked={depositBDisabled}>
-          <CurrencyInputPanelSimplify
-            id="position-modal-v3-increase-B"
-            defaultValue={formattedAmounts[Field.CURRENCY_B] ?? '0'}
-            currency={currency1}
-            onUserInput={onFieldBInput}
-            maxAmount={maxAmounts[Field.CURRENCY_B]}
-            onMax={() => onFieldBInput(maxAmounts[Field.CURRENCY_B]?.toExact() ?? '')}
-            onPercentInput={(percent) =>
-              onFieldBInput(maxAmounts?.[Field.CURRENCY_B]?.multiply(new Percent(percent, 100))?.toExact() ?? '')
-            }
-            showUSDPrice
-            showMaxButton
-            disableCurrencySelect
-            title={<>&nbsp;</>}
-            wrapperProps={{ style: { backgroundColor: 'transparent' } }}
-            disabled={depositBDisabled}
-            isUserInsufficientBalance={isUserInsufficientBalanceB}
-          />
-        </LockedDeposit>
+        <Box mt="8px">
+          <LockedDeposit locked={depositBDisabled}>
+            <CurrencyInputPanelSimplify
+              id="position-modal-v3-increase-B"
+              defaultValue={formattedAmounts[Field.CURRENCY_B] ?? '0'}
+              currency={currency1}
+              onUserInput={onFieldBInput}
+              maxAmount={maxAmounts[Field.CURRENCY_B]}
+              onMax={() => onFieldBInput(maxAmounts[Field.CURRENCY_B]?.toExact() ?? '')}
+              onPercentInput={(percent) =>
+                onFieldBInput(maxAmounts?.[Field.CURRENCY_B]?.multiply(new Percent(percent, 100))?.toExact() ?? '')
+              }
+              showUSDPrice
+              showMaxButton
+              disableCurrencySelect
+              title={<>&nbsp;</>}
+              wrapperProps={{ style: { backgroundColor: 'transparent' } }}
+              disabled={depositBDisabled}
+              isUserInsufficientBalance={isUserInsufficientBalanceB}
+            />
+          </LockedDeposit>
+        </Box>
       </LightGreyCard>
 
-      <RowBetween mt="16px">
-        <Text color="textSubtle" small>
-          {t('Total Deposit Value')}
-        </Text>
-        <Text small>~${totalDepositUsdValue}</Text>
-      </RowBetween>
+      {hasAddAmount && (
+        <BalanceDifferenceDisplay
+          currency0={currency0}
+          currency1={currency1}
+          currency0Amount={currency0Amount}
+          currency0NewAmount={currency0NewAmount}
+          currency1Amount={currency1Amount}
+          currency1NewAmount={currency1NewAmount}
+          totalPositionUsd={totalPositionUsd}
+          totalPositionNewUsd={totalPositionNewUsd}
+          amountUsd={`$${totalDepositUsdValue?.toFormat(2) ?? 0}`}
+          amountUsdLabel={t('Total deposit value (USD)')}
+        />
+      )}
 
       <Box mt="16px">
         <MevProtectToggle size="sm" />

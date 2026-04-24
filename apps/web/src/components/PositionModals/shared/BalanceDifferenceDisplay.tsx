@@ -15,7 +15,10 @@ interface BalanceDifferenceDisplayProps {
   currency1NewAmount: string
   totalPositionUsd: string
   totalPositionNewUsd: string
-  removedAmountUsd: string
+  /** USD amount for the "removed" / "deposit" summary row (Add flow passes the deposit total). */
+  amountUsd: string
+  /** Label for the amount row. Defaults to "Total removed value (USD)" (Remove flow). Override with "Total deposit value (USD)" for Add flow. */
+  amountUsdLabel?: string
   /** V3 remove: uncollected fees collected with liquidity removal (optional) */
   feeValue0?: CurrencyAmount<Currency>
   feeValue1?: CurrencyAmount<Currency>
@@ -32,7 +35,8 @@ export function BalanceDifferenceDisplay({
   currency1NewAmount,
   totalPositionUsd,
   totalPositionNewUsd,
-  removedAmountUsd,
+  amountUsd,
+  amountUsdLabel,
   feeValue0,
   feeValue1,
   feesEarnedUsd,
@@ -103,11 +107,11 @@ export function BalanceDifferenceDisplay({
 
       <RowBetween mt="8px">
         <Text color="textSubtle" small>
-          {t('Total removed value (USD)')}
+          {amountUsdLabel ?? t('Total removed value (USD)')}
         </Text>
 
         <Text minWidth={MIN_COL_WIDTH} textAlign="right" small>
-          {removedAmountUsd}
+          {amountUsd}
         </Text>
       </RowBetween>
 

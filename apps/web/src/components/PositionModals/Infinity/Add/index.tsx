@@ -5,6 +5,7 @@ import { Box, Button, FlexGap, IconButton, PreTitle, RowBetween, SwapHorizIcon, 
 import { formatNumber } from '@pancakeswap/utils/formatNumber'
 import { INITIAL_ALLOWED_SLIPPAGE, useLiquidityUserSlippage } from '@pancakeswap/utils/user'
 import { LightGreyCard } from '@pancakeswap/widgets-internal'
+import { BalanceDifferenceDisplay } from 'components/PositionModals/shared/BalanceDifferenceDisplay'
 import CurrencyInputPanelSimplify from 'components/CurrencyInputPanelSimplify'
 import { useAddCLPoolAndPosition } from 'hooks/infinity/useAddCLLiquidity'
 import useIsTickAtLimit from 'hooks/infinity/useIsTickAtLimit'
@@ -135,16 +136,52 @@ export const InfinityCLPositionAdd = ({ position, poolInfo }: InfinityPositionAd
   }, [account, outputAmount, outputBalance])
 
   // Total USD Value
-  const { data: currencyPrice0 } = useCurrencyUsdPrice(currency0, { enabled: !!currency0 && !!inputAmount?.quotient })
-  const { data: currencyPrice1 } = useCurrencyUsdPrice(currency1, { enabled: !!currency1 && !!outputAmount?.quotient })
+  const { data: currencyPrice0 } = useCurrencyUsdPrice(currency0, { enabled: !!currency0 })
+  const { data: currencyPrice1 } = useCurrencyUsdPrice(currency1, { enabled: !!currency1 })
   const totalDepositUsdValue = useMemo(() => {
-    if (!currencyPrice0 || !currencyPrice1) return 0
+    if (!currencyPrice0 || !currencyPrice1) return null
 
     const usd0 = BN(currencyPrice0).multipliedBy(inputAmount?.toExact() || 0)
     const usd1 = BN(currencyPrice1).multipliedBy(outputAmount?.toExact() || 0)
 
-    return usd0.plus(usd1).toFormat(2)
+    return usd0.plus(usd1)
   }, [currencyPrice0, currencyPrice1, inputAmount, outputAmount])
+
+  // Position Breakdown — current (from on-chain position) vs. new after deposit
+  const currency0Amount = amount0?.toSignificant(6) ?? '0'
+  const currency1Amount = amount1?.toSignificant(6) ?? '0'
+
+  const currency0NewAmount = useMemo(() => {
+    if (!amount0) return inputAmount?.toSignificant(6) ?? '0'
+    if (!inputAmount) return currency0Amount
+    return amount0.wrapped.add(inputAmount.wrapped).toSignificant(6)
+  }, [amount0, inputAmount, currency0Amount])
+
+  const currency1NewAmount = useMemo(() => {
+    if (!amount1) return outputAmount?.toSignificant(6) ?? '0'
+    if (!outputAmount) return currency1Amount
+    return amount1.wrapped.add(outputAmount.wrapped).toSignificant(6)
+  }, [amount1, outputAmount, currency1Amount])
+
+  const totalPositionUsdValue = useMemo(() => {
+    if (!amount0 || !amount1 || !currencyPrice0 || !currencyPrice1) return null
+    const usd0 = BN(currencyPrice0).multipliedBy(amount0.toExact())
+    const usd1 = BN(currencyPrice1).multipliedBy(amount1.toExact())
+    return usd0.plus(usd1)
+  }, [amount0, amount1, currencyPrice0, currencyPrice1])
+
+  const totalPositionUsd = useMemo(() => {
+    if (!totalPositionUsdValue) return '$0'
+    return `$${totalPositionUsdValue.toFormat(2)}`
+  }, [totalPositionUsdValue])
+
+  const totalPositionNewUsd = useMemo(() => {
+    if (!totalPositionUsdValue) return '$0'
+    if (!totalDepositUsdValue) return totalPositionUsd
+    return `$${totalPositionUsdValue.plus(totalDepositUsdValue).toFormat(2)}`
+  }, [totalPositionUsdValue, totalDepositUsdValue, totalPositionUsd])
+
+  const hasAddAmount = Boolean(inputAmount?.greaterThan(0) || outputAmount?.greaterThan(0))
 
   // Token Approvals
   const {
@@ -344,30 +381,39 @@ export const InfinityCLPositionAdd = ({ position, poolInfo }: InfinityPositionAd
           wrapperProps={{ style: { backgroundColor: 'transparent' } }}
           isUserInsufficientBalance={isUserInsufficientBalanceA}
         />
-        <br />
-        <CurrencyInputPanelSimplify
-          id="position-modal-clamm-increase-B"
-          defaultValue={outputAmountRaw}
-          currency={currency1}
-          onUserInput={onOutputAmountChange}
-          maxAmount={outputBalance}
-          onMax={() => onOutputAmountChange(outputBalance?.toExact() ?? '')}
-          onPercentInput={onOutputPercentChange}
-          showUSDPrice
-          showMaxButton
-          disableCurrencySelect
-          title={<>&nbsp;</>}
-          wrapperProps={{ style: { backgroundColor: 'transparent' } }}
-          isUserInsufficientBalance={isUserInsufficientBalanceB}
-        />
+        <Box mt="8px">
+          <CurrencyInputPanelSimplify
+            id="position-modal-clamm-increase-B"
+            defaultValue={outputAmountRaw}
+            currency={currency1}
+            onUserInput={onOutputAmountChange}
+            maxAmount={outputBalance}
+            onMax={() => onOutputAmountChange(outputBalance?.toExact() ?? '')}
+            onPercentInput={onOutputPercentChange}
+            showUSDPrice
+            showMaxButton
+            disableCurrencySelect
+            title={<>&nbsp;</>}
+            wrapperProps={{ style: { backgroundColor: 'transparent' } }}
+            isUserInsufficientBalance={isUserInsufficientBalanceB}
+          />
+        </Box>
       </LightGreyCard>
 
-      <RowBetween mt="16px">
-        <Text color="textSubtle" small>
-          {t('Total Deposit Value')}
-        </Text>
-        <Text small>~${totalDepositUsdValue}</Text>
-      </RowBetween>
+      {hasAddAmount && (
+        <BalanceDifferenceDisplay
+          currency0={currency0}
+          currency1={currency1}
+          currency0Amount={currency0Amount}
+          currency0NewAmount={currency0NewAmount}
+          currency1Amount={currency1Amount}
+          currency1NewAmount={currency1NewAmount}
+          totalPositionUsd={totalPositionUsd}
+          totalPositionNewUsd={totalPositionNewUsd}
+          amountUsd={`$${totalDepositUsdValue?.toFormat(2) ?? 0}`}
+          amountUsdLabel={t('Total deposit value (USD)')}
+        />
+      )}
 
       <Box mt="16px">
         <MevProtectToggle size="sm" />
