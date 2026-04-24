@@ -36,9 +36,9 @@ import {
   Flex,
   FlexGap,
   InfoIcon,
-  Modal,
   ModalHeader,
   ModalV2,
+  MotionModal,
   Text,
   useMatchBreakpoints,
   useTooltip,
@@ -47,6 +47,8 @@ import { useWallet } from '@solana/wallet-adapter-react'
 
 import { ActionButton } from './ActionButton'
 import { AssetsList } from './AssetsList'
+import { PnLTag } from './PnLTag'
+import { TokenDetailsPanel } from './TokenDetailsPanel'
 import { ConnectedWallets } from './ConnectedWallets'
 import { ConnectedWalletsButton } from './ConnectedWalletsButton'
 import EmptyWalletActions from './EmptyWalletActions'
@@ -65,7 +67,7 @@ interface WalletModalProps {
   onDisconnect: () => void
 }
 
-const StyledModal = styled(Modal)`
+const StyledModal = styled(MotionModal)`
   width: 100%;
   border-radius: 24px;
   padding: 0;
@@ -112,6 +114,7 @@ const WalletOuterBox = styled(Box)`
   flex-direction: column;
   height: calc(90vh - 105px);
   overflow: hidden;
+
   ${({ theme }) => theme.mediaQueries.md} {
     height: calc(100vh - 80px);
     min-height: 610px;
@@ -132,7 +135,8 @@ const ChainSelectorButton = styled.button`
   align-items: center;
   gap: 0;
   padding: 8px;
-  border-radius: 16px;
+  height: 50px;
+  border-radius: 24px;
   border: 1px solid ${({ theme }) => theme.colors.cardBorder};
   border-bottom-width: 2px;
   background: ${({ theme }) => theme.colors.cardSecondary};
@@ -149,14 +153,17 @@ const SquareChainIcon = styled.img`
 const ChainPickerOverlay = styled(Box)`
   position: absolute;
   top: 72px;
-  left: 16px;
-  right: 16px;
+  right: 0;
+  width: 200px;
   z-index: 10;
   border-radius: 16px;
   border: 1px solid ${({ theme }) => theme.colors.secondary};
   background: ${({ theme }) => theme.colors.input};
   box-shadow: 2px 2px 2px 2px #7645d933, -2px 2px 2px 2px #7645d933;
   overflow: hidden;
+  ${({ theme }) => theme.mediaQueries.md} {
+    right: 16px;
+  }
 `
 
 const ChainPickerBackdrop = styled(Box)`
@@ -189,24 +196,36 @@ const WalletModal: React.FC<WalletModalProps> = ({
   onReceiveClick,
   onDisconnect,
 }) => {
-  const { viewState } = useWalletModalV2ViewState()
+  const { viewState, detailAsset, setDetailAsset } = useWalletModalV2ViewState()
   const { isMobile } = useMatchBreakpoints()
 
   // If no account is provided, show a message or redirect
   if (!evmAccount && !solanaAccount && viewState !== ViewState.CLAIM_GIFT) {
     return null
   }
+  const mobileTokenDetails = isMobile && detailAsset && viewState === ViewState.WALLET_INFO
   return (
     <ModalV2 isOpen={isOpen} onDismiss={onDismiss} closeOnOverlayClick>
-      <StyledModal title={undefined} onDismiss={onDismiss} hideCloseButton bodyPadding="16px">
-        {isMobile && <GrabberBar />}
-        <WalletContent
-          evmAccount={evmAccount}
-          solanaAccount={solanaAccount}
-          onDisconnect={onDisconnect}
-          onDismiss={onDismiss}
-          onReceiveClick={onReceiveClick}
-        />
+      <StyledModal
+        title={undefined}
+        onDismiss={onDismiss}
+        hideCloseButton
+        bodyPadding={mobileTokenDetails ? '0' : '16px'}
+      >
+        {mobileTokenDetails ? (
+          <TokenDetailsPanel asset={detailAsset} onClose={() => setDetailAsset(undefined)} onDismissModal={onDismiss} />
+        ) : (
+          <>
+            {isMobile && <GrabberBar />}
+            <WalletContent
+              evmAccount={evmAccount}
+              solanaAccount={solanaAccount}
+              onDisconnect={onDisconnect}
+              onDismiss={onDismiss}
+              onReceiveClick={onReceiveClick}
+            />
+          </>
+        )}
       </StyledModal>
     </ModalV2>
   )
@@ -229,7 +248,7 @@ export const WalletContent = ({
   const { t } = useTranslation()
   const router = useRouter()
   const { isMobile } = useMatchBreakpoints()
-  const { viewState, setViewState, goBack, setSendEntry } = useWalletModalV2ViewState()
+  const { viewState, setViewState, goBack, setSendEntry, detailAsset, setDetailAsset } = useWalletModalV2ViewState()
   const { setCode } = useClaimGiftContext()
   const { theme } = useTheme()
   const setConnectedWalletModalVisible = useSetAtom(connectedWalletModalVisibleAtom)
@@ -257,7 +276,7 @@ export const WalletContent = ({
   }, [selectedReceiveChain, solanaWallet, walletConfig, previouslyUsedEvmWalletsId])
 
   // Fetch balances using the hook we created
-  const { balances, isLoading, totalBalanceUsd } = useMultichainAddressBalance()
+  const { balances, isLoading, totalBalanceUsd, totalBalancePercentChange24h } = useMultichainAddressBalance()
 
   const [hideSmallBalances, setHideSmallBalances] = useState(false)
   const [showChainPicker, setShowChainPicker] = useState(false)
@@ -265,12 +284,12 @@ export const WalletContent = ({
     targetRef: hideSmallBalancesRef,
     tooltip: hideSmallBalancesTooltip,
     tooltipVisible: hideSmallBalancesTooltipVisible,
-  } = useTooltip(t('Hides tokens worth less than $0.1'), { placement: 'bottom' })
+  } = useTooltip(t('Hides tokens worth less than $0.01'), { placement: 'bottom' })
   const chainPickerRef = useRef<HTMLButtonElement>(null)
 
   const filteredBalances = useMemo(() => {
     return balances.filter((balance) => {
-      if (hideSmallBalances && (balance.price?.totalUsd ?? 0) < 0.1) return false
+      if (hideSmallBalances && (balance.price?.totalUsd ?? 0) < 0.01) return false
       return true
     })
   }, [balances, hideSmallBalances])
@@ -399,6 +418,9 @@ export const WalletContent = ({
           </ChainPickerOverlay>
         </>
       )}
+      {!isMobile && detailAsset && viewState === ViewState.WALLET_INFO && (
+        <TokenDetailsPanel asset={detailAsset} onClose={() => setDetailAsset(undefined)} onDismissModal={onDismiss} />
+      )}
       {(evmAccount || solanaAccount) && viewState === ViewState.WALLET_INFO ? (
         <FlexGap py="16px" px={isMobile ? 0 : '16px'} justifyContent="space-between" alignItems="center" gap="8px">
           <ConnectedWalletsButton
@@ -473,9 +495,14 @@ export const WalletContent = ({
                 <Text fontSize="20px" fontWeight="600">
                   {t('My Wallet')}
                 </Text>
-                <FlexGap alignItems="center" gap="3px">
-                  <TotalBalanceInteger lineHeight={1.2}>${balanceDisplay.integer}</TotalBalanceInteger>
-                  <TotalBalanceDecimal lineHeight={1.2}>.{balanceDisplay.decimal}</TotalBalanceDecimal>
+                <FlexGap alignItems="center" gap="4px">
+                  <FlexGap alignItems="center" gap="3px">
+                    <TotalBalanceInteger lineHeight={1.2}>${balanceDisplay.integer}</TotalBalanceInteger>
+                    <TotalBalanceDecimal lineHeight={1.2}>.{balanceDisplay.decimal}</TotalBalanceDecimal>
+                  </FlexGap>
+                  {totalBalancePercentChange24h !== undefined && (
+                    <PnLTag priceChangePercent={totalBalancePercentChange24h} size="md" />
+                  )}
                 </FlexGap>
               </Box>
               {view === WalletView.GIFTS ? (
@@ -498,7 +525,7 @@ export const WalletContent = ({
                       />
                     </FilterPill>
                   </FilterRow>
-                  <AssetsList assets={filteredBalances} isLoading={isLoading} />
+                  <AssetsList assets={filteredBalances} isLoading={isLoading} onRowClick={setDetailAsset} />
                 </>
               ) : (
                 !noAssets && (

@@ -39,9 +39,10 @@ const SolanaNetworkIcon = styled.img`
 const StyledAccountsButton = styled(Button)`
   border: 1px solid ${(props) => props.theme.colors.cardBorder};
   border-bottom-width: 2px;
-  border-radius: 16px;
+  border-radius: 24px;
   background-color: ${(props) => props.theme.colors.cardSecondary};
   padding: 8px;
+  height: 50px;
 `
 
 export const ConnectedWalletsButton = ({ evmAccount, solanaAccount, ...props }: ConnectedWalletsButtonProps) => {

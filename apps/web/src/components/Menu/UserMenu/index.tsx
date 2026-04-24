@@ -91,7 +91,7 @@ const ClickablePopover = styled.div<{ isOpen: boolean }>`
   min-width: 380px;
   background-color: ${({ theme }) => theme.card.background};
   border: 1px solid ${({ theme }) => theme.colors.cardBorder};
-  border-radius: 16px;
+  border-radius: 24px;
   margin-top: 0;
   visibility: ${({ isOpen }) => (isOpen ? 'visible' : 'hidden')};
   opacity: ${({ isOpen }) => (isOpen ? 1 : 0)};

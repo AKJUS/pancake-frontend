@@ -26,6 +26,14 @@ export const LightGreyCard = styled(Card)`
   background-color: ${({ theme }) => theme.colors.background};
 `;
 
+export const LightGreyShadowCard = styled(Card)`
+  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
+  background-color: ${({ theme }) => theme.colors.background};
+
+  border-bottom-width: 2px;
+  padding: 16px;
+`;
+
 export const LightSecondaryCard = styled(Card)<{ $active?: boolean }>`
   border-radius: 16px;
   border: 1px solid ${({ theme }) => theme.colors.inputSecondary};

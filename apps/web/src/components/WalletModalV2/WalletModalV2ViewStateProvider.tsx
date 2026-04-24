@@ -1,4 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react'
+import type { BalanceData } from 'hooks/useAddressBalance'
 import { SEND_ENTRY, ViewState } from './type'
 
 interface WalletModalV2ViewStateContextType {
@@ -8,6 +9,8 @@ interface WalletModalV2ViewStateContextType {
   reset: () => void
   setSendEntry: (sendEntry: SEND_ENTRY) => void
   sendEntry: SEND_ENTRY
+  detailAsset: BalanceData | undefined
+  setDetailAsset: (asset: BalanceData | undefined) => void
 }
 
 const WalletModalV2ViewStateContext = createContext<WalletModalV2ViewStateContextType>({
@@ -17,6 +20,8 @@ const WalletModalV2ViewStateContext = createContext<WalletModalV2ViewStateContex
   reset: () => {},
   setSendEntry: () => {},
   sendEntry: SEND_ENTRY.SEND_ONLY,
+  detailAsset: undefined,
+  setDetailAsset: () => {},
 })
 
 export const useWalletModalV2ViewState = () => {
@@ -35,6 +40,8 @@ export const WalletModalV2ViewStateProvider: React.FC<WalletModalV2ViewStateProv
   const [viewState, setViewState] = useState<ViewState>(ViewState.WALLET_INFO)
 
   const [sendEntry, setSendEntry] = useState<SEND_ENTRY>(SEND_ENTRY.SEND_ONLY)
+
+  const [detailAsset, setDetailAsset] = useState<BalanceData | undefined>(undefined)
 
   const goBack = useCallback(() => {
     setViewState((prevState) => {
@@ -57,14 +64,16 @@ export const WalletModalV2ViewStateProvider: React.FC<WalletModalV2ViewStateProv
   }, [])
 
   const handleSetViewState = useCallback(
-    (viewState: ViewState) => {
-      setViewState(viewState)
+    (next: ViewState) => {
+      setViewState(next)
+      if (next !== ViewState.WALLET_INFO) setDetailAsset(undefined)
     },
     [setViewState],
   )
 
   const reset = useCallback(() => {
     setViewState(ViewState.WALLET_INFO)
+    setDetailAsset(undefined)
   }, [])
 
   const value = useMemo(
@@ -75,8 +84,10 @@ export const WalletModalV2ViewStateProvider: React.FC<WalletModalV2ViewStateProv
       reset,
       setSendEntry,
       sendEntry,
+      detailAsset,
+      setDetailAsset,
     }),
-    [viewState, handleSetViewState, goBack, reset, sendEntry],
+    [viewState, handleSetViewState, goBack, reset, sendEntry, detailAsset],
   )
 
   return <WalletModalV2ViewStateContext.Provider value={value}>{children}</WalletModalV2ViewStateContext.Provider>

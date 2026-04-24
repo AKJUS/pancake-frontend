@@ -169,6 +169,19 @@ export const useAddressBalance = (address?: string | null, options: UseAddressBa
     }, 0)
   }, [filteredBalances, isListedToken])
 
+  // Portfolio value 24h ago, computed per-token as quantity * usd24h (price 24h ago).
+  // Tokens without a usd24h price are skipped — partial coverage is fine.
+  const filteredTotalBalanceUsd24hAgo = useMemo(() => {
+    return filteredBalances.reduce((sum, item) => {
+      if (!isListedToken(item.chainId, item.token.address)) return sum
+      const past = item.price?.usd24h
+      if (past == null) return sum
+      const qty = Number(item.quantity)
+      if (!Number.isFinite(qty)) return sum
+      return sum + qty * past
+    }, 0)
+  }, [filteredBalances, isListedToken])
+
   // Get balances for a specific chain
   const getBalancesByChain = useCallback(
     (chainId: ChainId | number) => {
@@ -220,6 +233,7 @@ export const useAddressBalance = (address?: string | null, options: UseAddressBa
     isLoading,
     error,
     totalBalanceUsd: filteredTotalBalanceUsd,
+    totalBalanceUsd24hAgo: filteredTotalBalanceUsd24hAgo,
     allTokensUsdValue: totalBalanceUsd,
     refresh: refetch,
     getBalancesByChain,
@@ -238,6 +252,7 @@ export const useMultichainAddressBalance = () => {
     balances: evmBalances,
     isLoading: isEvmLoading,
     totalBalanceUsd: evmTotalBalanceUsd,
+    totalBalanceUsd24hAgo: evmTotalBalanceUsd24hAgo,
   } = useAddressBalance(evmAccount, {
     includeSpam: false,
     onlyWithPrice: false,
@@ -248,6 +263,7 @@ export const useMultichainAddressBalance = () => {
     balances: solanaBalances,
     isLoading: isSolanaLoading,
     totalBalanceUsd: solanaTotalBalanceUsd,
+    totalBalanceUsd24hAgo: solanaTotalBalanceUsd24hAgo,
   } = useAddressBalance(solanaAccount ?? undefined, {
     includeSpam: false,
     onlyWithPrice: false,
@@ -255,6 +271,10 @@ export const useMultichainAddressBalance = () => {
   })
 
   return useMemo(() => {
+    const totalBalanceUsd = (evmTotalBalanceUsd ?? 0) + (solanaTotalBalanceUsd ?? 0)
+    const totalBalanceUsd24hAgo = (evmTotalBalanceUsd24hAgo ?? 0) + (solanaTotalBalanceUsd24hAgo ?? 0)
+    const totalBalancePercentChange24h =
+      totalBalanceUsd24hAgo > 0 ? ((totalBalanceUsd - totalBalanceUsd24hAgo) / totalBalanceUsd24hAgo) * 100 : undefined
     return {
       balances: [...(evmBalances ?? []), ...(solanaBalances ?? [])].sort((a, b) => {
         const aListed = isListedToken(a.chainId, a.token.address)
@@ -264,9 +284,20 @@ export const useMultichainAddressBalance = () => {
         return (b.price?.totalUsd ?? 0) - (a.price?.totalUsd ?? 0)
       }),
       isLoading: isEvmLoading || isSolanaLoading,
-      totalBalanceUsd: (evmTotalBalanceUsd ?? 0) + (solanaTotalBalanceUsd ?? 0),
+      totalBalanceUsd,
+      totalBalancePercentChange24h,
     }
-  }, [evmBalances, solanaBalances, isEvmLoading, isSolanaLoading, evmTotalBalanceUsd, solanaTotalBalanceUsd])
+  }, [
+    evmBalances,
+    solanaBalances,
+    isEvmLoading,
+    isSolanaLoading,
+    evmTotalBalanceUsd,
+    solanaTotalBalanceUsd,
+    evmTotalBalanceUsd24hAgo,
+    solanaTotalBalanceUsd24hAgo,
+    isListedToken,
+  ])
 }
 
 export default useAddressBalance

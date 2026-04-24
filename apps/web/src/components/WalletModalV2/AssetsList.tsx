@@ -5,13 +5,12 @@ import styled from 'styled-components'
 import { formatAmount } from 'utils/formatInfoNumbers'
 import { safeGetAddress } from 'utils/safeGetAddress'
 
-import { useTranslation } from '@pancakeswap/localization'
 import { ZERO_ADDRESS } from '@pancakeswap/swap-sdk-core'
 import { Box, FlexGap, Skeleton, Text } from '@pancakeswap/uikit'
 import { CurrencyLogo } from '@pancakeswap/widgets-internal'
 
+import { PnLTag } from './PnLTag'
 import { useEnhancedTokenLogo } from './hooks/useEnhancedTokenLogo'
-import { getChainDisplayName } from './utils/getChainDisplayName'
 
 const SCROLLBAR_SHIFT_PX = 8
 
@@ -46,14 +45,18 @@ const BottomGradient = styled.div`
   background: linear-gradient(180deg, transparent 0%, ${({ theme }) => theme.colors.backgroundAlt} 100%);
 `
 
-const AssetItem = styled(FlexGap)`
-  padding: 4px 0px;
-  margin-bottom: 8px;
+const AssetItem = styled(FlexGap)<{ $clickable: boolean }>`
+  padding: 10px 8px;
+  margin-bottom: 0;
   align-items: center;
   justify-content: space-between;
   border-radius: 16px;
-  cursor: pointer;
+  cursor: ${({ $clickable }) => ($clickable ? 'pointer' : 'default')};
   overflow: hidden;
+  transition: background 150ms ease;
+  &:hover {
+    background: ${({ theme, $clickable }) => ($clickable ? theme.colors.tertiary : 'transparent')};
+  }
 `
 
 const TokenIcon = styled(Box)`
@@ -73,7 +76,6 @@ interface AssetsListProps {
 }
 
 export const AssetsList: React.FC<AssetsListProps> = ({ assets, isLoading, onRowClick }) => {
-  const { t } = useTranslation()
   const { getEnhancedLogoURI } = useEnhancedTokenLogo()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [hasMoreBelow, setHasMoreBelow] = useState(false)
@@ -115,20 +117,49 @@ export const AssetsList: React.FC<AssetsListProps> = ({ assets, isLoading, onRow
               name: asset.token.name,
               logoURI: enhancedLogoURI,
             }
-            const chainName = getChainDisplayName(asset.chainId)
+            const quantityNum = parseFloat(asset.quantity)
+            const quantityDisplay =
+              quantityNum < 0.000001
+                ? '<0.000001'
+                : quantityNum.toLocaleString(undefined, {
+                    maximumFractionDigits:
+                      asset?.price?.totalUsd !== undefined &&
+                      asset?.price?.totalUsd !== null &&
+                      asset?.price?.totalUsd > 0 &&
+                      asset?.price?.totalUsd < 1
+                        ? 6
+                        : 4,
+                    minimumFractionDigits: 2,
+                  })
             return (
-              <AssetItem key={asset.id} onClick={onRowClick ? () => onRowClick(asset) : undefined}>
-                <FlexGap alignItems="center">
+              <AssetItem
+                key={asset.id}
+                $clickable={Boolean(onRowClick)}
+                role={onRowClick ? 'button' : undefined}
+                tabIndex={onRowClick ? 0 : undefined}
+                onClick={onRowClick ? () => onRowClick(asset) : undefined}
+                onKeyDown={
+                  onRowClick
+                    ? (event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          onRowClick(asset)
+                        }
+                      }
+                    : undefined
+                }
+              >
+                <FlexGap alignItems="center" minWidth={0} flex={1}>
                   <TokenIcon>
                     <CurrencyLogo showChainLogo currency={tokenInfo} size="40px" />
                   </TokenIcon>
-                  <Box>
-                    <FlexGap alignItems="center">
+                  <Box minWidth={0}>
+                    <FlexGap alignItems="baseline" gap="4px">
                       <Text
                         bold
                         fontSize="16px"
                         style={{
-                          maxWidth: '70px',
+                          maxWidth: '80px',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
@@ -137,11 +168,10 @@ export const AssetsList: React.FC<AssetsListProps> = ({ assets, isLoading, onRow
                         {asset.token.symbol}
                       </Text>
                       <Text
-                        ml="8px"
                         color="textSubtle"
                         fontSize="14px"
                         style={{
-                          maxWidth: '60px',
+                          maxWidth: '80px',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
@@ -150,41 +180,26 @@ export const AssetsList: React.FC<AssetsListProps> = ({ assets, isLoading, onRow
                         {asset.token.name}
                       </Text>
                     </FlexGap>
-
-                    <Text fontSize="12px" color="textSubtle" textTransform="uppercase" bold>
-                      {chainName} {t('Chain')}
+                    <Text bold fontSize="14px">
+                      {quantityDisplay} {asset.token.symbol}
                     </Text>
                   </Box>
                 </FlexGap>
-                <Box style={{ textAlign: 'right' }}>
-                  <Text bold fontSize="14px">
-                    {parseFloat(asset.quantity) < 0.000001
-                      ? '<0.000001'
-                      : parseFloat(asset.quantity).toLocaleString(undefined, {
-                          maximumFractionDigits:
-                            asset?.price?.totalUsd !== undefined &&
-                            asset?.price?.totalUsd !== null &&
-                            asset?.price?.totalUsd > 0 &&
-                            asset?.price?.totalUsd < 1
-                              ? 6
-                              : 4,
-                          minimumFractionDigits: 2,
-                        })}
-                  </Text>
-                  <Text color="textSubtle" fontSize="14px">
+                <FlexGap flexDirection="column" alignItems="flex-end" gap="2px" flexShrink={0}>
+                  <Text bold fontSize="16px">
                     {asset.price?.totalUsd
                       ? asset.price?.totalUsd < 0.01
                         ? '<$0.01'
                         : `$${formatAmount(asset.price.totalUsd)}`
                       : '$0.00'}
                   </Text>
-                  {asset.price?.usd24h != null && (
-                    <Text fontSize="12px" color={asset.price.usd24h >= 0 ? 'success' : 'failure'}>
-                      {asset.price.usd24h >= 0 ? '▲' : '▼'}
-                      {Math.abs(asset.price.usd24h).toFixed(2)}%
-                    </Text>
+                  {asset.price?.usd != null && asset.price.usd24h != null && asset.price.usd24h > 0 && (
+                    <PnLTag
+                      priceChangePercent={((asset.price.usd - asset.price.usd24h) / asset.price.usd24h) * 100}
+                      size="sm"
+                    />
                   )}
-                </Box>
+                </FlexGap>
               </AssetItem>
             )
           })
