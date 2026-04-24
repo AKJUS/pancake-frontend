@@ -129,7 +129,7 @@ export function useIsMEVEnabled() {
     queryKey: ['isMEVEnabled', walletClient, account, chainId, walletType],
     queryFn: () => fetchMEVStatus(walletClient!),
     enabled: isMEVProtectAvailable,
-    staleTime: 60000,
+    staleTime: 0,
   })
 
   const isMEVEnabledAfterValidation = data?.mevEnabled || walletType === WalletType.mevDefaultOnBSC

@@ -35,8 +35,9 @@ export const AddMevRpcButton: React.FC<{ onClick?: () => void }> = ({ onClick })
   const [isLoading, setIsLoading] = useState(false)
   const { theme } = useTheme()
   const { addMevRpc } = useAddMevRpc(
-    useCallback(() => {
-      refetch()
+    useCallback(async () => {
+      await refetch()
+      setTimeout(() => refetch(), 1500)
     }, [refetch]),
     useCallback(() => setIsLoading(true), []),
     useCallback(() => setIsLoading(false), []),
