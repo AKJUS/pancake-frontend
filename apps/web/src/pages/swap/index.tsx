@@ -14,8 +14,8 @@ const StyledSkeleton = styled(Skeleton)`
 const BgBox = styled(Box)`
   background: ${({ theme }) => theme.colors.backgroundBubblegum};
 `
-const Container = styled.div<{ isMobile: boolean }>`
-  min-height: ${({ isMobile }) => (isMobile ? '100vh' : '100%')};
+const Container = styled.div<{ $isMobile: boolean }>`
+  min-height: ${({ $isMobile }) => ($isMobile ? '100vh' : '100%')};
   background: ${({ theme }) => theme.colors.backgroundBubblegum};
 `
 const SwapFallback = () => {
@@ -47,7 +47,7 @@ const View = () => {
   console.info(wallets, 'wallets')
   return (
     <SwapLayout>
-      <Container isMobile={isMobile}>
+      <Container $isMobile={isMobile}>
         <SwapSimplify />
       </Container>
     </SwapLayout>

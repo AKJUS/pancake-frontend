@@ -131,8 +131,8 @@ export const IfoVestingCard: React.FC = () => {
               >
                 {t('Claim')}
               </Button>
-              <NextLink href={cakepadHistoryUrl} passHref legacyBehavior>
-                <Text as="a" color="primary" mt="8px" fontWeight={600} display="block">
+              <NextLink href={cakepadHistoryUrl}>
+                <Text as="span" color="primary" mt="8px" fontWeight={600} display="block">
                   {t('View CAKE.PAD')}
                 </Text>
               </NextLink>

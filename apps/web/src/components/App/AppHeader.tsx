@@ -52,8 +52,8 @@ const AppHeader: React.FC<React.PropsWithChildren<Props>> = ({
       <Flex alignItems="center" width="100%" style={{ gap: '16px' }}>
         {backTo &&
           (typeof backTo === 'string' ? (
-            <Link legacyBehavior passHref href={backTo}>
-              <IconButton as="a" scale="sm">
+            <Link href={backTo}>
+              <IconButton as="div" scale="sm">
                 <ArrowBackIcon width="32px" />
               </IconButton>
             </Link>

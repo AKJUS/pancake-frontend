@@ -16,34 +16,36 @@ const MenuItems: React.FC<React.PropsWithChildren<MenuItemsProps>> = ({
 }) => {
   return (
     <Flex {...props}>
-      {items.map(({ label, items: menuItems = [], href, icon, disabled, onClick, type, ...rest }) => {
-        const statusColor = findMenuItemsStatusColor(menuItems);
-        const isActive = activeItem === href;
-        const linkProps = isTouchDevice() && menuItems && menuItems.length > 0 ? {} : { href };
-        const Icon = icon;
-        return (
-          <DropdownMenu
-            key={`${label}#${href}`}
-            items={menuItems}
-            py={1}
-            activeItem={activeSubItem}
-            activeSubItemChildItem={activeSubItemChildItem}
-            isDisabled={disabled}
-          >
-            <MenuItem
-              {...linkProps}
-              {...(type !== undefined ? { type } : {})}
-              isActive={isActive}
-              statusColor={statusColor}
+      {items.map(
+        ({ label, items: menuItems = [], href, icon, fillIcon: _fillIcon, disabled, onClick, type, ...rest }) => {
+          const statusColor = findMenuItemsStatusColor(menuItems);
+          const isActive = activeItem === href;
+          const linkProps = isTouchDevice() && menuItems && menuItems.length > 0 ? {} : { href };
+          const Icon = icon;
+          return (
+            <DropdownMenu
+              key={`${label}#${href}`}
+              items={menuItems}
+              py={1}
+              activeItem={activeSubItem}
+              activeSubItemChildItem={activeSubItemChildItem}
               isDisabled={disabled}
-              onClick={onClick}
-              {...rest}
             >
-              {label || (icon && createElement(Icon as any, { color: isActive ? "secondary" : "textSubtle" }))}
-            </MenuItem>
-          </DropdownMenu>
-        );
-      })}
+              <MenuItem
+                {...linkProps}
+                {...(type !== undefined ? { type } : {})}
+                isActive={isActive}
+                statusColor={statusColor}
+                isDisabled={disabled}
+                onClick={onClick}
+                {...rest}
+              >
+                {label || (icon && createElement(Icon as any, { color: isActive ? "secondary" : "textSubtle" }))}
+              </MenuItem>
+            </DropdownMenu>
+          );
+        }
+      )}
     </Flex>
   );
 };
