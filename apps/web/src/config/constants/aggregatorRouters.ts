@@ -7,14 +7,10 @@ import { isAddressEqual } from 'utils'
 // before landing (bytecode review, Ownable/upgradeable audit).
 const AGGREGATOR_V1 = getAddress('0x40A1Fe393A7F566F27dF6acE18e6773be844dAfc')
 
-// BSC is opt-in on preview/local only until QA signs off (PAN-11607, PAN-11461, PAN-11460).
-// Production must stay on ETH + Base; flip this back to unconditional once BSC is cleared.
-const IS_NON_PRODUCTION = process.env.NEXT_PUBLIC_VERCEL_ENV !== 'production'
-
 export const AGGREGATOR_ROUTERS: Partial<Record<ChainId, readonly Address[]>> = {
   [ChainId.ETHEREUM]: [AGGREGATOR_V1],
   [ChainId.BASE]: [AGGREGATOR_V1],
-  ...(IS_NON_PRODUCTION ? { [ChainId.BSC]: [AGGREGATOR_V1] } : {}),
+  [ChainId.BSC]: [AGGREGATOR_V1],
 }
 
 // Derived so the supported-chain set cannot drift from the allowlist.

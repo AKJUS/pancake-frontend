@@ -20,8 +20,7 @@ describe('isAllowedAggregatorRouter', () => {
     expect(isAllowedAggregatorRouter(ChainId.BASE, ETH_ROUTER_LOWER)).toBe(true)
   })
 
-  it('returns true for the known router on BSC (non-production env)', () => {
-    // Vitest leaves NEXT_PUBLIC_VERCEL_ENV unset, so the env-gated BSC entry is active.
+  it('returns true for the known router on BSC', () => {
     expect(isAllowedAggregatorRouter(ChainId.BSC, ETH_ROUTER_LOWER)).toBe(true)
   })
 
@@ -51,7 +50,7 @@ describe('AGGREGATOR_SUPPORTED_CHAIN_IDS', () => {
     expect(AGGREGATOR_SUPPORTED_CHAIN_IDS).toContain(ChainId.BASE)
   })
 
-  it('contains BSC in non-production env (vitest default)', () => {
+  it('contains BSC', () => {
     expect(AGGREGATOR_SUPPORTED_CHAIN_IDS).toContain(ChainId.BSC)
   })
 
@@ -70,19 +69,19 @@ describe('AGGREGATOR_SUPPORTED_CHAIN_IDS', () => {
   })
 })
 
-describe('AGGREGATOR_ROUTERS production gating', () => {
+describe('AGGREGATOR_ROUTERS', () => {
   afterEach(() => {
     vi.unstubAllEnvs()
     vi.resetModules()
   })
 
-  it('excludes BSC when NEXT_PUBLIC_VERCEL_ENV === "production"', async () => {
+  it('keeps BSC allowlisted when NEXT_PUBLIC_VERCEL_ENV === "production"', async () => {
     vi.stubEnv('NEXT_PUBLIC_VERCEL_ENV', 'production')
     vi.resetModules()
     const mod = await import('../constants/aggregatorRouters')
-    expect(mod.AGGREGATOR_SUPPORTED_CHAIN_IDS).not.toContain(ChainId.BSC)
+    expect(mod.AGGREGATOR_SUPPORTED_CHAIN_IDS).toContain(ChainId.BSC)
     expect(mod.AGGREGATOR_SUPPORTED_CHAIN_IDS).toContain(ChainId.ETHEREUM)
     expect(mod.AGGREGATOR_SUPPORTED_CHAIN_IDS).toContain(ChainId.BASE)
-    expect(mod.isAllowedAggregatorRouter(ChainId.BSC, ETH_ROUTER_LOWER)).toBe(false)
+    expect(mod.isAllowedAggregatorRouter(ChainId.BSC, ETH_ROUTER_LOWER)).toBe(true)
   })
 })

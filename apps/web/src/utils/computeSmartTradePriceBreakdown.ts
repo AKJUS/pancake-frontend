@@ -88,7 +88,17 @@ export function computeSmartTradePriceBreakdown(trade?: TradeEssentialForPriceBr
     // getMidPrice requires full on-chain pool state; skip it for these routes to avoid noisy errors.
     const hasOnChainState = pools.every((pool) => {
       if (SmartRouter.isV3Pool(pool)) return 'sqrtRatioX96' in pool
-      if (SmartRouter.isV2Pool(pool)) return 'reserve0' in pool && pool.reserve0.greaterThan(0)
+      if (SmartRouter.isV2Pool(pool)) {
+        return 'reserve0' in pool && 'reserve1' in pool && pool.reserve0.greaterThan(0) && pool.reserve1.greaterThan(0)
+      }
+      if (SmartRouter.isStablePool(pool)) {
+        return (
+          'amplifier' in pool &&
+          'balances' in pool &&
+          pool.amplifier > 0n &&
+          pool.balances.every((balance) => balance.greaterThan(0))
+        )
+      }
       if (SmartRouter.isInfinityClPool(pool)) return 'sqrtRatioX96' in pool
       if (SmartRouter.isInfinityBinPool(pool)) return 'activeId' in pool
       return true

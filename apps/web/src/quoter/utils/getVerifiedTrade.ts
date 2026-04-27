@@ -1,6 +1,6 @@
 import { fetchQuotes, Quote } from '@pancakeswap/routing-sdk-addon-quoter'
 import { Currency, CurrencyAmount, Fraction, TradeType } from '@pancakeswap/swap-sdk-core'
-import { InfinityRouter, RouteType } from '@pancakeswap/smart-router'
+import { InfinityRouter, PoolType, RouteType } from '@pancakeswap/smart-router'
 
 import { toRoutingSDKTrade } from 'utils/convertTrade'
 import { getViemClients } from 'utils/viem'
@@ -14,14 +14,33 @@ type OnChainQuoteCheck = {
   quoteCurrency: Currency
 }
 
+function hasRequiredInfinityMetadata(pool: any): boolean {
+  if (!pool) return false
+
+  if (pool.type === PoolType.InfinityCL || pool.type === PoolType.InfinityStable) {
+    return Number.isFinite(pool.tickSpacing) && typeof pool.poolManager === 'string' && pool.poolManager.length > 0
+  }
+
+  if (pool.type === PoolType.InfinityBIN) {
+    return Number.isFinite(pool.binStep) && typeof pool.poolManager === 'string' && pool.poolManager.length > 0
+  }
+
+  return true
+}
+
+function isRouteVerifiable(route: Trade['routes'][number]): boolean {
+  return route.pools.every(hasRequiredInfinityMetadata)
+}
+
 // Returns `null` when there's nothing to verify (pure V2/stable exactOut).
 async function runOnChainQuoteCheck(trade: Trade): Promise<OnChainQuoteCheck | null> {
   const isExactIn = trade.tradeType === TradeType.EXACT_INPUT
   const quoteCurrency = isExactIn ? trade.outputAmount.currency : trade.inputAmount.currency
   const indexesOfRoutesToVerify = isExactIn
-    ? trade.routes.map((_, index) => index)
+    ? trade.routes.reduce<number[]>((acc, route, index) => (isRouteVerifiable(route) ? [...acc, index] : acc), [])
     : trade.routes.reduce<number[]>(
-        (acc, r, index) => (r.type !== RouteType.V2 && r.type !== RouteType.STABLE ? [...acc, index] : acc),
+        (acc, r, index) =>
+          r.type !== RouteType.V2 && r.type !== RouteType.STABLE && isRouteVerifiable(r) ? [...acc, index] : acc,
         [],
       )
   if (!indexesOfRoutesToVerify.length) {

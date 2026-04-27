@@ -6,10 +6,13 @@ import type { QuoteQuery } from 'quoter/quoter.types'
 import { getRoutingStrategy } from '../routingStrategy'
 
 const ETH_CHAIN = ChainId.ETHEREUM
+const BSC_CHAIN = ChainId.BSC
 const UNSUPPORTED_CHAIN = ChainId.ZKSYNC
 
 const WETH = new ERC20Token(ETH_CHAIN, '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', 18, 'WETH')
 const USDC = new ERC20Token(ETH_CHAIN, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 6, 'USDC')
+const WBNB = new ERC20Token(BSC_CHAIN, '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB', 18, 'WBNB')
+const BSC_USDT = new ERC20Token(BSC_CHAIN, '0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa', 18, 'USDT')
 
 const UNSUPPORTED_A = new ERC20Token(UNSUPPORTED_CHAIN, '0x1111111111111111111111111111111111111111', 18, 'A')
 const UNSUPPORTED_B = new ERC20Token(UNSUPPORTED_CHAIN, '0x2222222222222222222222222222222222222222', 18, 'B')
@@ -56,6 +59,20 @@ describe('getRoutingStrategy (PostHog release flag)', () => {
 
   it('keeps aggregator in production when release flag is enabled', () => {
     const result = getRoutingStrategy(makeQuery(), {}, false, true)
+    expect(strategyKeys(result)).toContain('aggregator')
+  })
+
+  it('keeps aggregator on BSC in production when release flag is enabled', () => {
+    const result = getRoutingStrategy(
+      makeQuery({
+        baseCurrency: WBNB,
+        currency: BSC_USDT,
+        amount: CurrencyAmount.fromRawAmount(WBNB, '1000000000000000000'),
+      }),
+      {},
+      false,
+      true,
+    )
     expect(strategyKeys(result)).toContain('aggregator')
   })
 
