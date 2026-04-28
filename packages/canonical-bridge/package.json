@@ -31,8 +31,8 @@
     "viem": "catalog:",
     "wagmi": "catalog:",
     "zod": "catalog:",
-    "@bnb-chain/canonical-bridge-sdk": "0.7.2",
-    "@bnb-chain/canonical-bridge-widget": "0.10.3",
+    "@bnb-chain/canonical-bridge-sdk": "0.7.3",
+    "@bnb-chain/canonical-bridge-widget": "0.10.4",
     "@pancakeswap/chains": "workspace:*"
   },
   "dependencies": {
