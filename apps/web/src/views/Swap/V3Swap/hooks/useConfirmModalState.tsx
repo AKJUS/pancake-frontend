@@ -967,6 +967,7 @@ const useConfirmActions = (
                     : order.trade.orderInfo.input.token,
               },
             },
+            quoteId: order.quoteId,
           })
           if (xOrder?.hash) {
             setOrderHash(xOrder.hash)

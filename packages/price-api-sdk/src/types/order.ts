@@ -42,6 +42,7 @@ export type XOrder<
   tradeType extends TradeType = TradeType,
 > = {
   type: OrderType.DUTCH_LIMIT
+  quoteId: string
   trade: ExclusiveDutchOrderTrade<input, output>
   ammTrade?: InfinityRouter.InfinityTradeWithoutGraph<tradeType>
 }

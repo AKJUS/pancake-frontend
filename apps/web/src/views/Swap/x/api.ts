@@ -133,10 +133,12 @@ export const waitForXOrderReceipt = ({
 export const submitXOrder = async ({
   encodedOrder,
   chainId,
+  quoteId,
   signature,
 }: {
   encodedOrder: Hex
   chainId: number
+  quoteId: string
   signature: Hex
 }) => {
   const resp = await fetch(`${X_API_ENDPOINT}/order-handler/order`, {
@@ -147,6 +149,7 @@ export const submitXOrder = async ({
     body: JSON.stringify({
       encodedOrder,
       chainId,
+      quoteId,
       signature,
     }),
   })

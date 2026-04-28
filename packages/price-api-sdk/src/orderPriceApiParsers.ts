@@ -110,6 +110,7 @@ export function parseQuoteResponse<
 
     return {
       type: OrderType.DUTCH_LIMIT,
+      quoteId: bestOrder.order.quoteId,
       ammTrade: otherAmmTrade
         ? InfinityRouter.Transformer.parseTrade(chainId, otherAmmTrade.order as AMMOrder)
         : undefined,

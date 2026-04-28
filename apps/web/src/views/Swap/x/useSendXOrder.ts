@@ -14,8 +14,8 @@ export function useSendXOrder() {
         context: variables,
       })
     },
-    mutationFn: async (options: { chainId: number; orderInfo: ExclusiveDutchOrderInfo }) => {
-      const { chainId, orderInfo } = options
+    mutationFn: async (options: { chainId: number; orderInfo: ExclusiveDutchOrderInfo; quoteId: string }) => {
+      const { chainId, orderInfo, quoteId } = options
 
       const order = new ExclusiveDutchOrder(orderInfo, chainId as number)
 
@@ -35,6 +35,7 @@ export function useSendXOrder() {
       return submitXOrder({
         encodedOrder: order.encode(),
         chainId,
+        quoteId,
         signature,
       })
     },
