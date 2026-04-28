@@ -62,7 +62,7 @@
     "@vanilla-extract/vite-plugin": "^3.8.0",
     "@vitejs/plugin-react": "4.2.1",
     "eslint": "^8.32.0",
-    "happy-dom": "^13.3.8",
+    "happy-dom": "^20.8.9",
     "vite-tsconfig-paths": "^4.0.3",
     "webpack-retry-chunk-load-plugin": "3.1.1"
   }
