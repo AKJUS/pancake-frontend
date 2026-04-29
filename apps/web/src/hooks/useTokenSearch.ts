@@ -7,7 +7,7 @@ import { Token } from '@pancakeswap/sdk'
 import { createFilterToken, WrappedTokenInfo } from '@pancakeswap/token-lists'
 import { useAllTokens } from 'hooks/Tokens'
 import { useTokenComparator } from 'hooks/useTokenComparator'
-import { combinedTokenMapFromActiveUrlsAtom } from 'state/lists/hooks'
+import { rwaExclusiveCombinedTokenMapFromActiveUrlsAtom } from 'state/lists/hooks'
 import { safeGetAddress } from 'utils/safeGetAddress'
 import { useSearchInactiveTokenLists, useSearchInactiveTokenListsMultiChain } from './useSearchInactiveTokenLists'
 
@@ -47,7 +47,7 @@ export function useFilteredSortedTokens(
  * with active-list matches first, then inactive-list matches.
  */
 export function useMultiChainTokenSearch(query: string | undefined, chainIds: UnifiedChainId[]): WrappedTokenInfo[] {
-  const activeMap = useAtomValue(combinedTokenMapFromActiveUrlsAtom)
+  const activeMap = useAtomValue(rwaExclusiveCombinedTokenMapFromActiveUrlsAtom)
   const inactiveMatches = useSearchInactiveTokenListsMultiChain(query, chainIds)
 
   const activeMatches = useMemo(() => {

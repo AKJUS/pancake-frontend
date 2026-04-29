@@ -54,6 +54,13 @@ const StyledTextButton = styled(Button).attrs({ variant: 'text' })`
   font-weight: normal;
 `
 
+const RiskInputPanelTag = styled(FlexGap)`
+  width: fit-content;
+  border-radius: 12px;
+  background: ${({ theme }) => theme.colors.warning10};
+  padding: 1px 6px 1px 4px;
+`
+
 interface RiskInputPanelDisplayProps {
   token?: ERC20Token
 }
@@ -121,12 +128,12 @@ export const RiskInputPanelDisplay: React.FC<RiskInputPanelDisplayProps> = ({ to
   const { isDataLoading, riskLevel, tagColor } = useRiskCheckData(token)
   if (!isDataLoading && riskLevel && riskLevel <= TOKEN_RISK.SIGNIFICANT && riskLevel >= TOKEN_RISK.MEDIUM)
     return (
-      <FlexGap justifyContent="center" alignContent="center">
+      <RiskInputPanelTag alignItems="center" gap="2px" mt="4px">
         <RiskAlertIcon width={16} color={tagColor} />
-        <Text ml="2px" fontSize="12px" color={tagColor}>
+        <Text fontSize="12px" lineHeight="16px" color={tagColor}>
           {TOKEN_RISK_T[riskLevel]}
         </Text>
-      </FlexGap>
+      </RiskInputPanelTag>
     )
   return null
 }

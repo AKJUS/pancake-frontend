@@ -1,4 +1,5 @@
 import { ChainId } from '@pancakeswap/chains'
+import { RWA } from '@pancakeswap/rwa-sdk'
 
 export const PANCAKE_EXTENDED = 'https://tokens.pancakeswap.finance/pancakeswap-extended.json'
 
@@ -6,8 +7,8 @@ const COINGECKO_BSC = 'https://tokens.coingecko.com/binance-smart-chain/all.json
 const COINGECKO_ARB = 'https://tokens.coingecko.com/arbitrum-one/all.json'
 const COINGECKO_BASE = 'https://tokens.coingecko.com/base/all.json'
 const COINGECKO_LINEA = 'https://tokens.coingecko.com/linea/all.json'
-const PANCAKE_ONDO_RWA_LIST = 'https://tokens.pancakeswap.finance/ondo-rwa-tokens.json'
-export const RWA_URLS = [PANCAKE_ONDO_RWA_LIST]
+export const ONDO_URLS = RWA.getFamily('ondo').listUrls
+export const XSTOCKS_URLS = RWA.getFamily('xstocks').listUrls
 
 export const PANCAKE_ETH_DEFAULT = 'https://tokens.pancakeswap.finance/pancakeswap-eth-default.json'
 export const PANCAKE_ZKSYNC_DEFAULT = 'https://tokens.pancakeswap.finance/pancakeswap-zksync-default.json'
@@ -22,8 +23,8 @@ export const PANCAKE_MONAD_TESTNET_DEFAULT = 'https://tokens.pancakeswap.finance
 const COINGECKO_ETH = 'https://tokens.coingecko.com/uniswap/all.json'
 // export const CMC = 'https://tokens.pancakeswap.finance/cmc.json' // not updated for a while
 
-const ETH_URLS = [PANCAKE_ETH_DEFAULT, COINGECKO_ETH, ...RWA_URLS]
-const BSC_URLS = [PANCAKE_EXTENDED, COINGECKO_BSC, ...RWA_URLS]
+const ETH_URLS = [PANCAKE_ETH_DEFAULT, COINGECKO_ETH, ...ONDO_URLS, ...XSTOCKS_URLS]
+const BSC_URLS = [PANCAKE_EXTENDED, COINGECKO_BSC, ...ONDO_URLS, ...XSTOCKS_URLS]
 const ARBITRUM_URLS = [PANCAKE_ARB_DEFAULT, COINGECKO_ARB]
 const LINEA_URLS = [PANCAKE_LINEA_DEFAULT, COINGECKO_LINEA]
 const ZKSYNC_URLS = [
@@ -66,7 +67,8 @@ export const DEFAULT_LIST_OF_LISTS: string[] = [
   ...OPBNB_URLS,
   ...MONAD_URLS,
   ...MONAD_TESTNET_URLS,
-  ...RWA_URLS,
+  ...ONDO_URLS,
+  ...XSTOCKS_URLS,
 ]
 
 // default lists to be 'active' aka searched across
@@ -86,7 +88,8 @@ export const DEFAULT_ACTIVE_LIST_URLS: string[] = [
   PANCAKE_MONAD_DEFAULT,
   PANCAKE_MONAD_TESTNET_DEFAULT,
   COINGECKO_LINEA,
-  ...RWA_URLS,
+  ...ONDO_URLS,
+  ...XSTOCKS_URLS,
 ]
 
 export const MULTI_CHAIN_LIST_URLS: { [chainId: number]: string[] } = {

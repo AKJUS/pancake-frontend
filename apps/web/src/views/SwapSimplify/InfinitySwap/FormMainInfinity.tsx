@@ -1,6 +1,7 @@
-import { isSolana, UnifiedChainId } from '@pancakeswap/chains'
+import { ChainId, isSolana, UnifiedChainId } from '@pancakeswap/chains'
 import { useTranslation } from '@pancakeswap/localization'
-import { Currency, Percent, UnifiedCurrency, UnifiedCurrencyAmount } from '@pancakeswap/sdk'
+import { Currency, Native, Percent, UnifiedCurrency, UnifiedCurrencyAmount } from '@pancakeswap/sdk'
+import { USDT } from '@pancakeswap/tokens'
 import { Box, FlexGap, Image, Skeleton, Text } from '@pancakeswap/uikit'
 import { formatAmount } from '@pancakeswap/utils/formatFractions'
 import replaceBrowserHistoryMultiple from '@pancakeswap/utils/replaceBrowserHistoryMultiple'
@@ -27,13 +28,13 @@ import currencyId from 'utils/currencyId'
 import { maxUnifiedAmountSpend } from 'utils/maxAmountSpend'
 import { getDefaultToken } from 'views/Swap/utils'
 import { useBridgeAvailableChains } from 'views/Swap/Bridge/hooks'
-import { isRwaTokenFnAtom } from 'quoter/atom/rwaTokenAtoms'
+import { isOndoTokenFnAtom, USDON_TOKEN_ADDRESS } from 'quoter/atom/ondoTokenAtoms'
 import useWarningImport from '../../Swap/hooks/useWarningImport'
 import { useIsWrapping } from '../../Swap/V3Swap/hooks'
 import { AssignRecipientButton, FlipButton } from './FlipButton'
 import { FormContainer } from './FormContainer'
 import { Recipient } from './Recipient'
-import { useSanctionRuleForTokenSelection } from './useSanctionRuleForTokenSelection'
+import { useOndoTokenSelectionRules } from './useOndoTokenSelectionRules'
 
 interface Props {
   inputAmount?: UnifiedCurrencyAmount<UnifiedCurrency>
@@ -58,7 +59,46 @@ interface HandleCurrencySelectDeps {
   replaceBrowserHistoryMultiple: (updates: Record<string, any>) => void
   newCurrency: any
   field: Field
-  isRwaTokenFn?: (chainId?: number, address?: string) => boolean
+  isOndoTokenFn?: (chainId?: number, address?: string) => boolean
+}
+
+const getAllowedOndoCounterpartyIds = (chainId?: number): string[] => {
+  if (!chainId) {
+    return []
+  }
+
+  const native = Native.onChain(chainId)
+  const wrappedAddress = native.wrapped.address.toLowerCase()
+  const nativeSymbol = native.symbol.toLowerCase()
+  const usdtAddress = USDT[chainId as ChainId]?.address?.toLowerCase()
+  const usdonAddress = USDON_TOKEN_ADDRESS[chainId]?.toLowerCase()
+
+  return [nativeSymbol, wrappedAddress, usdtAddress, usdonAddress].filter((value): value is string => Boolean(value))
+}
+
+const getDefaultOndoCounterparty = (chainId: number): Currency => {
+  const usdt = USDT[chainId as ChainId]
+  if (usdt) {
+    return usdt
+  }
+
+  const usdonAddress = USDON_TOKEN_ADDRESS[chainId]
+  if (usdonAddress) {
+    return {
+      address: usdonAddress as `0x${string}`,
+      chainId,
+    } as Currency
+  }
+
+  return Native.onChain(chainId)
+}
+
+const isAllowedOndoCounterparty = (chainId: number, currency?: string): boolean => {
+  if (!currency) {
+    return false
+  }
+
+  return getAllowedOndoCounterpartyIds(chainId).includes(currency.toLowerCase())
 }
 
 export const handleCurrencySelectFn = async ({
@@ -74,9 +114,10 @@ export const handleCurrencySelectFn = async ({
   replaceBrowserHistoryMultiple,
   newCurrency,
   field,
-  isRwaTokenFn,
+  isOndoTokenFn,
 }: HandleCurrencySelectDeps): Promise<void> => {
   const isInput = field === Field.INPUT
+  const newCurrencyId = currencyId(newCurrency)
 
   if (isInput && canSwitchToChain(newCurrency.chainId) && newCurrency.chainId !== inputChainId) {
     switchNetwork(newCurrency.chainId, {
@@ -112,10 +153,12 @@ export const handleCurrencySelectFn = async ({
 
   onCurrencySelection(field, newCurrency)
 
+  let resetCounterpartyCurrency: Currency | undefined
+
   if (isInput && newCurrency.chainId !== outputChainId) {
-    const isNewCurrencyRwa = Boolean(isRwaTokenFn?.(newCurrency.chainId, newCurrency?.wrapped?.address))
+    const isNewCurrencyOndo = Boolean(isOndoTokenFn?.(newCurrency.chainId, newCurrency?.wrapped?.address))
     const isOutputChainSupported =
-      !isNewCurrencyRwa &&
+      !isNewCurrencyOndo &&
       Boolean(
         outputChainId !== undefined &&
           supportedBridgeChains?.includes(newCurrency.chainId) &&
@@ -124,14 +167,27 @@ export const handleCurrencySelectFn = async ({
 
     if (!isOutputChainSupported) {
       // if output chain is not supported, reset output currency
-      onCurrencySelection(Field.OUTPUT, {
+      resetCounterpartyCurrency = {
         address: getDefaultToken(newCurrency.chainId) as `0x${string}`,
         chainId: newCurrency.chainId,
-      } as Currency)
+      } as Currency
+      onCurrencySelection(Field.OUTPUT, resetCounterpartyCurrency)
     }
   }
 
-  const newCurrencyId = currencyId(newCurrency)
+  const isNewCurrencyOndo = Boolean(isOndoTokenFn?.(newCurrency.chainId, newCurrency?.wrapped?.address))
+  if (isNewCurrencyOndo) {
+    const counterpartyChainId = isInput ? outputChainId : inputChainId
+    const counterpartyCurrencyId = isInput ? outputCurrencyId : inputCurrencyId
+
+    if (
+      counterpartyChainId === newCurrency.chainId &&
+      !isAllowedOndoCounterparty(newCurrency.chainId, counterpartyCurrencyId)
+    ) {
+      resetCounterpartyCurrency = getDefaultOndoCounterparty(newCurrency.chainId)
+      onCurrencySelection(isInput ? Field.OUTPUT : Field.INPUT, resetCounterpartyCurrency)
+    }
+  }
 
   // Output chain name (undefined if no need to apply)
   const chainOut = !isInput && inputChainId !== newCurrency.chainId && CHAIN_QUERY_NAME[newCurrency.chainId]
@@ -140,6 +196,9 @@ export const handleCurrencySelectFn = async ({
 
   replaceBrowserHistoryMultiple({
     [isInput ? 'inputCurrency' : 'outputCurrency']: newCurrencyId,
+    ...(resetCounterpartyCurrency && {
+      [isInput ? 'outputCurrency' : 'inputCurrency']: currencyId(resetCounterpartyCurrency),
+    }),
     ...(isSameCurrency && { [isInput ? 'outputCurrency' : 'inputCurrency']: undefined }),
     chainOut: chainOut || null, // null to remove from URL if no need to apply
   })
@@ -224,7 +283,7 @@ export function FormMain({ inputAmount, outputAmount, tradeLoading, isUserInsuff
 
   const isWrapping = useIsWrapping()
   const loadedUrlParams = useDefaultsFromURLSearch()
-  const { inputConfig: inputRwaConfig, outputConfig: outputRwaConfig } = useSanctionRuleForTokenSelection(
+  const { inputConfig: inputOndoConfig, outputConfig: outputOndoConfig } = useOndoTokenSelectionRules(
     inputCurrency,
     outputCurrency,
   )
@@ -257,7 +316,7 @@ export function FormMain({ inputAmount, outputAmount, tradeLoading, isUserInsuff
 
   const router = useRouter()
 
-  const isRwaTokenFn = useAtomValue(isRwaTokenFnAtom)
+  const isOndoTokenFn = useAtomValue(isOndoTokenFnAtom)
 
   const swapWarningModal = useWarningImport()
 
@@ -276,7 +335,7 @@ export function FormMain({ inputAmount, outputAmount, tradeLoading, isUserInsuff
         replaceBrowserHistoryMultiple,
         newCurrency,
         field,
-        isRwaTokenFn,
+        isOndoTokenFn,
       })
     },
     [
@@ -289,7 +348,7 @@ export function FormMain({ inputAmount, outputAmount, tradeLoading, isUserInsuff
       inputCurrencyId,
       outputCurrencyId,
       router,
-      isRwaTokenFn,
+      isOndoTokenFn,
     ],
   )
   const handleInputSelect = useCallback(
@@ -326,11 +385,11 @@ export function FormMain({ inputAmount, outputAmount, tradeLoading, isUserInsuff
             onToggleValueDisplayMode={canUseUsdMode ? () => setUsdMode((prev) => !prev) : undefined}
             usdPrice={inputUsdPrice}
             showMaxButton
-            showCommonBases={inputRwaConfig.showCommonBases}
-            supportCrossChain={inputRwaConfig.supportCrossChain}
+            showCommonBases={inputOndoConfig.showCommonBases}
+            supportCrossChain={inputOndoConfig.supportCrossChain}
             showMultichainBalances
             enableMultichainSearch
-            tokensToShow={inputRwaConfig.tokensToShow}
+            tokensToShow={inputOndoConfig.tokensToShow}
             inputLoading={!isWrapping && inputLoading}
             currencyLoading={!loadedUrlParams}
             label={!isTypingInput && !isWrapping ? t('From (estimated)') : t('From')}
@@ -377,11 +436,11 @@ export function FormMain({ inputAmount, outputAmount, tradeLoading, isUserInsuff
             valueDisplayMode={outputValueMode}
             onToggleValueDisplayMode={!isBridge && canUseUsdMode ? () => setUsdMode((prev) => !prev) : undefined}
             usdPrice={outputUsdPrice}
-            showCommonBases={outputRwaConfig.showCommonBases}
-            supportCrossChain={outputRwaConfig.supportCrossChain}
+            showCommonBases={outputOndoConfig.showCommonBases}
+            supportCrossChain={outputOndoConfig.supportCrossChain}
             showMultichainBalances
             enableMultichainSearch
-            tokensToShow={outputRwaConfig.tokensToShow}
+            tokensToShow={outputOndoConfig.tokensToShow}
             showMaxButton={false}
             inputLoading={!isWrapping && outputLoading}
             currencyLoading={!loadedUrlParams}

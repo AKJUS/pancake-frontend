@@ -42,7 +42,7 @@ export const CurrencySelectButton = styled(Button).attrs({ variant: 'text', scal
   margin-top: 2px;
 
   &:hover:not(:disabled) {
-    background: ${({ theme }) => theme.colors.invertedContrast};
+    background: transparent;
   }
 
   &:disabled {

@@ -1,13 +1,17 @@
 import { ChainId, Token } from '@pancakeswap/sdk'
+import { RWA } from '@pancakeswap/rwa-sdk'
 import type { TokenInfo } from '@pancakeswap/token-lists'
 import { memoizeAsync } from '@pancakeswap/utils/memoize'
+import { normalizeAddress } from '@pancakeswap/utils/normalizeAddress'
 import { atom } from 'jotai'
 import { atomFamily } from 'jotai/utils'
-import { RWA_URLS } from 'config/constants/lists'
-import { listsAtom } from 'state/lists/lists'
+import { rwaFamilyByTokenAtom, rwaFamilyTokenListAtom } from 'rwa/familyTokenAtoms'
 
-const RWA_STATUS_ENDPOINT = 'https://raw-api.pancakeswap.com/ondo/status'
-const RWA_MARKET_STATUS_ENDPOINT = 'https://raw-api.pancakeswap.com/ondo/market-status'
+const ondoFamily = RWA.getFamily('ondo')
+const ONDO_STATUS_ENDPOINT =
+  ondoFamily.marketStatus.type === 'ondo-status' ? ondoFamily.marketStatus.endpoints.assetStatus : ''
+const ONDO_MARKET_STATUS_ENDPOINT =
+  ondoFamily.marketStatus.type === 'ondo-status' ? ondoFamily.marketStatus.endpoints.marketStatus : ''
 const MEMOIZE_TTL_MS = 30 * 1000
 
 export const USDON_TOKEN_ADDRESS: Partial<Record<number, string>> = {
@@ -15,7 +19,7 @@ export const USDON_TOKEN_ADDRESS: Partial<Record<number, string>> = {
   [ChainId.ETHEREUM]: '0xAcE8E719899F6E91831B18AE746C9A965c2119F1',
 }
 
-interface RwaAssetStatus {
+interface OndoAssetStatus {
   symbol: string
   status?: string
   type?: string
@@ -28,30 +32,30 @@ interface RwaAssetStatus {
   end?: string
 }
 
-interface RwaMarketStatus {
+interface OndoMarketStatus {
   isOpen?: boolean
 }
 
-type RwaPauseCode = 'MARKET_CLOSED' | 'MARKET_PAUSED' | 'ASSET_PAUSED'
+type OndoPauseCode = 'MARKET_CLOSED' | 'MARKET_PAUSED' | 'ASSET_PAUSED'
 
-type RwaTokenStatusInfo = {
+type OndoTokenStatusInfo = {
   status: 'active' | 'upcoming'
-  code?: RwaPauseCode
+  code?: OndoPauseCode
 }
 
-const parsePauseCode = (rawCode?: string): RwaPauseCode | undefined => {
+const parsePauseCode = (rawCode?: string): OndoPauseCode | undefined => {
   if (rawCode === 'MARKET_CLOSED' || rawCode === 'MARKET_PAUSED' || rawCode === 'ASSET_PAUSED') {
     return rawCode
   }
   return undefined
 }
 
-const fetchRwaStatuses = memoizeAsync(
-  async (): Promise<RwaAssetStatus[]> => {
+const fetchOndoStatuses = memoizeAsync(
+  async (): Promise<OndoAssetStatus[]> => {
     if (typeof window === 'undefined') {
       return []
     }
-    const response = await fetch(RWA_STATUS_ENDPOINT, {
+    const response = await fetch(ONDO_STATUS_ENDPOINT, {
       method: 'GET',
       headers: {
         accept: 'application/json',
@@ -59,10 +63,10 @@ const fetchRwaStatuses = memoizeAsync(
     })
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch RWA statuses: ${response.status}`)
+      throw new Error(`Failed to fetch ONDO statuses: ${response.status}`)
     }
 
-    const data = (await response.json()) as RwaAssetStatus[]
+    const data = (await response.json()) as OndoAssetStatus[]
     return Array.isArray(data) ? data : []
   },
   {
@@ -71,12 +75,12 @@ const fetchRwaStatuses = memoizeAsync(
   },
 )
 
-const fetchRwaMarketStatus = memoizeAsync(
-  async (): Promise<RwaMarketStatus | undefined> => {
+const fetchOndoMarketStatus = memoizeAsync(
+  async (): Promise<OndoMarketStatus | undefined> => {
     if (typeof window === 'undefined') {
       return undefined
     }
-    const response = await fetch(RWA_MARKET_STATUS_ENDPOINT, {
+    const response = await fetch(ONDO_MARKET_STATUS_ENDPOINT, {
       method: 'GET',
       headers: {
         accept: 'application/json',
@@ -84,10 +88,10 @@ const fetchRwaMarketStatus = memoizeAsync(
     })
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch RWA market status: ${response.status}`)
+      throw new Error(`Failed to fetch ONDO market status: ${response.status}`)
     }
 
-    const data = (await response.json()) as RwaMarketStatus | undefined
+    const data = (await response.json()) as OndoMarketStatus | undefined
     return data && typeof data === 'object' ? data : undefined
   },
   {
@@ -96,49 +100,20 @@ const fetchRwaMarketStatus = memoizeAsync(
   },
 )
 
-export const rwaMarketStatusAtom = atom(async () => fetchRwaMarketStatus())
+export const ondoMarketStatusAtom = atom(async () => fetchOndoMarketStatus())
 
-export const isMarketOpen = async (): Promise<boolean> => {
-  const marketStatus = await fetchRwaMarketStatus()
+export const isOndoMarketOpen = async (): Promise<boolean> => {
+  const marketStatus = await fetchOndoMarketStatus()
   return marketStatus?.isOpen !== false
 }
-
-const normalizeAddress = (address: string) => address.toLowerCase()
 
 const tokenInfoToToken = (tokenInfo: TokenInfo): Token =>
   new Token(tokenInfo.chainId, tokenInfo.address, tokenInfo.decimals, tokenInfo.symbol, tokenInfo.name)
 
-export const rwaTokenListAtom = atom((get) => {
-  const lists = get(listsAtom)
-  if (!lists?.byUrl) {
-    return [] as TokenInfo[]
-  }
+export const ondoTokenListAtom = atom((get) => get(rwaFamilyTokenListAtom('ondo')) as TokenInfo[])
 
-  const tokens: TokenInfo[] = []
-  const seen = new Set<string>()
-
-  for (const url of RWA_URLS) {
-    const tokenList = lists.byUrl[url]?.current
-    if (!tokenList?.tokens?.length) {
-      continue
-    }
-
-    for (const token of tokenList.tokens) {
-      const normalizedAddress = normalizeAddress(token.address)
-      const key = `${token.chainId}:${normalizedAddress}`
-      if (seen.has(key)) {
-        continue
-      }
-      seen.add(key)
-      tokens.push(token)
-    }
-  }
-
-  return tokens
-})
-
-export const isRwaTokenFnAtom = atom((get) => {
-  const tokens = get(rwaTokenListAtom)
+export const isOndoTokenFnAtom = atom((get) => {
+  const tokens = get(ondoTokenListAtom)
   const lookup = new Set(tokens.map((token) => `${token.chainId}:${normalizeAddress(token.address)}`))
   return (chainId?: number, address?: string): boolean => {
     if (!chainId || !address) {
@@ -155,7 +130,7 @@ export const usdonTokenAtom = atomFamily(
         return undefined
       }
 
-      const tokens = get(rwaTokenListAtom)
+      const tokens = get(ondoTokenListAtom)
       const usdonAddress = USDON_TOKEN_ADDRESS[chainId]
       if (!usdonAddress) {
         return undefined
@@ -169,16 +144,16 @@ export const usdonTokenAtom = atomFamily(
   (a, b) => a === b,
 )
 
-const findRwaToken = (tokens: TokenInfo[], chainId: number, address: string): TokenInfo | undefined => {
+const findOndoToken = (tokens: TokenInfo[], chainId: number, address: string): TokenInfo | undefined => {
   if (!tokens.length) {
     return undefined
   }
 
   const normalized = normalizeAddress(address)
-  return tokens.find((token) => token.chainId === chainId && token.address.toLowerCase() === normalized)
+  return tokens.find((token) => token.chainId === chainId && normalizeAddress(token.address) === normalized)
 }
 
-const DEFAULT_STATUS: RwaTokenStatusInfo = { status: 'active' }
+const DEFAULT_STATUS: OndoTokenStatusInfo = { status: 'active' }
 
 const parseTimestamp = (value?: string): number | undefined => {
   if (!value) {
@@ -188,7 +163,7 @@ const parseTimestamp = (value?: string): number | undefined => {
   return Number.isNaN(parsed) ? undefined : parsed
 }
 
-const selectStatusForCurrentTime = (statuses: RwaAssetStatus[], now: number): RwaAssetStatus | undefined => {
+const selectStatusForCurrentTime = (statuses: OndoAssetStatus[], now: number): OndoAssetStatus | undefined => {
   if (!statuses.length) {
     return undefined
   }
@@ -221,34 +196,33 @@ const selectStatusForCurrentTime = (statuses: RwaAssetStatus[], now: number): Rw
   return undefined
 }
 
-export const isRwaTokenAtom = atomFamily(
+export const isOndoTokenAtom = atomFamily(
   ({ chainId, address }: { chainId: number; address: string }) =>
     atom((get) => {
-      const tokens = get(rwaTokenListAtom)
-      return Boolean(findRwaToken(tokens, chainId, address))
+      return get(rwaFamilyByTokenAtom({ chainId, address }))?.type === 'ondo'
     }),
   (a, b) => a.chainId === b.chainId && normalizeAddress(a.address) === normalizeAddress(b.address),
 )
 
-export const getRwaTokenStatus = async (
+export const getOndoTokenStatus = async (
   tokens: TokenInfo[],
   chainId: number,
   address: string,
-): Promise<RwaTokenStatusInfo | undefined> => {
+): Promise<OndoTokenStatusInfo | undefined> => {
   if (!address) {
     return DEFAULT_STATUS
   }
-  const token = findRwaToken(tokens, chainId, address)
+  const token = findOndoToken(tokens, chainId, address)
   if (!token) {
     return undefined
   }
 
-  const marketOpen = await isMarketOpen()
+  const marketOpen = await isOndoMarketOpen()
   if (!marketOpen) {
     return { status: 'upcoming', code: 'MARKET_CLOSED' }
   }
 
-  const statuses = await fetchRwaStatuses()
+  const statuses = await fetchOndoStatuses()
   const matchingStatuses = statuses.filter((item) => item.symbol?.toLowerCase() === token.symbol.toLowerCase())
   const status = selectStatusForCurrentTime(matchingStatuses, Date.now())
   if (!status) {

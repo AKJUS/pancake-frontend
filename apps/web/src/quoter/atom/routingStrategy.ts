@@ -1,3 +1,4 @@
+import { RWA } from '@pancakeswap/rwa-sdk'
 import { getCurrencyAddress } from '@pancakeswap/swap-sdk-core'
 import { Loadable } from '@pancakeswap/utils/Loadable'
 import { AGGREGATOR_SUPPORTED_CHAIN_IDS } from 'config/constants/aggregatorRouters'
@@ -5,6 +6,7 @@ import { Atom, atom } from 'jotai'
 import { atomFamily } from 'jotai/utils'
 import { AtomFamily } from 'jotai/vanilla/utils/atomFamily'
 import { QuoteQuery } from 'quoter/quoter.types'
+import { rwaTokensByFamilyForSdkAtom } from 'rwa/familyTokenAtoms'
 import { aggregatorOverrideAtom, isAggregatorOverrideEnabled } from 'state/featureFlags/aggregatorOverrideAtom'
 import { POSTHOG_FLAGS, posthogFlagsAtom } from 'state/featureFlags/posthogFlagsAtom'
 import { InterfaceOrder } from 'views/Swap/utils'
@@ -14,7 +16,6 @@ import { bestAMMTradeFromQuoterWorker2Atom } from './bestAMMTradeFromQuoterWorke
 import { bestAMMTradeFromQuoterWorkerAtom } from './bestAMMTradeFromQuoterWorkerAtom'
 import { bestRoutingSDKTradeAtom } from './bestRoutingSDKTradeAtom'
 import { bestXApiAtom } from './bestXAPIAtom'
-import { isRwaTokenAtom } from './rwaTokenAtoms'
 
 // Off production we want aggregator to run for QA/dev regardless of PostHog flag state,
 // so the release flag only gates prod traffic.
@@ -138,19 +139,19 @@ export const routingStrategyAtom = atomFamily(
       const baseAddress = baseCurrency ? getCurrencyAddress(baseCurrency)?.toLowerCase() : undefined
       const quoteAddress = quoteCurrency ? getCurrencyAddress(quoteCurrency)?.toLowerCase() : undefined
 
-      const isRwaTrade =
-        (baseCurrency && baseAddress
-          ? get(isRwaTokenAtom({ chainId: baseCurrency.chainId, address: baseAddress }))
-          : false) ||
-        (quoteCurrency && quoteAddress
-          ? get(isRwaTokenAtom({ chainId: quoteCurrency.chainId, address: quoteAddress }))
-          : false)
+      const tokensByFamily = get(rwaTokensByFamilyForSdkAtom)
+      const requiresXRouting = RWA.requiresXRouting(
+        baseCurrency && baseAddress ? { chainId: baseCurrency.chainId, address: baseAddress } : undefined,
+        quoteCurrency && quoteAddress ? { chainId: quoteCurrency.chainId, address: quoteAddress } : undefined,
+        tokensByFamily,
+      )
 
       const flags = get(posthogFlagsAtom)
       const aggregatorOverrideEnabled = isAggregatorOverrideEnabled(get(aggregatorOverrideAtom))
       const aggregatorReleaseEnabled =
         aggregatorOverrideEnabled || (isProductionEnv() ? flags[POSTHOG_FLAGS.AGGREGATOR_V1] === true : true)
       if (process.env.NEXT_PUBLIC_VERCEL_ENV !== 'production') {
+        // eslint-disable-next-line no-console
         console.log('[PostHog] Routing strategy evaluation:', {
           isProduction: isProductionEnv(),
           flagValue: flags[POSTHOG_FLAGS.AGGREGATOR_V1],
@@ -160,7 +161,13 @@ export const routingStrategyAtom = atomFamily(
         })
       }
 
-      return getRoutingStrategy(query, config.unwrap(), isRwaTrade, aggregatorReleaseEnabled, aggregatorOverrideEnabled)
+      return getRoutingStrategy(
+        query,
+        config.unwrap(),
+        requiresXRouting,
+        aggregatorReleaseEnabled,
+        aggregatorOverrideEnabled,
+      )
     })
   },
   (a, b) => a.hash === b.hash,
@@ -169,7 +176,7 @@ export const routingStrategyAtom = atomFamily(
 export function getRoutingStrategy(
   query: QuoteQuery,
   tokenSpecificConfig: TokenSpecificRoutingStrategy,
-  isRwaTrade: boolean,
+  requiresXRouting: boolean,
   aggregatorReleaseEnabled: boolean,
   aggregatorOverrideEnabled = false,
 ): StrategyRoute[] {
@@ -181,7 +188,7 @@ export function getRoutingStrategy(
   if (query.aggregatorOnly && !isProductionEnv()) {
     return AGGREGATOR_ONLY_ROUTING_CONFIG.map((x) => ({ ...Strategies[x.key], ...x })) as StrategyRoute[]
   }
-  if (isRwaTrade) {
+  if (requiresXRouting) {
     return RWA_ONLY_ROUTING_CONFIG.map((x) => ({ ...Strategies[x.key], ...x })) as StrategyRoute[]
   }
   const config =
@@ -191,6 +198,7 @@ export function getRoutingStrategy(
   const aggregatorAllowed = isAggregatorSupported && aggregatorReleaseEnabled && !query.excludeAggregator
   const filteredConfig = aggregatorAllowed ? config : config.filter((x) => x.key !== 'aggregator')
   if (process.env.NEXT_PUBLIC_VERCEL_ENV !== 'production') {
+    // eslint-disable-next-line no-console
     console.log('[PostHog] Routing config applied:', {
       chainId,
       isAggregatorSupported,

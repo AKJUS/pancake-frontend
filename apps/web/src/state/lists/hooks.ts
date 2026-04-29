@@ -18,6 +18,7 @@ import mapValues from 'lodash/mapValues'
 import _pickBy from 'lodash/pickBy'
 import uniqBy from 'lodash/uniqBy'
 import { useMemo } from 'react'
+import { RwaExclusiveTokenLike, rwaExclusiveTokenFilterAtom } from 'rwa/familyTokenAtoms'
 import DEFAULT_TOKEN_LIST from '../../config/constants/tokenLists/pancake-default.tokenlist.json'
 import ONRAMP_TOKEN_LIST from '../../config/constants/tokenLists/pancake-supported-onramp-currency-list.json'
 import UNSUPPORTED_TOKEN_LIST from '../../config/constants/tokenLists/pancake-unsupported.tokenlist.json'
@@ -87,6 +88,25 @@ const combineTokenMaps = (lists: ListsState['byUrl'], urls: string[]): any => {
 export const combinedTokenMapFromActiveUrlsAtom = atom((get) => {
   const [selectorByUrls, selectorActiveUrls] = [get(selectorByUrlsAtom), get(selectorActiveUrlsAtom)]
   return combineTokenMapsWithDefault(selectorByUrls, selectorActiveUrls)
+})
+
+const filterTokenAddressMap = (
+  tokenMap: TokenAddressMap,
+  shouldIncludeToken: (token: RwaExclusiveTokenLike) => boolean,
+): TokenAddressMap => {
+  const filteredMap = {} as TokenAddressMap
+
+  for (const chainId of enumValues(ChainId)) {
+    filteredMap[chainId as number] = _pickBy(tokenMap[chainId] ?? {}, ({ token }) => shouldIncludeToken(token))
+  }
+
+  return filteredMap
+}
+
+export const rwaExclusiveCombinedTokenMapFromActiveUrlsAtom = atom((get) => {
+  const activeTokenMap = get(combinedTokenMapFromActiveUrlsAtom)
+  const shouldIncludeToken = get(rwaExclusiveTokenFilterAtom)
+  return filterTokenAddressMap(activeTokenMap, shouldIncludeToken)
 })
 
 const inactiveUrlAtom = atom((get) => {
@@ -204,7 +224,7 @@ export function useInactiveListUrls() {
 
 // get all the tokens from active lists, combine with local default tokens
 export function useCombinedActiveList(): TokenAddressMap {
-  const activeTokens = useAtomValue(combinedTokenMapFromActiveUrlsAtom)
+  const activeTokens = useAtomValue(rwaExclusiveCombinedTokenMapFromActiveUrlsAtom)
   return activeTokens
 }
 

@@ -1,6 +1,6 @@
 import { useAllTokens } from 'hooks/Tokens'
 import {
-  combinedTokenMapFromActiveUrlsAtom,
+  rwaExclusiveCombinedTokenMapFromActiveUrlsAtom,
   sanitizeTokenInfos,
   selectorByUrlsAtom,
   useAllListsByChainId,
@@ -12,6 +12,7 @@ import { useMemo } from 'react'
 import { useAtomValue } from 'jotai'
 import { createFilterToken, WrappedTokenInfo } from '@pancakeswap/token-lists'
 import { ChainId } from '@pancakeswap/chains'
+import { rwaExclusiveTokenFilterAtom } from 'rwa/familyTokenAtoms'
 
 /**
  * Searches inactive token lists for a given query and chainId.
@@ -26,6 +27,7 @@ export function useSearchInactiveTokenLists(
   const lists = useAllListsByChainId(chainId)
   const inactiveUrls = useInactiveListUrls()
   const activeTokens = useAllTokens(chainId)
+  const shouldIncludeToken = useAtomValue(rwaExclusiveTokenFilterAtom)
 
   return useMemo(() => {
     if (!search || search.trim().length === 0) return []
@@ -42,6 +44,7 @@ export function useSearchInactiveTokenLists(
       for (const tokenInfo of sanitizeTokenInfos(list)) {
         if (
           tokenInfo.chainId === chainId &&
+          shouldIncludeToken(tokenInfo) &&
           !(tokenInfo.address in activeTokens) &&
           !addressSet[tokenInfo.address] &&
           filterToken(tokenInfo)
@@ -60,7 +63,7 @@ export function useSearchInactiveTokenLists(
       }
     }
     return [...exactMatches, ...rest].slice(0, minResults)
-  }, [activeTokens, chainId, inactiveUrls, lists, minResults, search])
+  }, [activeTokens, chainId, inactiveUrls, lists, minResults, search, shouldIncludeToken])
 }
 
 /**
@@ -73,7 +76,8 @@ export function useSearchInactiveTokenListsMultiChain(
 ): WrappedTokenInfo[] {
   const allListStates = useAtomValue(selectorByUrlsAtom)
   const inactiveUrls = useInactiveListUrls()
-  const activeMap = useAtomValue(combinedTokenMapFromActiveUrlsAtom)
+  const activeMap = useAtomValue(rwaExclusiveCombinedTokenMapFromActiveUrlsAtom)
+  const shouldIncludeToken = useAtomValue(rwaExclusiveTokenFilterAtom)
 
   return useMemo(() => {
     if (!search || search.trim().length === 0) return []
@@ -90,6 +94,7 @@ export function useSearchInactiveTokenListsMultiChain(
       if (!list) continue
       for (const tokenInfo of sanitizeTokenInfos(list)) {
         if (!chainIdSet.has(tokenInfo.chainId)) continue
+        if (!shouldIncludeToken(tokenInfo)) continue
         const checksumAddr = safeGetAddress(tokenInfo.address) ?? tokenInfo.address
         const activeChainMap = (activeMap[tokenInfo.chainId as ChainId] ?? {}) as Record<string, unknown>
         if (activeChainMap[checksumAddr]) continue
@@ -107,5 +112,5 @@ export function useSearchInactiveTokenListsMultiChain(
       }
     }
     return [...exactMatches, ...rest]
-  }, [search, chainIds, allListStates, inactiveUrls, activeMap])
+  }, [search, chainIds, allListStates, inactiveUrls, activeMap, shouldIncludeToken])
 }

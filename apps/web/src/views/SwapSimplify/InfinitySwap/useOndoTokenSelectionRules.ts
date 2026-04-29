@@ -3,9 +3,9 @@ import { Native, Token, UnifiedCurrency } from '@pancakeswap/sdk'
 import { useMemo } from 'react'
 import { useAtomValue } from 'jotai'
 import { USDT } from '@pancakeswap/tokens'
-import { isRwaTokenAtom, rwaTokenListAtom, usdonTokenAtom } from 'quoter/atom/rwaTokenAtoms'
+import { isOndoTokenAtom, ondoTokenListAtom, usdonTokenAtom } from 'quoter/atom/ondoTokenAtoms'
 
-type RwaPanelConfig = {
+type OndoPanelConfig = {
   tokensToShow?: Token[]
   supportCrossChain: boolean
   showCommonBases: boolean
@@ -15,17 +15,18 @@ type RwaPanelConfig = {
 type AllowedTokensResult = {
   tokens?: Token[]
   showNative: boolean
-  isRwa: boolean
+  isOndo: boolean
 }
 
 const useAllowedTokensForCurrency = (currency?: UnifiedCurrency | null): AllowedTokensResult => {
   const normalizedChainId = typeof currency?.chainId === 'number' ? (currency.chainId as ChainId) : undefined
   const address = currency?.wrapped?.address ?? ''
+  const wrappedCurrency = currency?.wrapped
 
-  const isRwa = useAtomValue(
+  const isOndo = useAtomValue(
     useMemo(
       () =>
-        isRwaTokenAtom({
+        isOndoTokenAtom({
           chainId: normalizedChainId ?? 0,
           address,
         }),
@@ -34,10 +35,10 @@ const useAllowedTokensForCurrency = (currency?: UnifiedCurrency | null): Allowed
   )
 
   const usdtToken = normalizedChainId !== undefined ? USDT[normalizedChainId] : undefined
-  const rwaTokenInfos = useAtomValue(rwaTokenListAtom)
-  const rwaTokens = useMemo(
+  const ondoTokenInfos = useAtomValue(ondoTokenListAtom)
+  const ondoTokens = useMemo(
     () =>
-      rwaTokenInfos.map((tokenInfo) => {
+      ondoTokenInfos.map((tokenInfo) => {
         const token = new Token(
           tokenInfo.chainId as ChainId,
           tokenInfo.address,
@@ -49,18 +50,18 @@ const useAllowedTokensForCurrency = (currency?: UnifiedCurrency | null): Allowed
         token.logoURI = tokenInfo.logoURI
         return token
       }),
-    [rwaTokenInfos],
+    [ondoTokenInfos],
   )
   const usdOnToken = useAtomValue(usdonTokenAtom(normalizedChainId))
 
   return useMemo(() => {
-    if (!isRwa || !normalizedChainId) {
-      return { tokens: undefined, showNative: false, isRwa: false }
+    if (!isOndo || !normalizedChainId) {
+      return { tokens: undefined, showNative: false, isOndo: false }
     }
 
-    const wNativeToken = Native.onChain(normalizedChainId ?? 0).wrapped
-    if (usdOnToken && currency?.wrapped.equals(usdOnToken)) {
-      return { tokens: [...rwaTokens], showNative: false, isRwa: true }
+    const wNativeToken = Native.onChain(normalizedChainId).wrapped
+    if (usdOnToken && wrappedCurrency?.equals(usdOnToken)) {
+      return { tokens: [...ondoTokens], showNative: false, isOndo: true }
     }
 
     const list: Token[] = []
@@ -74,40 +75,40 @@ const useAllowedTokensForCurrency = (currency?: UnifiedCurrency | null): Allowed
       list.push(wNativeToken)
     }
     const showNative = normalizedChainId === ChainId.BSC
-    return { tokens: list, showNative, isRwa: true }
-  }, [currency?.wrapped?.address, isRwa, normalizedChainId, rwaTokens, usdtToken, usdOnToken])
+    return { tokens: list, showNative, isOndo: true }
+  }, [isOndo, normalizedChainId, ondoTokens, usdtToken, usdOnToken, wrappedCurrency])
 }
 
-export const useSanctionRuleForTokenSelection = (
+export const useOndoTokenSelectionRules = (
   inputCurrency?: UnifiedCurrency | null,
   outputCurrency?: UnifiedCurrency | null,
 ): {
-  inputConfig: RwaPanelConfig
-  outputConfig: RwaPanelConfig
+  inputConfig: OndoPanelConfig
+  outputConfig: OndoPanelConfig
 } => {
   const inputAllowedTokens = useAllowedTokensForCurrency(inputCurrency)
   const outputAllowedTokens = useAllowedTokensForCurrency(outputCurrency)
 
-  const inputIsRwa = inputAllowedTokens.isRwa
-  const outputIsRwa = outputAllowedTokens.isRwa
+  const inputIsOndo = inputAllowedTokens.isOndo
+  const outputIsOndo = outputAllowedTokens.isOndo
 
   return useMemo(
     () => ({
       inputConfig: {
-        tokensToShow: outputIsRwa ? outputAllowedTokens.tokens : undefined,
-        supportCrossChain: !outputIsRwa,
-        showCommonBases: !outputIsRwa,
-        showNative: outputIsRwa ? outputAllowedTokens.showNative : undefined,
+        tokensToShow: outputIsOndo ? outputAllowedTokens.tokens : undefined,
+        supportCrossChain: !outputIsOndo,
+        showCommonBases: !outputIsOndo,
+        showNative: outputIsOndo ? outputAllowedTokens.showNative : undefined,
       },
       outputConfig: {
-        tokensToShow: inputIsRwa ? inputAllowedTokens.tokens : undefined,
-        supportCrossChain: !inputIsRwa,
-        showCommonBases: !inputIsRwa,
-        showNative: inputIsRwa ? inputAllowedTokens.showNative : undefined,
+        tokensToShow: inputIsOndo ? inputAllowedTokens.tokens : undefined,
+        supportCrossChain: !inputIsOndo,
+        showCommonBases: !inputIsOndo,
+        showNative: inputIsOndo ? inputAllowedTokens.showNative : undefined,
       },
     }),
-    [inputAllowedTokens, inputIsRwa, outputAllowedTokens, outputIsRwa],
+    [inputAllowedTokens, inputIsOndo, outputAllowedTokens, outputIsOndo],
   )
 }
 
-export type { RwaPanelConfig }
+export type { OndoPanelConfig }

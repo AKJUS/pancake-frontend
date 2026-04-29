@@ -25,13 +25,14 @@ import uniqueId from 'lodash/uniqueId'
 import { useMemo } from 'react'
 import {
   combinedCurrenciesMapFromActiveUrlsAtom,
-  combinedTokenMapFromActiveUrlsAtom,
   combinedTokenMapFromOfficialsUrlsAtom,
   combinedTokenMapFromUnsupportedUrlsAtom,
+  rwaExclusiveCombinedTokenMapFromActiveUrlsAtom,
   useUnsupportedTokenList,
   useWarningTokenList,
 } from 'state/lists/hooks'
 import { SOLANA_NATIVE_TOKEN_ADDRESS } from 'quoter/consts'
+import { rwaExclusiveTokenFilterAtom } from 'rwa/familyTokenAtoms'
 import { safeGetAddress, safeGetUnifiedAddress } from 'utils'
 import { accountActiveChainAtom } from 'wallet/atoms/accountStateAtoms'
 import { atomFamily } from 'jotai/utils'
@@ -58,6 +59,17 @@ export const mapWithoutUrls = (tokenMap?: TokenAddressMap<ChainId>, chainId?: nu
   }, {})
 }
 
+const filterTokenMap = (
+  tokens: { [address: string]: ERC20Token },
+  shouldIncludeToken: (token: ERC20Token) => boolean,
+) =>
+  Object.entries(tokens).reduce<{ [address: string]: ERC20Token }>((acc, [address, token]) => {
+    if (shouldIncludeToken(token)) {
+      acc[address] = token
+    }
+    return acc
+  }, {})
+
 const mapWithoutUrlsBySymbol = (tokenMap?: TokenAddressMap<ChainId>, chainId?: number) => {
   if (!tokenMap || !chainId) return {}
   return Object.keys(tokenMap[chainId] || {}).reduce<{ [symbol: string]: ERC20Token }>((newMap, symbol) => {
@@ -74,7 +86,8 @@ export function useAllTokens(overrideChainId?: number): { [address: string]: ERC
   const { chainId: activeChainId } = useActiveChainId()
   const chainId = overrideChainId || activeChainId
 
-  const tokenMap = useAtomValue(combinedTokenMapFromActiveUrlsAtom)
+  const tokenMap = useAtomValue(rwaExclusiveCombinedTokenMapFromActiveUrlsAtom)
+  const shouldIncludeToken = useAtomValue(rwaExclusiveTokenFilterAtom)
   const userAddedTokens = useUserAddedTokens(chainId)
   return useMemo(() => {
     const allTokens = userAddedTokens
@@ -91,11 +104,11 @@ export function useAllTokens(overrideChainId?: number): { [address: string]: ERC
         },
         // must make a copy because reduce modifies the map, and we do not
         // want to make a copy in every iteration
-        mapWithoutUrls(tokenMap, chainId),
+        filterTokenMap(mapWithoutUrls(tokenMap, chainId), shouldIncludeToken),
       )
 
     return allTokens
-  }, [userAddedTokens, tokenMap, chainId])
+  }, [userAddedTokens, tokenMap, chainId, shouldIncludeToken])
 }
 
 export type TokenChainAddressMap<TChainId extends number = number> = {
@@ -105,12 +118,14 @@ export type TokenChainAddressMap<TChainId extends number = number> = {
 }
 
 const tokenMapCache = new WeakMap<TokenAddressMap<ChainId>, string>()
+const tokenFilterCache = new WeakMap<(token: ERC20Token) => boolean, string>()
 
 const memoizedTokenMap = memoize(
   (
     chainIds: ChainId[],
     tokenMap: TokenAddressMap<ChainId>,
     userAddedTokenMap: { [p: number]: Token[] },
+    shouldIncludeToken: (token: ERC20Token) => boolean,
   ): TokenChainAddressMap => {
     return chainIds.reduce<TokenChainAddressMap>((tokenMap_, chainId) => {
       tokenMap_[chainId] = tokenMap_[chainId] || {}
@@ -122,19 +137,25 @@ const memoizedTokenMap = memoize(
       })
       Object.keys(tokenMap[chainId] || {}).forEach((address) => {
         const checksumAddress = safeGetAddress(address)
-        if (checksumAddress && !tokenMap_[chainId][checksumAddress]) {
-          tokenMap_[chainId][checksumAddress] = tokenMap[chainId][address].token
+        const { token } = tokenMap[chainId][address]
+        if (checksumAddress && !tokenMap_[chainId][checksumAddress] && shouldIncludeToken(token)) {
+          tokenMap_[chainId][checksumAddress] = token
         }
       })
 
       return tokenMap_
     }, {})
   },
-  (chainIds, tokenMap, userAddedTokenMap) => {
+  (chainIds, tokenMap, userAddedTokenMap, shouldIncludeToken) => {
     let tokenMapId = tokenMapCache.get(tokenMap)
     if (!tokenMapId) {
       tokenMapId = uniqueId()
       tokenMapCache.set(tokenMap, tokenMapId)
+    }
+    let tokenFilterId = tokenFilterCache.get(shouldIncludeToken)
+    if (!tokenFilterId) {
+      tokenFilterId = uniqueId()
+      tokenFilterCache.set(shouldIncludeToken, tokenFilterId)
     }
     const chainIdsKey = chainIds.join(',')
     // User-added tokens are small and contain only the token; stringify can be used.
@@ -144,21 +165,22 @@ const memoizedTokenMap = memoize(
         return acc
       }, {} as { [p: number]: string[] }),
     )
-    return `${chainIdsKey}:${tokenMapId}:${userAddedTokenMapKey}`
+    return `${chainIdsKey}:${tokenMapId}:${tokenFilterId}:${userAddedTokenMapKey}`
   },
 )
 
 export function useTokensByChainIds(chainIds: number[], tokenMap: TokenAddressMap<ChainId>): TokenChainAddressMap {
   const userAddedTokenMap = useUserAddedTokensByChainIds(chainIds)
+  const shouldIncludeToken = useAtomValue(rwaExclusiveTokenFilterAtom)
 
-  return memoizedTokenMap(chainIds, tokenMap, userAddedTokenMap)
+  return memoizedTokenMap(chainIds, tokenMap, userAddedTokenMap, shouldIncludeToken)
 }
 
 /**
  * Returns all tokens that are from active urls and user added tokens
  */
 export function useAllTokensByChainIds(chainIds: number[]): TokenChainAddressMap {
-  const allTokenMap = useAtomValue(combinedTokenMapFromActiveUrlsAtom)
+  const allTokenMap = useAtomValue(rwaExclusiveCombinedTokenMapFromActiveUrlsAtom)
   return useTokensByChainIds(chainIds, allTokenMap)
 }
 
@@ -541,7 +563,7 @@ export const currencyByChainIdAtom = atomFamily(
       if (address && unsupportedTokenMap[address]) return undefined
 
       // TODO: Check for list of user-added tokens
-      const tokens = get(combinedTokenMapFromActiveUrlsAtom)
+      const tokens = get(rwaExclusiveCombinedTokenMapFromActiveUrlsAtom)
 
       // Token found in list
       const tokenData = tokens[chainId][address]
