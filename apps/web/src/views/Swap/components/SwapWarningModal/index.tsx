@@ -87,7 +87,7 @@ const SwapWarningModal: React.FC<React.PropsWithChildren<SwapWarningModalProps>>
                   <Box mt="8px">
                     <Text mb="8px">
                       {t(
-                        'This token has been flagged as high risk. Please do your own research and proceed with caution.',
+                        'This token has been flagged by a third-party risk scanner. Please do your own research and proceed with caution.',
                       )}
                     </Text>
                     <Text>
