@@ -335,7 +335,7 @@ function CurrencySearch({
 
   // Native balances across all chains (eth_getBalance per chain in parallel).
   // Returns only chains where balance > 0. Graceful degradation: failed chains produce no row.
-  const multichainNatives = useMultichainNativeBalances(
+  const { balances: multichainNatives } = useMultichainNativeBalances(
     showMultichainBalances ? evmAccount : undefined,
     showMultichainBalances ? solanaAccount ?? undefined : undefined,
     { enabled: Boolean(showMultichainBalances) },

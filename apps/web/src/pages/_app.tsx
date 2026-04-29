@@ -37,6 +37,7 @@ import { useWeb3WalletView } from 'hooks/useWeb3WalletView'
 import { useInitGlobalWorker } from 'hooks/useWorker'
 import { useSecurityBlocking } from 'hooks/useSecurityBlocking'
 import { usePostHog } from 'hooks/usePostHog'
+import { useInvalidateBalancesOnTx } from 'hooks/useInvalidateBalancesOnTx'
 import { persistor, useStore } from 'state'
 import { usePollBlockNumber } from 'state/block/hooks'
 import WalletModalManager from 'components/WalletModalManager'
@@ -83,6 +84,7 @@ function GlobalHooks() {
   useEmbeddedSmartAccountConnectorV2()
   useGlobalLinkHandler()
   useInitSolanaExplorer()
+  useInvalidateBalancesOnTx()
   return null
 }
 

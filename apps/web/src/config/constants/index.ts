@@ -34,6 +34,10 @@ export const QUERY_SETTINGS_WITHOUT_INTERVAL_REFETCH = {
 
 export const PERSIST_CHAIN_KEY = 'persistChain'
 
+export const ADDRESS_BALANCE_QUERY_KEY = 'addressBalances'
+
+export const NATIVE_BALANCE_QUERY_KEY = 'nativeBalance'
+
 export const LS_CB1 = 'cb1-state'
 
 export const PANCAKE_CLMM_PROGRAM_ID = new PublicKey('HpNfyc2Saw7RKkQd8nEL4khUcuPhQ7WwY1B2qjx8jxFq')

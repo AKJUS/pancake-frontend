@@ -140,6 +140,9 @@ export const useFetchBlockData = (chainId: number) => {
       if (provider) {
         const block = await provider.getBlock()
         updateBlockQueryData(queryClient, chainId, block)
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('pcs:refetchBlockData', { detail: { chainId } }))
+        }
       }
     } catch (error) {
       console.error('Error fetching block data:', error)

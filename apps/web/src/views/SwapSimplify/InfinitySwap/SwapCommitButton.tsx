@@ -1,6 +1,6 @@
 import { Currency, CurrencyAmount } from '@pancakeswap/swap-sdk-core'
 import { AutoColumn, Button, Dots, Message, MessageText, Text, useModal } from '@pancakeswap/uikit'
-import { useAddressBalance } from 'hooks/useAddressBalance'
+import { useAddressBalance, useMultichainNativeBalances } from 'hooks/useAddressBalance'
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useTranslation } from '@pancakeswap/localization'
@@ -256,6 +256,7 @@ const SwapCommitButtonInner = memo(function SwapCommitButtonInner({
     useConfirmModalState(orderToExecute, amountToApprove?.wrapped, spender)
 
   const { onUserInput } = useSwapActionHandlers()
+
   const reset = useCallback(() => {
     afterCommit?.()
     setTradeToConfirm(undefined)
@@ -307,9 +308,13 @@ const SwapCommitButtonInner = memo(function SwapCommitButtonInner({
   )
 
   // Get the refresh function from useAddressBalance to update balances after swap
-  const { refresh: refreshBalances } = useAddressBalance(isSolana(chainId) ? solanaAccount : account, {
+  const { refresh: refreshEvmBalances } = useAddressBalance(account, {
     enabled: false,
   })
+  const { refresh: refreshSolanaBalances } = useAddressBalance(solanaAccount, {
+    enabled: false,
+  })
+  const { refresh: refreshNativeBalances } = useMultichainNativeBalances(account, solanaAccount, { enabled: false })
 
   const onConfirm = useCallback(() => {
     beforeCommit?.()
@@ -408,19 +413,27 @@ const SwapCommitButtonInner = memo(function SwapCommitButtonInner({
       logGTMSwapTxSuccessEvent({
         txHash: txHash ?? '',
       })
-
       // Add this txHash to the processed list
       processedTxHashesRef.current.push(txHash)
 
-      // Refresh balances
-      if (refreshBalances) {
-        // delay refresh balances
+      const isBridge = isBridgeOrder(tradeToConfirm)
+      const outputChainId = tradeToConfirm?.trade?.outputAmount?.currency?.chainId
+
+      // Refresh balances for bridge orders only — non-bridge swaps are handled by the tx updater
+      // Bridge orders need longer delay for cross-chain settlement
+      if (isBridge) {
         setTimeout(() => {
-          refreshBalances()
+          if (isSolana(outputChainId)) refreshSolanaBalances?.()
+          else refreshEvmBalances?.()
+          refreshNativeBalances?.()
         }, 15000)
       }
     }
-  }, [confirmState, txHash, refreshBalances])
+    // tradeToConfirm is intentionally omitted from deps — adding it would cause a redundant refresh
+    // when handleSwap sets tradeToConfirm before resetState(), which briefly satisfies all conditions
+    // with the old confirmState/txHash
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmState, txHash, refreshEvmBalances, refreshSolanaBalances, refreshNativeBalances])
 
   // Use quote tracking state machine hook to ensure proper order: start -> success/fail
   // if any quote logic is changed, please update the hook

@@ -11,7 +11,6 @@ import { UltraSwapError, UltraSwapErrorType, ultraSwapService } from '@pancakesw
 import { confirmTransaction } from '@pancakeswap/solana-core-sdk'
 
 import useAccountActiveChain from 'hooks/useAccountActiveChain'
-import { useRefreshSolanaTokenBalances } from 'state/token/solanaTokenBalances'
 import { useSolanaConnectionWithRpcAtom } from 'hooks/solana/useSolanaConnectionWithRpcAtom'
 import MultisigToastDescription from 'components/Toast/MultisigToastDescription'
 import { isMultisigWallet } from 'utils/solana/isMultisigWallet'
@@ -26,7 +25,6 @@ export const useSolSwapStep = (context: ConfirmStepContext) => {
   const { toastSuccess } = useToast()
   const { t } = useTranslation()
   const addSwapTransaction = useSwapRecordTransaction(order?.trade?.inputAmount.currency.chainId, solanaAccount || '')
-  const refreshSolanaBalances = useRefreshSolanaTokenBalances(solanaWallet?.adapter.publicKey?.toBase58())
   const retryWaitForSolanaTransaction = useCallback(
     async (signature?: string) => {
       if (!signature) return undefined
@@ -111,7 +109,6 @@ export const useSolSwapStep = (context: ConfirmStepContext) => {
           if (!isMultisig) {
             // Wait for transaction confirmation then refresh balances
             await retryWaitForSolanaTransaction(signature)
-            refreshSolanaBalances()
             setConfirmState(ConfirmModalState.COMPLETED)
           } else {
             setConfirmState(ConfirmModalState.MULTISIG_SUBMITTED)
@@ -144,7 +141,6 @@ export const useSolSwapStep = (context: ConfirmStepContext) => {
     t,
     signTransaction,
     retryWaitForSolanaTransaction,
-    refreshSolanaBalances,
     solanaWallet,
     addSwapTransaction,
     setConfirmState,

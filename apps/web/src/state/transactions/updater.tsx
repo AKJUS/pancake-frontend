@@ -86,10 +86,10 @@ export const Updater: React.FC<{ chainId: number }> = ({ chainId }) => {
                 },
               }),
             )
-            const toast = receipt.status === 'success' ? toastSuccess : toastError
             if (receipt.status === 'success') {
               refetchBlockData()
             }
+            const toast = receipt.status === 'success' ? toastSuccess : toastError
             toast(
               t('Transaction receipt'),
               <ToastDescriptionWithTx txHash={receipt.transactionHash} txChainId={chainId} />,
@@ -127,6 +127,9 @@ export const Updater: React.FC<{ chainId: number }> = ({ chainId }) => {
                         },
                       }),
                     )
+                    if (safeReceipt.status === 'success') {
+                      refetchBlockData()
+                    }
                     return
                   }
                 }
@@ -326,6 +329,9 @@ export const SolanaTransactionUpdater = () => {
               status: tx.value?.err ? 'reverted' : 'success',
               blockHash: receipt.blockHash as `0x${string}`,
             })
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('pcs:successSolTx', { detail: { chainId: NonEVMChainId.SOLANA } }))
+            }
           } catch (error) {
             console.error('Error fetching Solana transaction:', error)
             if (error instanceof TransactionNotFoundError || error instanceof TransactionReceiptNotFoundError) {

@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { PublicKey } from '@solana/web3.js'
 import { NonEVMChainId } from '@pancakeswap/chains'
 import { useSolanaTokenBalance, useSolanaTokenBalances } from 'state/token/solanaTokenBalances'
+import { NATIVE_BALANCE_QUERY_KEY } from 'config/constants'
 import { useCurrencyBalance, useCurrencyBalances } from '../state/wallet/hooks'
 import { useAccountActiveChain } from './useAccountActiveChain'
 import { useSolanaConnectionWithRpcAtom } from './solana/useSolanaConnectionWithRpcAtom'
@@ -26,7 +27,7 @@ export function useUnifiedCurrencyBalance(currency?: UnifiedCurrency | null): Un
   // Native SOL balance — same cache key as useMultichainNativeBalances, so this hits the cache
   // when that hook has already fetched the balance (e.g. from the multichain token modal).
   const { data: solanaNativeLamports } = useQuery({
-    queryKey: ['nativeBalance', solanaAccount, NonEVMChainId.SOLANA] as const,
+    queryKey: [NATIVE_BALANCE_QUERY_KEY, solanaAccount, NonEVMChainId.SOLANA] as const,
     queryFn: async (): Promise<bigint> => {
       const lamports = await connection.getBalance(new PublicKey(solanaAccount!))
       return BigInt(lamports)
