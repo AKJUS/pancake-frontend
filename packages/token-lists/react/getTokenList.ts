@@ -17,13 +17,11 @@ export async function getTokenList(listUrl: string): Promise<TokenList | undefin
     try {
       const json = await fetchJson(url)
       if (!validator(json)) {
-        const preFilterErrors = validator.errors
         json.tokens = json.tokens.filter((token: any) => validator({ ...json, tokens: [token] }))
         if (!validator(json)) {
           const { errors } = validator
           throw new Error(`Validation failed after filtering: ${JSON.stringify(errors)}`)
         }
-        console.warn(`Pre-filter validation errors: ${JSON.stringify(preFilterErrors)}`)
       }
       return json as TokenList
     } catch (error) {
